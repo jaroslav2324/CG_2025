@@ -42,6 +42,8 @@ void Game::init()
 		throw GraphicsException("Device and swap chain creation failed");
 	}
 
+	shaderManager = std::make_shared<ShaderManager>(device);
+
 	res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex);	// __uuidof(ID3D11Texture2D)
 	if (FAILED(res))
 	{
@@ -137,11 +139,11 @@ int Game::createTriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::move(points),
 		std::move(strides),
 		std::move(offsets),
-		L"./shaders/MyVeryFirstShader.hlsl",
-		L"./shaders/MyVeryFirstShader.hlsl",
 		std::move(indices)
 	));
-	components[components.size() - 1]->init(this);
+	components[components.size() - 1]->init(this, shaderManager,
+		L"./shaders/vertexShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
 	return 0;
 }
 

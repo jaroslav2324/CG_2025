@@ -11,6 +11,7 @@
 #include "util.h"
 #include "appExceptions.h"
 #include "WindowHandler.h"
+#include "ShaderManager.h"
 #include "TriangleComponent.h"
 
 class Game {
@@ -29,6 +30,7 @@ public:
 	ID3D11DeviceContext* getDeviceContext();
 private:
 	WindowHandler winHandler;
+	std::shared_ptr<ShaderManager> shaderManager = nullptr;
 	HWND hWnd;
 
 	ID3D11Device* device = nullptr;

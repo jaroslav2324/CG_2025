@@ -4,15 +4,11 @@
 TriangleComponent::TriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	std::vector<UINT>&& strides,
 	std::vector<UINT>&& offsets,
-	const std::wstring& relVertShaderPath,
-	const std::wstring& relPixShaderPath,
 	std::vector<int>&& indices)
 {
 	this->points = std::move(points);
 	this->strides = std::move(strides);
 	this->offsets = std::move(offsets);
-	this->relVertShaderPath = relVertShaderPath;
-	this->relPixShaderPath = relPixShaderPath;
 	this->indices = indices;
 }
 
@@ -21,41 +17,29 @@ TriangleComponent::~TriangleComponent()
 	destroyResources();
 }
 
-int TriangleComponent::init(Game* game)
+int TriangleComponent::init(Game* game, 
+	std::shared_ptr<ShaderManager> shaderManager,
+	const std::wstring& vertShaderPath,
+	const std::wstring& pixShaderPath)
 {
 	this->game = game;
 
-	ID3DBlob* errorVertexCode = nullptr;
-	auto res = D3DCompileFromFile(relVertShaderPath.c_str(),
-		nullptr /*macros*/,
-		nullptr /*include*/,
-		"VSMain",
-		"vs_5_0",
-		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-		0,
-		&vertexByteCode,
-		&errorVertexCode);
+	
+	if (!shaderManager->getShader(vertShaderPath)) {
+		shaderManager->compileShader(vertShaderPath, "VSMain", "vs_5_0", nullptr);
+	};
+	vertexByteCode = shaderManager->getShader(vertShaderPath);
 
-	processShaderCompileResult(res, errorVertexCode);
-
-	D3D_SHADER_MACRO Shader_Macros[] = {
+	D3D_SHADER_MACRO shaderMacros[] = {
 		"TEST", "1", "TCOLOR",
 		"float4(0.0f, 1.0f, 0.0f, 1.0f)",
 		nullptr, nullptr 
 	};
 
-	ID3DBlob* errorPixelCode;
-	res = D3DCompileFromFile(relPixShaderPath.c_str(),
-		Shader_Macros /*macros*/,
-		nullptr /*include*/,
-		"PSMain", "ps_5_0",
-		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-		0,
-		&pixelByteCode,
-		&errorPixelCode
-	);
-
-	processShaderCompileResult(res, errorPixelCode);
+	if (!shaderManager->getShader(pixShaderPath)) {
+		shaderManager->compileShader(pixShaderPath, "PSMain", "ps_5_0", shaderMacros);
+	};
+	pixelByteCode = shaderManager->getShader(pixShaderPath);
 
 	ID3D11Device* device = game->getDevice();
 	device->CreateVertexShader(
@@ -128,7 +112,7 @@ int TriangleComponent::init(Game* game)
 	rastDesc.CullMode = D3D11_CULL_NONE;
 	rastDesc.FillMode = D3D11_FILL_SOLID;
 
-	res = device->CreateRasterizerState(&rastDesc, &rastState);
+	HRESULT res = device->CreateRasterizerState(&rastDesc, &rastState);
 	if (FAILED(res)) {
 		throw GraphicsException("rasterizer state creation failed");
 	}
@@ -166,21 +150,4 @@ void TriangleComponent::destroyResources()
 	releaseIfNotNullptr(&indexBuffer);
 
 	releaseIfNotNullptr(&rastState);
-}
-
-void TriangleComponent::processShaderCompileResult(HRESULT res, ID3DBlob* errorCode) const
-{
-	if (FAILED(res)) {
-
-		// If the shader failed to compile it should have written something to the error message.
-		if (errorCode) {
-			const char* compileErrors = (char*)(errorCode->GetBufferPointer());
-			throw ShaderException(compileErrors);
-		}
-		// If there was  nothing in the error message then it simply could not find the shader file itself.
-		else
-		{
-			throw ShaderException("No shader file found");
-		}
-	}
 }

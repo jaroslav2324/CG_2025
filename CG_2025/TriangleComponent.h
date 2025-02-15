@@ -18,12 +18,12 @@ public:
 	TriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::vector<UINT>&& strides,
 		std::vector<UINT>&& offsets,
-		const std::wstring& relVertShaderPath,
-		const std::wstring& relPixShaderPath,
 		std::vector<int>&& indices);
 	~TriangleComponent() override;
 
-	int init(Game* game) override;
+	int init(Game* game, std::shared_ptr<ShaderManager>,
+		const std::wstring& vertShaderPath,
+		const std::wstring& pixShaderPath) override;
 	int draw() override;
 	int update() override;
 	void destroyResources() override;
@@ -38,8 +38,6 @@ private:
 
 	std::vector<DirectX::XMFLOAT4> points;
 	std::vector<int> indices;
-	std::wstring relVertShaderPath;
-	std::wstring relPixShaderPath;
 
 	ID3D11Buffer* vertexBuffer = nullptr;
 	ID3D11Buffer* indexBuffer = nullptr;
@@ -47,6 +45,4 @@ private:
 	std::vector<UINT> strides;
 	std::vector<UINT> offsets;
 	ID3D11RasterizerState* rastState = nullptr;
-
-	void processShaderCompileResult(HRESULT res, ID3DBlob* errorCode) const;
 };
