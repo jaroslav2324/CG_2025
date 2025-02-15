@@ -43,6 +43,7 @@ void Game::init()
 	}
 
 	shaderManager = std::make_shared<ShaderManager>(device);
+	bufferManger = std::make_shared<BufferManager>(device);
 
 	res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex);	// __uuidof(ID3D11Texture2D)
 	if (FAILED(res))
@@ -55,7 +56,7 @@ void Game::init()
 	{
 		throw GraphicsException("Creating render target view for back buffer failed");
 	}
-	
+
 }
 
 void Game::run()
@@ -135,13 +136,15 @@ int Game::createTriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	std::vector<int>&& indices
 )
 {
-	components.push_back(new TriangleComponent(
+	components.push_back(new MeshComponent(
 		std::move(points),
 		std::move(strides),
 		std::move(offsets),
 		std::move(indices)
 	));
-	components[components.size() - 1]->init(this, shaderManager,
+	components[components.size() - 1]->init(this,
+		shaderManager,
+		bufferManger,
 		L"./shaders/vertexShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;

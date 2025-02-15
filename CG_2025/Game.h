@@ -12,7 +12,8 @@
 #include "appExceptions.h"
 #include "WindowHandler.h"
 #include "ShaderManager.h"
-#include "TriangleComponent.h"
+#include "MeshComponent.h"
+#include "BufferManager.h"
 
 class Game {
 
@@ -31,6 +32,7 @@ public:
 private:
 	WindowHandler winHandler;
 	std::shared_ptr<ShaderManager> shaderManager = nullptr;
+	std::shared_ptr<BufferManager> bufferManger = nullptr;
 	HWND hWnd;
 
 	ID3D11Device* device = nullptr;

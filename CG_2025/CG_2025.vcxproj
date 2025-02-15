@@ -19,10 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="TriangleComponent.cpp" />
+    <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="WindowHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -35,10 +36,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="appExceptions.h" />
+    <ClInclude Include="BufferManager.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="TriangleComponent.h" />
+    <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="WindowHandler.h" />
   </ItemGroup>
