@@ -25,6 +25,7 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="WindowHandler.cpp" />
@@ -46,6 +47,7 @@
     <ClInclude Include="global.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keys.h" />
+    <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="util.h" />

@@ -34,7 +34,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 
 		RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(lpb);
 
-		std::shared_ptr<InputDevice> inputDevice = ge::getInputDevice();
+		std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 		if (raw->header.dwType == RIM_TYPEKEYBOARD)
 		{
 			//printf(" Kbd: make=%04i Flags:%04i Reserved:%04i ExtraInformation:%08i, msg=%04i VK=%i \n",

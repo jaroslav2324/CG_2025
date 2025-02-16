@@ -7,13 +7,13 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace ge {
+namespace GE {
 	static std::shared_ptr<InputDevice> inputDevice; // defaults to nullptr
 	static std::shared_ptr<WindowHandler> winHandler; // defaults to nullptr
 
 	void initGraphicsEngine();
-	void initWindowHandler();
-	void initInputDevice(std::shared_ptr<WindowHandler> winHandler);
+	static void initWindowHandler();
+	static void initInputDevice(std::shared_ptr<WindowHandler> winHandler);
 
 	const std::shared_ptr<WindowHandler> getWindowHandler();
 	const std::shared_ptr<InputDevice> getInputDevice();

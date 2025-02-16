@@ -3,7 +3,7 @@
 
 void Game::init()
 {
-	winHandler = ge::getWindowHandler();
+	winHandler = GE::getWindowHandler();
 	HWND hWnd = winHandler->getWindowHandle();
 
 	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };

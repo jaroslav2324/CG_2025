@@ -21,7 +21,7 @@
 
 int main()
 {
-	ge::initGraphicsEngine();
+	GE::initGraphicsEngine();
 	Game game;
 	game.init();
 	game.createTriangleComponent({
