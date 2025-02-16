@@ -90,7 +90,7 @@ int MeshComponent::draw()
 	return 0;
 }
 
-int MeshComponent::update()
+int MeshComponent::update(float deltaTime)
 {
 	return 0;
 }

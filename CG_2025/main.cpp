@@ -11,6 +11,7 @@
 #include <directxmath.h>
 #include <chrono>
 
+#include "global.h"
 #include "Game.h"
 
 #pragma comment(lib, "d3d11.lib")
@@ -18,10 +19,9 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
-
 int main()
 {
-
+	ge::initGraphicsEngine();
 	Game game;
 	game.init();
 	game.createTriangleComponent({
@@ -29,8 +29,8 @@ int main()
 		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
 		DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		}, 
-		{ 32 }, 
+		},
+		{ 32 },
 		{ 0 },
 		{ 0,1,2,1,0,3 }
 		);
@@ -46,7 +46,7 @@ int main()
 		);
 	game.run();
 
-    std::cout << "Hello World!\n";
+	std::cout << "Hello World!\n";
 	return 0;
 }
 

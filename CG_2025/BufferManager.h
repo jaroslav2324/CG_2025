@@ -26,7 +26,7 @@ public:
 	D3D11_SUBRESOURCE_DATA getDefaultSubresourceData(const std::vector<T>& data) const;
 
 	template <typename T>
-	D3D11_BUFFER_DESC getBasicBufferDescription(const std::vector<T>& data);
+	D3D11_BUFFER_DESC getBasicBufferDescription(const std::vector<T>& data) const;
 private:
 	ID3D11Device* device = nullptr;
 
@@ -43,7 +43,7 @@ inline D3D11_SUBRESOURCE_DATA BufferManager::getDefaultSubresourceData(const std
 }
 
 template<typename T>
-inline D3D11_BUFFER_DESC BufferManager::getBasicBufferDescription(const std::vector<T>& data)
+inline D3D11_BUFFER_DESC BufferManager::getBasicBufferDescription(const std::vector<T>& data) const
 {
 	D3D11_BUFFER_DESC buffDesc = {};
 	buffDesc.Usage = D3D11_USAGE_DEFAULT;

@@ -30,7 +30,6 @@ public:
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
 private:
-	WindowHandler winHandler;
 	std::shared_ptr<ShaderManager> shaderManager = nullptr;
 	std::shared_ptr<BufferManager> bufferManger = nullptr;
 	HWND hWnd;
@@ -43,6 +42,5 @@ private:
 
 	std::vector<GameComponent*> components;
 
-	const int screenWidth = 800;
-	const int screenHeight = 800;
+	std::shared_ptr<WindowHandler> winHandler = nullptr;
 };

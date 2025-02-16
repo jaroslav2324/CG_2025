@@ -17,7 +17,7 @@ public:
 		std::shared_ptr<BufferManager> bufferManager,
 		const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) = 0;
-	virtual int update() = 0;
+	virtual int update(float deltaTime) = 0;
 	virtual void destroyResources() = 0;
 	virtual int draw() = 0;
 

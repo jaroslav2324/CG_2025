@@ -1,15 +1,17 @@
 #include "Game.h"
+#include "global.h"
 
 void Game::init()
 {
-	hWnd = winHandler.getWindowHandler(screenWidth, screenHeight);
+	winHandler = ge::getWindowHandler();
+	HWND hWnd = winHandler->getWindowHandle();
 
 	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };
 
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferCount = 2;
-	swapDesc.BufferDesc.Width = screenWidth;
-	swapDesc.BufferDesc.Height = screenHeight;
+	swapDesc.BufferDesc.Width = winHandler->getWinWidth();
+	swapDesc.BufferDesc.Height = winHandler->getWinHeight();
 	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
@@ -88,8 +90,8 @@ int Game::draw()
 	context->ClearState();
 
 	D3D11_VIEWPORT viewport = {};
-	viewport.Width = static_cast<float>(screenWidth);
-	viewport.Height = static_cast<float>(screenHeight);
+	viewport.Width = static_cast<float>(winHandler->getWinWidth());
+	viewport.Height = static_cast<float>(winHandler->getWinHeight());
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0;

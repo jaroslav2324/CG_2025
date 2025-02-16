@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferManager.cpp" />
+    <ClCompile Include="Delegates.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="global.cpp" />
+    <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -37,8 +40,12 @@
   <ItemGroup>
     <ClInclude Include="appExceptions.h" />
     <ClInclude Include="BufferManager.h" />
+    <ClInclude Include="Delegates.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="Keys.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="util.h" />
