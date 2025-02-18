@@ -22,29 +22,35 @@
 int main()
 {
 	GE::initGraphicsEngine();
-	Game game;
-	game.init();
-	game.createTriangleComponent({
-		DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		},
-		{ 32 },
-		{ 0 },
-		{ 0,1,2,1,0,3 }
-		);
-	game.createTriangleComponent({
-		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.7f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.7f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		},
-		{ 32 },
-		{ 0 },
-		{ 0,1,2,1,0,3 }
-		);
-	game.run();
+	auto physicsSubsystem = GE::getPhysicsSubsystem();
+	float freq = 1.0 / 60.0;
+	while (true) {
+		physicsSubsystem->updatePhysics(freq);
+		Sleep(freq);
+	}
+	//Game game;
+	//game.init();
+	//game.createTriangleComponent({
+	//	DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+	//	DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+	//	DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+	//	DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+	//	},
+	//	{ 32 },
+	//	{ 0 },
+	//	{ 0,1,2,1,0,3 }
+	//	);
+	//game.createTriangleComponent({
+	//	DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+	//	DirectX::XMFLOAT4(-0.7f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+	//	DirectX::XMFLOAT4(-0.5f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+	//	DirectX::XMFLOAT4(-0.7f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+	//	},
+	//	{ 32 },
+	//	{ 0 },
+	//	{ 0,1,2,1,0,3 }
+	//	);
+	//game.run();
 
 	std::cout << "Hello World!\n";
 	return 0;
