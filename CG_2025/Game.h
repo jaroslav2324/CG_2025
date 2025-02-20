@@ -21,7 +21,7 @@ public:
 	void init();
 	void run();
 	int draw();
-	int createTriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
+	int createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::vector<UINT>&& strides,
 		std::vector<UINT>&& offsets,
 		std::vector<int>&& indices);

@@ -1,5 +1,7 @@
 #include "global.h"
 
+
+
 const std::shared_ptr<WindowHandler> GE::getWindowHandler()
 {
 	assert(winHandler);
@@ -18,11 +20,18 @@ const std::shared_ptr<PhysicsSubsystem> GE::getPhysicsSubsystem()
 	return physicsSubsystem;
 }
 
+const std::shared_ptr<Game> GE::getGameSubsystem()
+{
+	assert(gameSubsystem);
+	return gameSubsystem;
+}
+
 void GE::initGraphicsEngine()
 {
 	initWindowHandler();
 	initInputDevice(winHandler);
 	initPhysicsSubsystem();
+	initGameSubsystem();
 }
 
 void GE::initWindowHandler()
@@ -43,5 +52,12 @@ void GE::initPhysicsSubsystem()
 {
 	if (!physicsSubsystem) {
 		physicsSubsystem = std::make_shared<PhysicsSubsystem>();
+	}
+}
+
+void GE::initGameSubsystem()
+{
+	if (!gameSubsystem) {
+		gameSubsystem = std::make_shared<Game>();
 	}
 }

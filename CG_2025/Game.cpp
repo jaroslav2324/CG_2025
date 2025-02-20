@@ -132,7 +132,7 @@ int Game::draw()
 	return 0;
 }
 
-int Game::createTriangleComponent(std::vector<DirectX::XMFLOAT4>&& points,
+int Game::createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	std::vector<UINT>&& strides,
 	std::vector<UINT>&& offsets,
 	std::vector<int>&& indices

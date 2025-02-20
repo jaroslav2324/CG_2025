@@ -26,8 +26,10 @@
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PhysicsSubsystem.cpp" />
+    <ClCompile Include="RectComponent.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="util.cpp" />
     <ClCompile Include="WindowHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -48,17 +50,28 @@
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
+    <ClInclude Include="RectComponent.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="WindowHandler.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\vcpkg.json" />
+  </ItemGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgEnabled>true</VcpkgEnabled>
+    <VcpkgManifestInstall>true</VcpkgManifestInstall>
+    <VcpkgAutoLink>true</VcpkgAutoLink>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{83040049-5693-41f5-90fb-9ef27df2b6f9}</ProjectGuid>
     <RootNamespace>CG2025</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows</VcpkgTriplet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -105,6 +118,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseMD>true</VcpkgUseMD>
+    <VcpkgConfiguration>Debug</VcpkgConfiguration>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

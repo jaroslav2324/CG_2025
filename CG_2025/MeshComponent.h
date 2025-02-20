@@ -7,12 +7,13 @@
 #include <d3d.h>
 #include <d3d11.h>
 #include <directxmath.h>
+#include <directxtk/SimpleMath.h>
 
 #include "util.h"
 #include "GameComponent.h"
 #include "appExceptions.h"
 
-class MeshComponent final : public GameComponent {
+class MeshComponent : public GameComponent {
 public:
 	MeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::vector<UINT>&& strides,
