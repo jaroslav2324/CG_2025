@@ -61,6 +61,13 @@ void Game::init()
 
 }
 
+void Game::update(float deltaTime)
+{
+	for (const auto gameComponent : components) {
+		gameComponent->update(deltaTime);
+	}
+}
+
 void Game::run()
 {
 	MSG msg = {};
@@ -103,6 +110,7 @@ int Game::draw()
 	context->ClearRenderTargetView(rtv, color);
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
+
 	for (const auto gameComponent : components) {
 		gameComponent->draw();
 	}
@@ -116,6 +124,11 @@ int Game::draw()
 
 	totalTime += deltaTime;
 	frameCount++;
+
+	// TODO: move this to update, move fps counting from here
+	for (const auto gameComponent : components) {
+		gameComponent->update(deltaTime);
+	}
 
 	if (totalTime > 1.0f) {
 		float fps = frameCount / totalTime;

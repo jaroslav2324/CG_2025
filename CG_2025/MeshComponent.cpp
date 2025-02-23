@@ -9,7 +9,7 @@ MeshComponent::MeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	this->points = std::move(points);
 	this->strides = std::move(strides);
 	this->offsets = std::move(offsets);
-	this->indices = indices;
+	this->indices = std::move(indices);
 }
 
 MeshComponent::~MeshComponent()
@@ -54,13 +54,14 @@ int MeshComponent::init(Game* game,
 		nullptr, &pixelShader);
 
 	layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
+
 	D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
 	D3D11_SUBRESOURCE_DATA vertexData = bufferManager->getDefaultSubresourceData(points);
 	vertexBuffer = bufferManager->createBuffer(vertexBufDesc, vertexData);
+	offsetBuffer = bufferManager->createConstDynamicBufferCPUWrite(pointsOffsets);
 
 	D3D11_BUFFER_DESC indexBufDesc = bufferManager->getBasicBufferDescription(indices);
 	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
 	D3D11_SUBRESOURCE_DATA indexData = bufferManager->getDefaultSubresourceData(indices);
 	indexBuffer = bufferManager->createBuffer(indexBufDesc, indexData);
 
@@ -83,6 +84,8 @@ int MeshComponent::draw()
 	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = vertexBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
+	ID3D11Buffer* rawOffsetBuffer = offsetBuffer.Get();
+	context->VSSetConstantBuffers(0, 1, &rawOffsetBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 
@@ -92,6 +95,14 @@ int MeshComponent::draw()
 
 int MeshComponent::update(float deltaTime)
 {
+	D3D11_MAPPED_SUBRESOURCE res = {};
+	ID3D11DeviceContext* context = game->getDeviceContext();
+	ID3D11Buffer* rawOffsetBuffer = offsetBuffer.Get();
+	context->Map(rawOffsetBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	void* pointsDataPtr = pointsOffsets.data();
+	memcpy(dataPtr, pointsDataPtr, sizeof(points[0]) * points.size());
+	context->Unmap(rawOffsetBuffer, 0);
 	return 0;
 }
 

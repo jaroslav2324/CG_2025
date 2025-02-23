@@ -30,6 +30,8 @@ public:
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
 private:
+	void update(float deltaTime);
+
 	std::shared_ptr<ShaderManager> shaderManager = nullptr;
 	std::shared_ptr<BufferManager> bufferManger = nullptr;
 	HWND hWnd;

@@ -19,6 +19,8 @@ public:
 
 	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode);
 
+	template <typename T>
+	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(const std::vector<T>& data);
 	ComPtr <ID3D11Buffer> createBuffer(const D3D11_BUFFER_DESC buffDesc,
 		const D3D11_SUBRESOURCE_DATA subresourceData);
 
@@ -31,6 +33,18 @@ private:
 	ID3D11Device* device = nullptr;
 
 };
+
+template<typename T>
+inline ComPtr<ID3D11Buffer> BufferManager::createConstDynamicBufferCPUWrite(const std::vector<T>& data)
+{
+	auto subresData = getDefaultSubresourceData<T>(data);
+	auto buffDesc = getBasicBufferDescription<T>(data);
+	buffDesc.Usage = D3D11_USAGE_DYNAMIC;
+	buffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	return createBuffer(buffDesc, subresData);
+}
 
 template<typename T>
 inline D3D11_SUBRESOURCE_DATA BufferManager::getDefaultSubresourceData(const std::vector<T>& data) const

@@ -39,9 +39,13 @@ private:
 
 	std::vector<DirectX::XMFLOAT4> points;
 	std::vector<int> indices;
+	std::vector <DirectX::XMFLOAT4> pointsOffsets = {
+	DirectX::XMFLOAT4(0.0f, 0.2f, 0.0f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f)
+	};
 
 	ComPtr <ID3D11Buffer> vertexBuffer = nullptr;
 	ComPtr <ID3D11Buffer> indexBuffer = nullptr;
+	ComPtr <ID3D11Buffer> offsetBuffer = nullptr;
 
 	std::vector<UINT> strides;
 	std::vector<UINT> offsets;
