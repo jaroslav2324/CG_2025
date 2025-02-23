@@ -52,8 +52,5 @@ private:
 		std::vector<UINT>&& strides,
 		std::vector<UINT>&& offsets,
 		std::vector<int>&& indices);
-	int createRectComponent(std::vector<DirectX::XMFLOAT4>&& points,
-		std::vector<UINT>&& strides,
-		std::vector<UINT>&& offsets,
-		std::vector<int>&& indices);
+	int createRectComponent(DirectX::SimpleMath::Vector2 centerPoint, float width, float height);
 };

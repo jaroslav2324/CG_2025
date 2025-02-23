@@ -1,6 +1,10 @@
 #include "MeshComponent.h"
 #include "Game.h"
 
+MeshComponent::MeshComponent()
+{
+}
+
 MeshComponent::MeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	std::vector<UINT>&& strides,
 	std::vector<UINT>&& offsets,

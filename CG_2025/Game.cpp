@@ -67,38 +67,11 @@ void Game::init()
 void Game::createPongScene()
 {
 	// left rocket
-	createRectComponent({
-	DirectX::XMFLOAT4(-0.7f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-	DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-	DirectX::XMFLOAT4(-0.7f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-	DirectX::XMFLOAT4(-0.5f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		},
-		{ 32 },
-		{ 0 },
-		{ 0,1,2,1,0,3 }
-		);
+	createRectComponent({ 100, 400 }, 25, 150);
 	// right rocket
-	createRectComponent({
-		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		},
-		{ 32 },
-		{ 0 },
-		{ 0,1,2,1,0,3 }
-		);
+	createRectComponent({ 700, 400 }, 25, 150);
 	// ball
-	createRectComponent({
-		DirectX::XMFLOAT4(-0.25f, 0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.25f, -0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.25f, -0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.25f, 0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-		},
-		{ 32 },
-		{ 0 },
-		{ 0,1,2,1,0,3 }
-		);
+	createRectComponent({ 400, 400 }, 25, 25);
 }
 
 void Game::update(float deltaTime)
@@ -107,7 +80,7 @@ void Game::update(float deltaTime)
 		gameComponent->update(deltaTime);
 	}
 
-	const int pongRocketSpeedCoeff = 100.0f;
+	const int pongRocketSpeedCoeff = 200.0f;
 	auto win = GE::getWindowHandler();
 	float winHeight = win->getWinHeight();
 
@@ -234,17 +207,9 @@ int Game::createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 	return 0;
 }
 
-int Game::createRectComponent(std::vector<DirectX::XMFLOAT4>&& points,
-	std::vector<UINT>&& strides,
-	std::vector<UINT>&& offsets,
-	std::vector<int>&& indices)
+int Game::createRectComponent(Vector2 centerPoint, float width, float height)
 {
-	components.push_back(new RectComponent(
-		std::move(points),
-		std::move(strides),
-		std::move(offsets),
-		std::move(indices)
-	));
+	components.push_back(new RectComponent(centerPoint, width, height));
 	components[components.size() - 1]->init(
 		L"./shaders/pongShader.hlsl",
 		L"./shaders/pixelShader.hlsl");

@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <array>
@@ -15,7 +16,7 @@ public:
 		std::vector<UINT>&& strides,
 		std::vector<UINT>&& offsets,
 		std::vector<int>&& indices);
-	RectComponent(std::array<float, 4> points);
+	RectComponent(Vector2 centerPoint, float width, float height);
 	//TODO: add constructior with center, width and height
 
 	int init(const std::wstring& vertShaderPath,
@@ -38,6 +39,7 @@ private:
 	Vector2 direction = { 1, 0 };
 	float velocity = 0;
 	Vector2 centerPosition = { 0, 0 };
+	Vector2 startCenterPosition = { 0, 0 };
 	DirectX::XMFLOAT4 centerPointOffset = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ComPtr <ID3D11Buffer> centerOffsetBuffer = nullptr;
 };

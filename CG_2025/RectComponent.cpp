@@ -33,6 +33,31 @@ RectComponent::RectComponent(
 	int winWidth = win->getWinWidth();
 	int winHeight = win->getWinHeight();
 	centerPosition = toMathCoordsFromClipSpaceCoords(winWidth, winHeight, { avgX, avgY });
+	startCenterPosition = centerPosition;
+}
+
+RectComponent::RectComponent(Vector2 centerPoint, float width, float height) :
+	MeshComponent()
+{
+	auto win = GE::getWindowHandler();
+	int winWidth = win->getWinWidth();
+	int winHeight = win->getWinHeight();
+	const int shiftsX[] = { 1, 1, -1, -1 };
+	const int shiftsY[] = { 1, -1, -1, 1 };
+	for (int i = 0; i < 4; i++) {
+		Vector2 p = centerPoint;
+		p.x += width / 2 * shiftsX[i];
+		p.y += height / 2 * shiftsY[i];
+		p = toClipSpaceCoordsFromMathCoords(winWidth, winHeight, p);
+		this->points.push_back({ p.x, p.y, 0.0f, 1.0f });
+		// color
+		this->points.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
+	}
+	centerPosition = centerPoint;
+	startCenterPosition = centerPoint;
+	strides = { 32 };
+	offsets = { 0 };
+	indices = { 0,1,2, 2,3,0 };
 }
 
 
@@ -47,9 +72,12 @@ int RectComponent::init(const std::wstring& vertShaderPath, const std::wstring& 
 int RectComponent::update(float deltaTime)
 {
 	auto win = GE::getWindowHandler();
-	int winWidth = win->getWinWidth();
-	int winHeight = win->getWinHeight();
-	Vector2 offset = toClipSpaceCoordsFromMathCoords(winWidth, winHeight, centerPosition);
+	float winWidth = win->getWinWidth();
+	float winHeight = win->getWinHeight();
+
+	Vector2 offset = centerPosition - startCenterPosition;
+	offset += Vector2{ winWidth / 2, winHeight / 2 };
+	offset = toClipSpaceCoordsFromMathCoords(winWidth, winHeight, offset);
 	centerPointOffset.x = offset.x;
 	centerPointOffset.y = offset.y;
 
