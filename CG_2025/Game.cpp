@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "global.h"
 
+using DirectX::SimpleMath::Vector2;
+
 void Game::init()
 {
 	winHandler = GE::getWindowHandler();
@@ -61,10 +63,75 @@ void Game::init()
 
 }
 
+void Game::createPongScene()
+{
+	// left rocket
+	createRectComponent({
+	DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+	DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+	DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+	DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		},
+		{ 32 },
+		{ 0 },
+		{ 0,1,2,1,0,3 }
+		);
+	// right rocket
+	createRectComponent({
+		DirectX::XMFLOAT4(0.3f, 0.3f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(0.3f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(0.7f, 0.3f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		},
+		{ 32 },
+		{ 0 },
+		{ 0,1,2,1,0,3 }
+		);
+	// ball
+	createRectComponent({
+		DirectX::XMFLOAT4(-0.25f, 0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(-0.25f, -0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(0.25f, -0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(0.25f, 0.25f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		},
+		{ 32 },
+		{ 0 },
+		{ 0,1,2,1,0,3 }
+		);
+}
+
 void Game::update(float deltaTime)
 {
+	const int pongRocketSpeedCoeff = 100.0f;
+	auto win = GE::getWindowHandler();
+	float winHeight = win->getWinHeight();
+
 	for (const auto gameComponent : components) {
 		gameComponent->update(deltaTime);
+	}
+	RectComponent* leftRocket = (RectComponent*)components[0];
+	RectComponent* rightRocket = (RectComponent*)components[1];
+
+	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
+	if (inputDevice->IsKeyDown(Keys::W)) {
+		Vector2 pos = leftRocket->getPosition();
+		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		leftRocket->setPosition(pos);
+	}
+	if (inputDevice->IsKeyDown(Keys::S)) {
+		Vector2 pos = leftRocket->getPosition();
+		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		leftRocket->setPosition(pos);
+	}
+	if (inputDevice->IsKeyDown(Keys::Up)) {
+		Vector2 pos = rightRocket->getPosition();
+		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		rightRocket->setPosition(pos);
+	}
+	if (inputDevice->IsKeyDown(Keys::Down)) {
+		Vector2 pos = rightRocket->getPosition();
+		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		rightRocket->setPosition(pos);
 	}
 }
 
@@ -84,6 +151,8 @@ void Game::run()
 			DispatchMessage(&msg);
 		}
 
+		// TODO: move delta time here
+		update(0.0167f);
 		draw();
 	}
 }
@@ -161,6 +230,25 @@ int Game::createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		shaderManager,
 		bufferManger,
 		L"./shaders/vertexShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
+	return 0;
+}
+
+int Game::createRectComponent(std::vector<DirectX::XMFLOAT4>&& points,
+	std::vector<UINT>&& strides,
+	std::vector<UINT>&& offsets,
+	std::vector<int>&& indices)
+{
+	components.push_back(new RectComponent(
+		std::move(points),
+		std::move(strides),
+		std::move(offsets),
+		std::move(indices)
+	));
+	components[components.size() - 1]->init(this,
+		shaderManager,
+		bufferManger,
+		L"./shaders/pongShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;
 }
