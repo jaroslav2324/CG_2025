@@ -1,4 +1,5 @@
 #include "BufferManager.h"
+#include "global.h"
 
 ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode)
 {
@@ -21,6 +22,7 @@ ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_ClrF4(ComPtr<ID
 		0}
 	};
 
+	auto device = GE::getGameSubsystem()->getDevice();
 	ComPtr<ID3D11InputLayout> layout;
 	device->CreateInputLayout(
 		inputElements,
@@ -36,6 +38,7 @@ ComPtr<ID3D11Buffer> BufferManager::createBuffer(const D3D11_BUFFER_DESC buffDes
 	const D3D11_SUBRESOURCE_DATA subresourceData)
 {
 	ID3D11Buffer* buffer = nullptr;
+	auto device = GE::getGameSubsystem()->getDevice();
 	device->CreateBuffer(&buffDesc, &subresourceData, &buffer);
 	return ComPtr<ID3D11Buffer>(buffer);
 }

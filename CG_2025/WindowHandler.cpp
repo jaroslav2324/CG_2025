@@ -110,20 +110,20 @@ HWND WindowHandler::getWindowHandle()
 	auto posX = (GetSystemMetrics(SM_CXSCREEN) - winWidth) / 2;
 	auto posY = (GetSystemMetrics(SM_CYSCREEN) - winHeight) / 2;
 
-	HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, applicationName, applicationName,
+	windowHandle = CreateWindowEx(WS_EX_APPWINDOW, applicationName, applicationName,
 		dwStyle,
 		posX, posY,
 		windowRect.right - windowRect.left,
 		windowRect.bottom - windowRect.top,
 		nullptr, nullptr, hInstance, nullptr);
 
-	ShowWindow(hWnd, SW_SHOW);
-	SetForegroundWindow(hWnd);
-	SetFocus(hWnd);
+	ShowWindow(windowHandle, SW_SHOW);
+	SetForegroundWindow(windowHandle);
+	SetFocus(windowHandle);
 
 	ShowCursor(true);
 
-	return hWnd;
+	return windowHandle;
 }
 
 const int WindowHandler::getWinWidth() const

@@ -21,9 +21,7 @@ public:
 		std::vector<int>&& indices);
 	~MeshComponent() override;
 
-	int init(Game* game, std::shared_ptr<ShaderManager>,
-		std::shared_ptr<BufferManager> bufferManager,
-		const std::wstring& vertShaderPath,
+	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 	int draw() override;
 	int update(float deltaTime) override;

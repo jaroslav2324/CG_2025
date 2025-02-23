@@ -26,9 +26,9 @@ int main()
 	std::shared_ptr<Game> game = GE::getGameSubsystem();
 	game->init();
 	game->createPongScene();
+	HWND hwnd = GE::getWindowHandler()->getWindowHandle();
 	game->run();
 
-	std::cout << "Hello World!\n";
 	return 0;
 }
 

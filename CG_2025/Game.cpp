@@ -3,8 +3,9 @@
 
 using DirectX::SimpleMath::Vector2;
 
-void Game::init()
+Game::Game()
 {
+	// TODO: move to renderer
 	winHandler = GE::getWindowHandler();
 	HWND hWnd = winHandler->getWindowHandle();
 
@@ -46,9 +47,6 @@ void Game::init()
 		throw GraphicsException("Device and swap chain creation failed");
 	}
 
-	shaderManager = std::make_shared<ShaderManager>(device);
-	bufferManger = std::make_shared<BufferManager>(device);
-
 	res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex);	// __uuidof(ID3D11Texture2D)
 	if (FAILED(res))
 	{
@@ -60,17 +58,20 @@ void Game::init()
 	{
 		throw GraphicsException("Creating render target view for back buffer failed");
 	}
+}
 
+void Game::init()
+{
 }
 
 void Game::createPongScene()
 {
 	// left rocket
 	createRectComponent({
-	DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-	DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-	DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-	DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+	DirectX::XMFLOAT4(-0.7f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+	DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+	DirectX::XMFLOAT4(-0.7f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+	DirectX::XMFLOAT4(-0.5f, -0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		},
 		{ 32 },
 		{ 0 },
@@ -78,10 +79,10 @@ void Game::createPongScene()
 		);
 	// right rocket
 	createRectComponent({
-		DirectX::XMFLOAT4(0.3f, 0.3f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(0.7f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.3f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(0.7f, 0.3f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(0.5f, 0.7f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(0.7f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 		},
 		{ 32 },
 		{ 0 },
@@ -102,13 +103,14 @@ void Game::createPongScene()
 
 void Game::update(float deltaTime)
 {
+	for (const auto gameComponent : components) {
+		gameComponent->update(deltaTime);
+	}
+
 	const int pongRocketSpeedCoeff = 100.0f;
 	auto win = GE::getWindowHandler();
 	float winHeight = win->getWinHeight();
 
-	for (const auto gameComponent : components) {
-		gameComponent->update(deltaTime);
-	}
 	RectComponent* leftRocket = (RectComponent*)components[0];
 	RectComponent* rightRocket = (RectComponent*)components[1];
 
@@ -175,7 +177,7 @@ int Game::draw()
 
 	context->RSSetViewports(1, &viewport);
 
-	float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
+	float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	context->ClearRenderTargetView(rtv, color);
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
@@ -226,9 +228,7 @@ int Game::createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::move(offsets),
 		std::move(indices)
 	));
-	components[components.size() - 1]->init(this,
-		shaderManager,
-		bufferManger,
+	components[components.size() - 1]->init(
 		L"./shaders/vertexShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;
@@ -245,9 +245,7 @@ int Game::createRectComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::move(offsets),
 		std::move(indices)
 	));
-	components[components.size() - 1]->init(this,
-		shaderManager,
-		bufferManger,
+	components[components.size() - 1]->init(
 		L"./shaders/pongShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;

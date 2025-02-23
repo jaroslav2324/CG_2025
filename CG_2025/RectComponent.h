@@ -18,9 +18,7 @@ public:
 	RectComponent(std::array<float, 4> points);
 	//TODO: add constructior with center, width and height
 
-	int init(Game* game, std::shared_ptr<ShaderManager>,
-		std::shared_ptr<BufferManager> bufferManager,
-		const std::wstring& vertShaderPath,
+	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 
 	int update(float deltaTime) override;

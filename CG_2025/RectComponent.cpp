@@ -36,9 +36,10 @@ RectComponent::RectComponent(
 }
 
 
-int RectComponent::init(Game* game, std::shared_ptr<ShaderManager> shaderManager, std::shared_ptr<BufferManager> bufferManager, const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
+int RectComponent::init(const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
 {
-	MeshComponent::init(game, shaderManager, bufferManager, vertShaderPath, pixShaderPath);
+	MeshComponent::init(vertShaderPath, pixShaderPath);
+	auto bufferManager = GE::getBufferManager();
 	centerOffsetBuffer = bufferManager->createConstDynamicBufferCPUWrite(std::vector < DirectX::XMFLOAT4>{centerPointOffset});
 	return 0;
 }
@@ -53,7 +54,7 @@ int RectComponent::update(float deltaTime)
 	centerPointOffset.y = offset.y;
 
 	D3D11_MAPPED_SUBRESOURCE res = {};
-	ID3D11DeviceContext* context = game->getDeviceContext();
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	ID3D11Buffer* rawOffsetBuffer = centerOffsetBuffer.Get();
 	context->Map(rawOffsetBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 	auto dataPtr = reinterpret_cast<float*>(res.pData);
@@ -64,7 +65,7 @@ int RectComponent::update(float deltaTime)
 
 int RectComponent::draw()
 {
-	ID3D11DeviceContext* context = game->getDeviceContext();
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

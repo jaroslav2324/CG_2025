@@ -26,12 +26,26 @@ const std::shared_ptr<Game> GE::getGameSubsystem()
 	return gameSubsystem;
 }
 
+const std::shared_ptr<ShaderManager> GE::getShaderManager()
+{
+	assert(shaderManager);
+	return shaderManager;
+}
+
+const std::shared_ptr<BufferManager> GE::getBufferManager()
+{
+	assert(bufferManager);
+	return bufferManager;
+}
+
 void GE::initGraphicsEngine()
 {
 	initWindowHandler();
+	initGameSubsystem();
+	initBufferManager();
+	initShaderManager();
 	initInputDevice(winHandler);
 	initPhysicsSubsystem();
-	initGameSubsystem();
 }
 
 void GE::initWindowHandler()
@@ -59,5 +73,19 @@ void GE::initGameSubsystem()
 {
 	if (!gameSubsystem) {
 		gameSubsystem = std::make_shared<Game>();
+	}
+}
+
+void GE::initShaderManager()
+{
+	if (!shaderManager) {
+		shaderManager = std::make_shared<ShaderManager>();
+	}
+}
+
+void GE::initBufferManager()
+{
+	if (!bufferManager) {
+		bufferManager = std::make_shared<BufferManager>();
 	}
 }

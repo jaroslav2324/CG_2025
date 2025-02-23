@@ -10,8 +10,6 @@ using Microsoft::WRL::ComPtr;
 
 class BufferManager {
 public:
-	explicit BufferManager(ID3D11Device* device) : device(device) {};
-
 	ComPtr <ID3D11InputLayout> createInputLayout(
 		D3D11_INPUT_ELEMENT_DESC* layoutDesc,
 		int countElements,
@@ -29,9 +27,6 @@ public:
 
 	template <typename T>
 	D3D11_BUFFER_DESC getBasicBufferDescription(const std::vector<T>& data) const;
-private:
-	ID3D11Device* device = nullptr;
-
 };
 
 template<typename T>

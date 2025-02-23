@@ -17,14 +17,13 @@ MeshComponent::~MeshComponent()
 	destroyResources();
 }
 
-int MeshComponent::init(Game* game,
-	std::shared_ptr<ShaderManager> shaderManager,
-	std::shared_ptr<BufferManager> bufferManager,
+int MeshComponent::init(
 	const std::wstring& vertShaderPath,
 	const std::wstring& pixShaderPath)
 {
-	this->game = game;
+	auto game = GE::getGameSubsystem();
 
+	auto shaderManager = GE::getShaderManager();
 	if (!shaderManager->getShader(vertShaderPath)) {
 		shaderManager->compileShader(vertShaderPath, "VSMain", "vs_5_0", nullptr);
 	};
@@ -53,6 +52,7 @@ int MeshComponent::init(Game* game,
 		pixelByteCode->GetBufferSize(),
 		nullptr, &pixelShader);
 
+	auto bufferManager = GE::getBufferManager();
 	layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
 
 	D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
@@ -76,7 +76,7 @@ int MeshComponent::init(Game* game,
 
 int MeshComponent::draw()
 {
-	ID3D11DeviceContext* context = game->getDeviceContext();
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

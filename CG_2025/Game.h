@@ -20,6 +20,7 @@
 class Game {
 
 public:
+	Game();
 	void init();
 	void createPongScene();
 	void run();
@@ -32,9 +33,6 @@ public:
 private:
 	void update(float deltaTime);
 
-	// TODO: remove
-	std::shared_ptr<ShaderManager> shaderManager = nullptr;
-	std::shared_ptr<BufferManager> bufferManger = nullptr;
 	HWND hWnd;
 
 	// TODO: ComPtr
