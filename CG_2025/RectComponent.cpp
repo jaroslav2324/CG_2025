@@ -2,7 +2,7 @@
 
 using Vector2 = DirectX::SimpleMath::Vector2;
 
-
+// TODO: удалить это чудо
 RectComponent::RectComponent(
 	std::vector<DirectX::XMFLOAT4>&& points,
 	std::vector<UINT>&& strides,
@@ -15,6 +15,10 @@ RectComponent::RectComponent(
 		std::forward<std::vector<UINT>>(offsets),
 		std::forward<std::vector<int>>(indices))
 {
+
+
+	GE::getPhysicsSubsystem()->registerRect(this);
+
 	float avgX = 0;
 	float avgY = 0;
 	for (auto p : this->points) {
@@ -39,9 +43,15 @@ RectComponent::RectComponent(
 RectComponent::RectComponent(Vector2 centerPoint, float width, float height) :
 	MeshComponent()
 {
+	GE::getPhysicsSubsystem()->registerRect(this);
 	auto win = GE::getWindowHandler();
 	int winWidth = win->getWinWidth();
 	int winHeight = win->getWinHeight();
+
+	rect = { centerPoint.x - width / 2, -(centerPoint.y - winHeight) - height / 2, width, height };
+	this->width = width;
+	this->height = height;
+
 	const int shiftsX[] = { 1, 1, -1, -1 };
 	const int shiftsY[] = { 1, -1, -1, 1 };
 	for (int i = 0; i < 4; i++) {
@@ -71,9 +81,17 @@ int RectComponent::init(const std::wstring& vertShaderPath, const std::wstring& 
 
 int RectComponent::update(float deltaTime)
 {
+	auto nowTime = std::chrono::steady_clock::now();
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime - lastCollisionTime).count();
+	if (milliseconds > msUntilCollisionFlagReset) {
+		collidedFlag = false;
+	}
+
 	auto win = GE::getWindowHandler();
 	float winWidth = win->getWinWidth();
 	float winHeight = win->getWinHeight();
+
+	rect = { centerPosition.x - width / 2, -(centerPosition.y - winHeight) - height / 2, width, height };
 
 	Vector2 offset = centerPosition - startCenterPosition;
 	offset += Vector2{ winWidth / 2, winHeight / 2 };
@@ -109,18 +127,6 @@ int RectComponent::draw()
 	return 0;
 }
 
-void RectComponent::initRect(int x, int y, int w, int h)
-{
-	if (rect)
-		return;
-
-	rect = std::make_shared<DirectX::SimpleMath::Rectangle>(
-		DirectX::SimpleMath::Rectangle(x, y, w, h)
-	);
-
-
-}
-
 void RectComponent::setDirection(Vector2 direction)
 {
 	this->direction = direction;
@@ -134,6 +140,20 @@ void RectComponent::setPosition(Vector2 pos)
 void RectComponent::setVelocity(float vel)
 {
 	velocity = vel;
+}
+
+void RectComponent::setCollisionCallback(RectComponent* rectComponent,
+	std::function<void(RectComponent*, DirectX::SimpleMath::Vector2)>&& callback)
+{
+	collisionCallbackSet = true;
+	collisionCallback = std::move(callback);
+}
+
+void RectComponent::callCollisionCallback(RectComponent* rectComponent, Vector2 collisionNormal) const
+{
+	if (collisionCallbackSet) {
+		collisionCallback(rectComponent, collisionNormal);
+	}
 }
 
 Vector2 RectComponent::getDirection() const
@@ -151,9 +171,20 @@ float RectComponent::getVelocity() const
 	return velocity;
 }
 
-std::shared_ptr<DirectX::SimpleMath::Rectangle> RectComponent::getRect()
+DirectX::SimpleMath::Rectangle RectComponent::getRect()
 {
-	return rect;
+	return rect.toRectangle();
+}
+
+bool RectComponent::collided()
+{
+	return collidedFlag;
+}
+
+void RectComponent::setCollided(bool flag)
+{
+	lastCollisionTime = std::chrono::steady_clock::now();
+	collidedFlag = flag;
 }
 
 

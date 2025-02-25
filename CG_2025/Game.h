@@ -42,15 +42,17 @@ private:
 	ID3D11Texture2D* backTex = nullptr;
 	ID3D11RenderTargetView* rtv = nullptr;
 
-	// TODO: sahred ptr
 	std::vector<GameComponent*> components;
-
-	// TODO: remove
-	std::shared_ptr<WindowHandler> winHandler = nullptr;
 
 	int createMeshComponent(std::vector<DirectX::XMFLOAT4>&& points,
 		std::vector<UINT>&& strides,
 		std::vector<UINT>&& offsets,
 		std::vector<int>&& indices);
 	int createRectComponent(DirectX::SimpleMath::Vector2 centerPoint, float width, float height);
+
+	int leftPongScore = 0;
+	int rightPongScore = 0;
+	DirectX::SimpleMath::Vector2 coordsStartLeftRocket = { 100, 400 };
+	DirectX::SimpleMath::Vector2 coordsStartRightRocket = { 700, 400 };
+	float startBallVelocity = 150;
 };

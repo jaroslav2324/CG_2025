@@ -18,9 +18,9 @@ public:
 	~PhysicsSubsystem();
 
 	void updatePhysics(float deltaTime);
-	void registerRect(std::shared_ptr<RectComponent> rect);
+	void registerRect(RectComponent* rect);
 	// TODO: unregisterRect
 
 private:
-	std::vector<std::shared_ptr<RectComponent>> rectsVec;
+	std::vector<RectComponent*> rectsVec;
 };

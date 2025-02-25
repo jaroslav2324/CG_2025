@@ -18,3 +18,5 @@ bool apprEqual(float f1, float f2, float epsilon = 1e-6);
 
 DirectX::SimpleMath::Vector2 toClipSpaceCoordsFromMathCoords(int winWidth, int winHeight, DirectX::SimpleMath::Vector2 coords);
 DirectX::SimpleMath::Vector2 toMathCoordsFromClipSpaceCoords(int winWidth, int winHeight, DirectX::SimpleMath::Vector2 coords);
+
+DirectX::SimpleMath::Vector2 reflectRelativeToNormal(DirectX::SimpleMath::Vector2 reflected, DirectX::SimpleMath::Vector2 normal);

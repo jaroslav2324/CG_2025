@@ -6,7 +6,7 @@ using DirectX::SimpleMath::Vector2;
 Game::Game()
 {
 	// TODO: move to renderer
-	winHandler = GE::getWindowHandler();
+	auto winHandler = GE::getWindowHandler();
 	HWND hWnd = winHandler->getWindowHandle();
 
 	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };
@@ -67,11 +67,27 @@ void Game::init()
 void Game::createPongScene()
 {
 	// left rocket
-	createRectComponent({ 100, 400 }, 25, 150);
+	createRectComponent(coordsStartLeftRocket, 25, 150);
 	// right rocket
-	createRectComponent({ 700, 400 }, 25, 150);
+	createRectComponent(coordsStartRightRocket, 25, 150);
 	// ball
 	createRectComponent({ 400, 400 }, 25, 25);
+	RectComponent* ball = (RectComponent*)components[2];
+	Vector2 v = { -1, -0.3f };
+	v.Normalize();
+	ball->setDirection(v);
+	ball->setVelocity(startBallVelocity);
+	ball->setCollisionCallback(ball, [](RectComponent* rectComponent, Vector2 collisionNormal) {
+		if (rectComponent->collided()) {
+			return;
+		}
+		Vector2 direction = rectComponent->getDirection();
+		Vector2 reflectedDirection = reflectRelativeToNormal(direction, collisionNormal);
+		reflectedDirection.Normalize();
+		rectComponent->setDirection(reflectedDirection);
+		rectComponent->setVelocity(rectComponent->getVelocity() + 20);
+		rectComponent->setCollided(true);
+		});
 }
 
 void Game::update(float deltaTime)
@@ -82,10 +98,12 @@ void Game::update(float deltaTime)
 
 	const int pongRocketSpeedCoeff = 200.0f;
 	auto win = GE::getWindowHandler();
-	float winHeight = win->getWinHeight();
+	auto winWidth = static_cast<float>(win->getWinWidth());
+	float winHeight = static_cast<float>(win->getWinHeight());
 
 	RectComponent* leftRocket = (RectComponent*)components[0];
 	RectComponent* rightRocket = (RectComponent*)components[1];
+	RectComponent* ball = (RectComponent*)components[2];
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 	if (inputDevice->IsKeyDown(Keys::W)) {
@@ -108,10 +126,41 @@ void Game::update(float deltaTime)
 		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
 		rightRocket->setPosition(pos);
 	}
+
+	Vector2 ballPosition = ball->getPosition();
+	if (ballPosition.y < 0) {
+		Vector2 reflectionNormal = { 0, 1 };
+		ball->setDirection(reflectRelativeToNormal(ball->getDirection(), reflectionNormal));
+	}
+	if (ballPosition.y > winHeight) {
+		Vector2 reflectionNormal = { 0, -1 };
+		ball->setDirection(reflectRelativeToNormal(ball->getDirection(), reflectionNormal));
+	}
+	if (ballPosition.x < 0) {
+		ball->setPosition({ winWidth / 2, winHeight / 2 });
+		leftRocket->setPosition(coordsStartLeftRocket);
+		rightRocket->setPosition(coordsStartRightRocket);
+		++leftPongScore;
+		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
+		ball->setVelocity(startBallVelocity);
+	}
+	if (ballPosition.x > winWidth) {
+		ball->setPosition({ winWidth / 2, winHeight / 2 });
+		leftRocket->setPosition(coordsStartLeftRocket);
+		rightRocket->setPosition(coordsStartRightRocket);
+		++rightPongScore;
+		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
+		ball->setVelocity(startBallVelocity);
+	}
 }
 
 void Game::run()
 {
+	std::chrono::time_point<std::chrono::steady_clock> prevTime = prevTime = std::chrono::steady_clock::now();
+	static float totalTime;
+	static unsigned int frameCount;
+	auto physicsSubsystem = GE::getPhysicsSubsystem();
+
 	MSG msg = {};
 	bool isExitRequested = false;
 	while (!isExitRequested) {
@@ -126,17 +175,34 @@ void Game::run()
 			DispatchMessage(&msg);
 		}
 
-		// TODO: move delta time here
-		update(0.0167f);
+		auto	curTime = std::chrono::steady_clock::now();
+		float	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime).count() / 1000000.0f;
+		prevTime = curTime;
+
+		totalTime += deltaTime;
+		frameCount++;
+
+		physicsSubsystem->updatePhysics(deltaTime);
+		update(deltaTime);
 		draw();
+
+		if (totalTime > 1.0f) {
+			float fps = frameCount / totalTime;
+
+			totalTime -= 1.0f;
+
+			WCHAR text[256];
+			swprintf_s(text, TEXT("FPS: %f"), fps);
+			SetWindowText(hWnd, text);
+
+			frameCount = 0;
+		}
 	}
 }
 
 int Game::draw()
 {
-	std::chrono::time_point<std::chrono::steady_clock> prevTime = std::chrono::steady_clock::now();
-	static float totalTime;
-	static unsigned int frameCount;
+	auto winHandler = GE::getWindowHandler();
 
 	context->ClearState();
 
@@ -154,37 +220,12 @@ int Game::draw()
 	context->ClearRenderTargetView(rtv, color);
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
-
 	for (const auto gameComponent : components) {
 		gameComponent->draw();
 	}
 
 	context->OMSetRenderTargets(0, nullptr, nullptr);
 	swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
-
-	auto	curTime = std::chrono::steady_clock::now();
-	float	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime).count() / 1000000.0f;
-	prevTime = curTime;
-
-	totalTime += deltaTime;
-	frameCount++;
-
-	// TODO: move this to update, move fps counting from here
-	for (const auto gameComponent : components) {
-		gameComponent->update(deltaTime);
-	}
-
-	if (totalTime > 1.0f) {
-		float fps = frameCount / totalTime;
-
-		totalTime -= 1.0f;
-
-		WCHAR text[256];
-		swprintf_s(text, TEXT("FPS: %f"), fps);
-		SetWindowText(hWnd, text);
-
-		frameCount = 0;
-	}
 
 	return 0;
 }

@@ -27,6 +27,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PhysicsSubsystem.cpp" />
     <ClCompile Include="RectComponent.cpp" />
+    <ClCompile Include="RectF.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="util.cpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="Keys.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="RectComponent.h" />
+    <ClInclude Include="RectF.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="util.h" />

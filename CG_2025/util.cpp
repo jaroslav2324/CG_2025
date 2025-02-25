@@ -19,3 +19,9 @@ Vector2 toMathCoordsFromClipSpaceCoords(int winWidth, int winHeight, Vector2 coo
 	coords.y = (coords.y + 1.0f) / 2.0f * winHeight;
 	return coords;
 }
+
+Vector2 reflectRelativeToNormal(Vector2 reflected, Vector2 normal)
+{
+	normal.Normalize();
+	return reflected - 2 * reflected.Dot(normal) * normal;
+}
