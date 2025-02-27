@@ -42,6 +42,8 @@ public:
 	bool collided();
 	void setCollided(bool flag);
 
+	void setDrawableCircle();
+
 private:
 	bool collisionCallbackSet = false;
 	std::function <void(RectComponent*, RectComponent*, DirectX::SimpleMath::Vector2)> collisionCallback = nullptr;

@@ -123,7 +123,7 @@ int RectComponent::draw()
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 
-	context->DrawIndexed(6, 0, 0);
+	context->DrawIndexed(indices.size(), 0, 0);
 	return 0;
 }
 
@@ -185,6 +185,48 @@ void RectComponent::setCollided(bool flag)
 {
 	lastCollisionTime = std::chrono::steady_clock::now();
 	collidedFlag = flag;
+}
+
+void RectComponent::setDrawableCircle()
+{
+	auto win = GE::getWindowHandler();
+	int winWidth = win->getWinWidth();
+	int winHeight = win->getWinHeight();
+
+	points.clear();
+	indices.clear();
+	offsets.clear();
+	strides.clear();
+
+	Vector2 c = toClipSpaceCoordsFromMathCoords(winWidth, winHeight, startCenterPosition);
+	points.push_back({ c.x, c.y, 0.0f, 1.0f });
+	points.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	int segments = 32;
+	float radius = width / 2;
+	float angleStep = DirectX::XM_2PI / segments;
+	for (int i = 0; i <= segments; i++) {
+		float angle = i * angleStep;
+		Vector2 p = {
+			startCenterPosition.x + radius * cosf(angle),
+			startCenterPosition.y + radius * sinf(angle)
+		};
+		p = toClipSpaceCoordsFromMathCoords(winWidth, winHeight, p);
+		points.push_back({ p.x, p.y, 0.0f, 1.0f });
+		points.push_back({ 1.0f, 1.0f, 1.0f, 1.0f });
+	}
+
+	for (int i = 1; i < segments - 1; i++) {
+		indices.push_back(0);
+		indices.push_back(i);
+		indices.push_back(i + 1);
+	}
+	indices.push_back(0);
+	indices.push_back(31);
+	indices.push_back(1);
+
+	strides = { 32 };
+	offsets = { 0 };
 }
 
 

@@ -30,7 +30,6 @@ void PhysicsSubsystem::updatePhysics(float deltaTime)
 			if (intersectionRect.width && intersectionRect.height) {
 				// collided, calculate collision normal and call collision callback
 				Vector2 collisionNormal;
-				std::cout << "w" << intersectionRect.width << " h" << intersectionRect.height << std::endl;
 				if (intersectionRect.height > intersectionRect.width) {
 					collisionNormal = { -1, 0 };
 					if (rectPtr->getPosition().x > rectPtr2->getPosition().x) {
@@ -38,8 +37,6 @@ void PhysicsSubsystem::updatePhysics(float deltaTime)
 					}
 				}
 				else {
-					std::cout << "rect1 " << rectPtr->getPosition().x << " " << rectPtr->getPosition().y << std::endl;
-					std::cout << "rect2 " << rectPtr2->getPosition().x << " " << rectPtr2->getPosition().y << std::endl;
 					collisionNormal = { 0, -1 };
 					if (rectPtr->getPosition().y > rectPtr2->getPosition().y) {
 						collisionNormal *= -1;

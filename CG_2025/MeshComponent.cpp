@@ -90,7 +90,7 @@ int MeshComponent::draw()
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 
-	context->DrawIndexed(6, 0, 0);
+	context->DrawIndexed(indices.size(), 0, 0);
 	return 0;
 }
 

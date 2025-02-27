@@ -71,10 +71,15 @@ void Game::createPongScene()
 	// right rocket
 	createRectComponent(coordsStartRightRocket, 25, 150);
 	// ball
-	createRectComponent({ 400, 400 }, 25, 25);
+	components.push_back(new RectComponent({ 400, 400 }, 25, 25));
+	RectComponent* ball = (RectComponent*)components[2];
+	ball->setDrawableCircle();
+	ball->init(
+		L"./shaders/pongShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
 	RectComponent* leftRocket = (RectComponent*)components[0];
 	RectComponent* rightRocket = (RectComponent*)components[1];
-	RectComponent* ball = (RectComponent*)components[2];
+
 	Vector2 v = generateRandomBallDirection();
 	ball->setDirection(v);
 	ball->setVelocity(startBallVelocity);
@@ -96,7 +101,7 @@ void Game::createPongScene()
 			reflectedFromLeftRocket = false;
 		}
 
-		std::cout << "collided" << std::endl;
+		// std::cout << "collided" << std::endl;
 		Vector2 direction = rectComponent->getDirection();
 		Vector2 reflectedDirection;
 		if (direction.Dot(collisionNormal) < 0) {
@@ -119,7 +124,7 @@ void Game::update(float deltaTime)
 		gameComponent->update(deltaTime);
 	}
 
-	const int pongRocketSpeedCoeff = 200.0f;
+	const int pongRocketSpeedCoeff = 400.0f;
 	auto win = GE::getWindowHandler();
 	auto winWidth = static_cast<float>(win->getWinWidth());
 	float winHeight = static_cast<float>(win->getWinHeight());
@@ -139,6 +144,18 @@ void Game::update(float deltaTime)
 		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
 		leftRocket->setPosition(pos);
 	}
+	if (inputDevice->IsKeyDown(Keys::D)) {
+		Vector2 pos = leftRocket->getPosition();
+		pos.x = std::clamp(pos.x + deltaTime * pongRocketSpeedCoeff, 100.0f, winWidth / 2);
+		leftRocket->setPosition(pos);
+	}
+
+	if (inputDevice->IsKeyDown(Keys::A)) {
+		Vector2 pos = leftRocket->getPosition();
+		pos.x = std::clamp(pos.x - deltaTime * pongRocketSpeedCoeff, 100.0f, winWidth / 2);
+		leftRocket->setPosition(pos);
+	}
+
 	if (inputDevice->IsKeyDown(Keys::Up)) {
 		Vector2 pos = rightRocket->getPosition();
 		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
@@ -208,8 +225,7 @@ void Game::run()
 		frameCount++;
 
 		physicsSubsystem->updatePhysics(deltaTime);
-		// TODO: restore deltaTime
-		update(0.0167f);
+		update(deltaTime);
 		draw();
 
 		if (totalTime > 1.0f) {
