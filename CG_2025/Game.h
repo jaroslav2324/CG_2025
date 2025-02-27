@@ -3,6 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <cmath>
+#include <random>
 
 #include <d3d.h>
 #include <d3d11.h>
@@ -54,5 +55,8 @@ private:
 	int rightPongScore = 0;
 	DirectX::SimpleMath::Vector2 coordsStartLeftRocket = { 100, 400 };
 	DirectX::SimpleMath::Vector2 coordsStartRightRocket = { 700, 400 };
-	float startBallVelocity = 150;
+	float startBallVelocity = 250;
+	bool reflectedFromLeftRocket = true;
+
+	DirectX::SimpleMath::Vector2 generateRandomBallDirection();
 };

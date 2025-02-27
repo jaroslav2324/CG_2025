@@ -32,8 +32,8 @@ public:
 	void setPosition(Vector2 pos);
 	void setVelocity(float vel);
 	void setCollisionCallback(RectComponent* rectComponent,
-		std::function <void(RectComponent*, DirectX::SimpleMath::Vector2)>&& callback);
-	void callCollisionCallback(RectComponent* rectComponent, Vector2 collisionNormal) const;
+		std::function <void(RectComponent*, RectComponent*, DirectX::SimpleMath::Vector2)>&& callback);
+	void callCollisionCallback(RectComponent* rectComponent, RectComponent* rect2, Vector2 collisionNormal) const;
 	Vector2 getDirection() const;
 	Vector2 getPosition() const;
 	float getVelocity() const;
@@ -44,7 +44,7 @@ public:
 
 private:
 	bool collisionCallbackSet = false;
-	std::function <void(RectComponent*, DirectX::SimpleMath::Vector2)> collisionCallback = nullptr;
+	std::function <void(RectComponent*, RectComponent*, DirectX::SimpleMath::Vector2)> collisionCallback = nullptr;
 	RectF rect = { 0,0, 0, 0 };
 	Vector2 direction = { 1, 0 };
 	float velocity = 0;

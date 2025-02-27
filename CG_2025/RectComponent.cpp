@@ -143,16 +143,16 @@ void RectComponent::setVelocity(float vel)
 }
 
 void RectComponent::setCollisionCallback(RectComponent* rectComponent,
-	std::function<void(RectComponent*, DirectX::SimpleMath::Vector2)>&& callback)
+	std::function<void(RectComponent*, RectComponent*, DirectX::SimpleMath::Vector2)>&& callback)
 {
 	collisionCallbackSet = true;
 	collisionCallback = std::move(callback);
 }
 
-void RectComponent::callCollisionCallback(RectComponent* rectComponent, Vector2 collisionNormal) const
+void RectComponent::callCollisionCallback(RectComponent* rectComponent, RectComponent* rect2, Vector2 collisionNormal) const
 {
 	if (collisionCallbackSet) {
-		collisionCallback(rectComponent, collisionNormal);
+		collisionCallback(rectComponent, rect2, collisionNormal);
 	}
 }
 

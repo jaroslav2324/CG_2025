@@ -10,6 +10,7 @@
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <chrono>
+#include <random>
 
 #include "global.h"
 #include "Game.h"
@@ -21,6 +22,7 @@
 
 int main()
 {
+	std::srand(time(NULL));
 	GE::initGraphicsEngine();
 
 	std::shared_ptr<Game> game = GE::getGameSubsystem();

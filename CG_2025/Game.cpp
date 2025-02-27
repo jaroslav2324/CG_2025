@@ -72,20 +72,43 @@ void Game::createPongScene()
 	createRectComponent(coordsStartRightRocket, 25, 150);
 	// ball
 	createRectComponent({ 400, 400 }, 25, 25);
+	RectComponent* leftRocket = (RectComponent*)components[0];
+	RectComponent* rightRocket = (RectComponent*)components[1];
 	RectComponent* ball = (RectComponent*)components[2];
-	Vector2 v = { -1, -0.3f };
-	v.Normalize();
+	Vector2 v = generateRandomBallDirection();
 	ball->setDirection(v);
 	ball->setVelocity(startBallVelocity);
-	ball->setCollisionCallback(ball, [](RectComponent* rectComponent, Vector2 collisionNormal) {
+	ball->setCollisionCallback(ball, [this, leftRocket, rightRocket](RectComponent* rectComponent, RectComponent* rect2, Vector2 collisionNormal) {
 		if (rectComponent->collided()) {
 			return;
 		}
+		if (rect2 == leftRocket && reflectedFromLeftRocket) {
+			return;
+		}
+		if (rect2 == rightRocket && !reflectedFromLeftRocket) {
+			return;
+		}
+
+		if (rect2 == leftRocket) {
+			reflectedFromLeftRocket = true;
+		}
+		if (rect2 == rightRocket) {
+			reflectedFromLeftRocket = false;
+		}
+
+		std::cout << "collided" << std::endl;
 		Vector2 direction = rectComponent->getDirection();
-		Vector2 reflectedDirection = reflectRelativeToNormal(direction, collisionNormal);
+		Vector2 reflectedDirection;
+		if (direction.Dot(collisionNormal) < 0) {
+			reflectedDirection = reflectRelativeToNormal(direction, collisionNormal);
+		}
+		else {
+			reflectedDirection = direction;
+			reflectedDirection.y *= 3;
+		}
 		reflectedDirection.Normalize();
 		rectComponent->setDirection(reflectedDirection);
-		rectComponent->setVelocity(rectComponent->getVelocity() + 20);
+		rectComponent->setVelocity(rectComponent->getVelocity() + 100);
 		rectComponent->setCollided(true);
 		});
 }
@@ -108,22 +131,22 @@ void Game::update(float deltaTime)
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 	if (inputDevice->IsKeyDown(Keys::W)) {
 		Vector2 pos = leftRocket->getPosition();
-		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
 		leftRocket->setPosition(pos);
 	}
 	if (inputDevice->IsKeyDown(Keys::S)) {
 		Vector2 pos = leftRocket->getPosition();
-		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
 		leftRocket->setPosition(pos);
 	}
 	if (inputDevice->IsKeyDown(Keys::Up)) {
 		Vector2 pos = rightRocket->getPosition();
-		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		pos.y = std::clamp(pos.y + deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
 		rightRocket->setPosition(pos);
 	}
 	if (inputDevice->IsKeyDown(Keys::Down)) {
 		Vector2 pos = rightRocket->getPosition();
-		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 0.0f, winHeight);
+		pos.y = std::clamp(pos.y - deltaTime * pongRocketSpeedCoeff, 75.0f, winHeight - 75.0f);
 		rightRocket->setPosition(pos);
 	}
 
@@ -143,6 +166,7 @@ void Game::update(float deltaTime)
 		++leftPongScore;
 		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
 		ball->setVelocity(startBallVelocity);
+		ball->setDirection(generateRandomBallDirection());
 	}
 	if (ballPosition.x > winWidth) {
 		ball->setPosition({ winWidth / 2, winHeight / 2 });
@@ -151,6 +175,7 @@ void Game::update(float deltaTime)
 		++rightPongScore;
 		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
 		ball->setVelocity(startBallVelocity);
+		ball->setDirection(generateRandomBallDirection());
 	}
 }
 
@@ -183,7 +208,8 @@ void Game::run()
 		frameCount++;
 
 		physicsSubsystem->updatePhysics(deltaTime);
-		update(deltaTime);
+		// TODO: restore deltaTime
+		update(0.0167f);
 		draw();
 
 		if (totalTime > 1.0f) {
@@ -255,6 +281,25 @@ int Game::createRectComponent(Vector2 centerPoint, float width, float height)
 		L"./shaders/pongShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;
+}
+
+DirectX::SimpleMath::Vector2 Game::generateRandomBallDirection()
+{
+	float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+	DirectX::SimpleMath::Vector2 out;
+	if (r < 0.5f) {
+		out.x = -1;
+		reflectedFromLeftRocket = false;
+	}
+	else {
+		out.x = 1;
+		reflectedFromLeftRocket = true;
+	}
+	r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+	out.y = r;
+	out.Normalize();
+	return out;
 }
 
 Game::~Game()
