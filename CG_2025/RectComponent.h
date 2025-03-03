@@ -26,7 +26,7 @@ public:
 		const std::wstring& pixShaderPath) override;
 
 	int update(float deltaTime) override;
-	int draw() override;
+	int draw(float deltaTime) override;
 
 	void setDirection(Vector2 direction);
 	void setPosition(Vector2 pos);

@@ -54,6 +54,9 @@
     <ClCompile Include="RectF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PlanetComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\pixelShader.hlsl">
@@ -63,6 +66,9 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="shaders\pongShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\planetShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
@@ -110,6 +116,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RectF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlanetComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

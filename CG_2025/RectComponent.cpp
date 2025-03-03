@@ -109,7 +109,7 @@ int RectComponent::update(float deltaTime)
 	return 0;
 }
 
-int RectComponent::draw()
+int RectComponent::draw(float deltaTime)
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);

@@ -1,6 +1,7 @@
 #include "global.h"
 
-
+using DirectX::SimpleMath::Matrix;
+using DirectX::SimpleMath::Vector3;
 
 const std::shared_ptr<WindowHandler> GE::getWindowHandler()
 {
@@ -36,6 +37,37 @@ const std::shared_ptr<BufferManager> GE::getBufferManager()
 {
 	assert(bufferManager);
 	return bufferManager;
+}
+
+const Matrix GE::getPerspectiveMatrix()
+{
+	float fov = 0.4f * 3.14f;
+	float aspectRatio = 1.0f;
+	float nearPlane = 1.0f;
+	float farPlane = 1000.0f;
+	Matrix perspectiveMatrix = Matrix::CreatePerspectiveFieldOfView(fov, aspectRatio, nearPlane, farPlane);
+	return perspectiveMatrix;
+}
+
+Vector3 cameraPosition = Vector3(0.0f, 1.0f, -1.0f);
+
+const Matrix GE::getCameraViewMatrix()
+{
+	Vector3 centerPos = Vector3(0.0f, 0.0f, 0.0f);
+	Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+
+	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, centerPos, up);
+	return cameraMatrix;
+}
+
+Vector3 GE::getCameraPosition()
+{
+	return cameraPosition;
+}
+
+void GE::setCameraPosition(Vector3 pos)
+{
+	cameraPosition = pos;
 }
 
 void GE::initGraphicsEngine()

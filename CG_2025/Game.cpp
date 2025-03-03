@@ -1,7 +1,10 @@
 #include "Game.h"
 #include "global.h"
 
+using DirectX::SimpleMath::Vector4;
+using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
+using DirectX::SimpleMath::Matrix;
 
 Game::Game()
 {
@@ -62,6 +65,12 @@ Game::Game()
 
 void Game::init()
 {
+#if defined(PONG)
+	createPongScene();
+#endif
+#if defined(PLANETS)
+	cretePlanetsScene();
+#endif
 }
 
 void Game::createPongScene()
@@ -124,6 +133,16 @@ void Game::update(float deltaTime)
 		gameComponent->update(deltaTime);
 	}
 
+#if defined(PONG)
+	updatePongScene(deltaTime);
+#endif
+#if defined(PLANETS)
+	updatePlanetsScene(deltaTime);
+#endif
+}
+
+void Game::updatePongScene(float deltaTime)
+{
 	const int pongRocketSpeedCoeff = 400.0f;
 	auto win = GE::getWindowHandler();
 	auto winWidth = static_cast<float>(win->getWinWidth());
@@ -181,7 +200,7 @@ void Game::update(float deltaTime)
 		leftRocket->setPosition(coordsStartLeftRocket);
 		rightRocket->setPosition(coordsStartRightRocket);
 		++leftPongScore;
-		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
+		std::cout << "Score " << rightPongScore << " : " << leftPongScore << std::endl;
 		ball->setVelocity(startBallVelocity);
 		ball->setDirection(generateRandomBallDirection());
 	}
@@ -190,10 +209,42 @@ void Game::update(float deltaTime)
 		leftRocket->setPosition(coordsStartLeftRocket);
 		rightRocket->setPosition(coordsStartRightRocket);
 		++rightPongScore;
-		std::cout << "Score " << leftPongScore << " : " << rightPongScore << std::endl;
+		std::cout << "Score " << rightPongScore << " : " << leftPongScore << std::endl;
 		ball->setVelocity(startBallVelocity);
 		ball->setDirection(generateRandomBallDirection());
 	}
+}
+
+void Game::cretePlanetsScene()
+{
+	auto win = GE::getWindowHandler();
+	auto winWidth = static_cast<float>(win->getWinWidth());
+	float winHeight = static_cast<float>(win->getWinHeight());
+
+	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.05);
+	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.1);
+	PlanetComponent* p1 = (PlanetComponent*)components[0];
+	PlanetComponent* p2 = (PlanetComponent*)components[1];
+	p1->setParentPlanet(p2);
+	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.2);
+	PlanetComponent* sun = (PlanetComponent*)components[2];
+	p2->setParentPlanet(sun);
+}
+
+void Game::updatePlanetsScene(float deltaTime)
+{
+	auto win = GE::getWindowHandler();
+	float winWidth = static_cast<float>(win->getWinWidth());
+	float winHeight = static_cast<float>(win->getWinHeight());
+
+	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
+
+	bool fpsActive = true;
+	Vector3 camPos = GE::getCameraPosition();
+	//Vector4 camPos4 = Vector4(camPos.x, camPos.y, camPos.z, 1.0f);
+	Matrix rot = Matrix::CreateRotationY(deltaTime * inputDevice->MouseOffset.x);
+	camPos = Vector3::Transform(camPos, rot);
+	GE::setCameraPosition(camPos);
 }
 
 void Game::run()
@@ -226,7 +277,7 @@ void Game::run()
 
 		physicsSubsystem->updatePhysics(deltaTime);
 		update(deltaTime);
-		draw();
+		draw(deltaTime);
 
 		if (totalTime > 1.0f) {
 			float fps = frameCount / totalTime;
@@ -242,7 +293,7 @@ void Game::run()
 	}
 }
 
-int Game::draw()
+int Game::draw(float deltaTime)
 {
 	auto winHandler = GE::getWindowHandler();
 
@@ -263,7 +314,7 @@ int Game::draw()
 	context->OMSetRenderTargets(1, &rtv, nullptr);
 
 	for (const auto gameComponent : components) {
-		gameComponent->draw();
+		gameComponent->draw(deltaTime);
 	}
 
 	context->OMSetRenderTargets(0, nullptr, nullptr);
@@ -295,6 +346,16 @@ int Game::createRectComponent(Vector2 centerPoint, float width, float height)
 	components.push_back(new RectComponent(centerPoint, width, height));
 	components[components.size() - 1]->init(
 		L"./shaders/pongShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
+	return 0;
+}
+
+int Game::createPlanetComponent(DirectX::SimpleMath::Vector3 position, float radius)
+{
+	PlanetComponent* planet = new PlanetComponent(position, radius);
+	components.push_back(planet);
+	components[components.size() - 1]->init(
+		L"./shaders/planetShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;
 }

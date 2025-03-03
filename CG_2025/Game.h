@@ -17,15 +17,15 @@
 #include "MeshComponent.h"
 #include "RectComponent.h"
 #include "BufferManager.h"
+#include "PlanetComponent.h"
 
 class Game {
 
 public:
 	Game();
 	void init();
-	void createPongScene();
 	void run();
-	int draw();
+	int draw(float deltaTime);
 	~Game();
 	void destroyResources();
 	// TODO : create renderer and move there
@@ -33,6 +33,11 @@ public:
 	ID3D11DeviceContext* getDeviceContext();
 private:
 	void update(float deltaTime);
+
+	void createPongScene();
+	void updatePongScene(float deltaTime);
+	void cretePlanetsScene();
+	void updatePlanetsScene(float deltaTime);
 
 	HWND hWnd;
 
@@ -50,6 +55,7 @@ private:
 		std::vector<UINT>&& offsets,
 		std::vector<int>&& indices);
 	int createRectComponent(DirectX::SimpleMath::Vector2 centerPoint, float width, float height);
+	int createPlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
 
 	int leftPongScore = 0;
 	int rightPongScore = 0;

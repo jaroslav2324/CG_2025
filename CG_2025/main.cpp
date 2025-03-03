@@ -27,7 +27,6 @@ int main()
 
 	std::shared_ptr<Game> game = GE::getGameSubsystem();
 	game->init();
-	game->createPongScene();
 	game->run();
 
 	return 0;

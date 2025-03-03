@@ -26,6 +26,7 @@
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PhysicsSubsystem.cpp" />
+    <ClCompile Include="PlanetComponent.cpp" />
     <ClCompile Include="RectComponent.cpp" />
     <ClCompile Include="RectF.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
@@ -35,6 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\pixelShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\planetShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="shaders\pongShader.hlsl">
@@ -58,6 +62,7 @@
     <ClInclude Include="RectF.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
+    <ClInclude Include="PlanetComponent.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="WindowHandler.h" />
   </ItemGroup>

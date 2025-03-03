@@ -24,11 +24,12 @@ public:
 
 	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
-	int draw() override;
+	int draw(float deltaTime) override;
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
 protected:
+	//TODO: ComPtr
 	ID3DBlob* vertexByteCode = nullptr;
 	ID3DBlob* pixelByteCode = nullptr;
 	ID3D11VertexShader* vertexShader = nullptr;

@@ -70,7 +70,7 @@ int MeshComponent::init(
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
-	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.FillMode = D3D11_FILL_WIREFRAME;
 
 	HRESULT res = device->CreateRasterizerState(&rastDesc, &rastState);
 	if (FAILED(res)) {
@@ -78,7 +78,7 @@ int MeshComponent::init(
 	}
 }
 
-int MeshComponent::draw()
+int MeshComponent::draw(float deltaTime)
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
