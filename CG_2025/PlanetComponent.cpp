@@ -83,17 +83,24 @@ int PlanetComponent::draw(float deltaTime)
 	if (totalTime >= 1.0f) {
 		totalTime -= 1.0f;
 	}
-	rotationMatrix *= Matrix::CreateFromAxisAngle(planetAxis, angularSpeed * deltaTime * DirectX::XM_2PI);
+	rotationMatrix *= Matrix::CreateFromAxisAngle(planetAxis, angularSpeedSelf * deltaTime * DirectX::XM_2PI);
 	Matrix transformMatrix = scaleMatrix * rotationMatrix * translationMatrix;
 	PlanetComponent* parent = parentPlanet;
-	while (parent != nullptr) {
-		//transformMatrix *= parent->getTransformMatrix();
-		// rotate around parent : 
-		transformMatrix *= parentPlanet->translationMatrix;
-		transformMatrix *= parent->rotationMatrix;
+	if (parent != nullptr) {
+		rotationAroundParentMatrix *= Matrix::CreateFromAxisAngle(rotationAroundParentAxis, angularSpeedAroundParent * deltaTime * DirectX::XM_2PI);
+		transformMatrix *= rotationAroundParentMatrix;
+		//transformMatrix *= parent->rotationMatrix;
+		transformMatrix *= parent->translationMatrix;
 		parent = parent->parentPlanet;
 	}
-	transformMatrix *= GE::getCameraViewMatrix() * GE::getPerspectiveMatrix();
+	while (parent != nullptr) {
+		transformMatrix *= parent->rotationAroundParentMatrix;
+		transformMatrix *= parent->rotationMatrix;
+		transformMatrix *= parent->translationMatrix;
+		parent = parent->parentPlanet;
+	}
+
+	transformMatrix *= GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();

@@ -221,14 +221,17 @@ void Game::cretePlanetsScene()
 	auto winWidth = static_cast<float>(win->getWinWidth());
 	float winHeight = static_cast<float>(win->getWinHeight());
 
-	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.05);
-	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.1);
-	PlanetComponent* p1 = (PlanetComponent*)components[0];
-	PlanetComponent* p2 = (PlanetComponent*)components[1];
-	p1->setParentPlanet(p2);
-	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.2);
-	PlanetComponent* sun = (PlanetComponent*)components[2];
-	p2->setParentPlanet(sun);
+	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.15);
+	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.05);
+	PlanetComponent* sun = (PlanetComponent*)components[0];
+	PlanetComponent* p1 = (PlanetComponent*)components[1];
+	p1->setParentPlanet(sun);
+	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.03);
+	PlanetComponent* p2 = (PlanetComponent*)components[2];
+	p2->setParentPlanet(p1);
+	p2->setAngularSpeedSelf(0.2f);
+	p2->setAngularSpeedAroundParent(-0.1f);
+
 }
 
 void Game::updatePlanetsScene(float deltaTime)
@@ -239,12 +242,58 @@ void Game::updatePlanetsScene(float deltaTime)
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 
-	bool fpsActive = true;
-	Vector3 camPos = GE::getCameraPosition();
-	//Vector4 camPos4 = Vector4(camPos.x, camPos.y, camPos.z, 1.0f);
-	Matrix rot = Matrix::CreateRotationY(deltaTime * inputDevice->MouseOffset.x);
-	camPos = Vector3::Transform(camPos, rot);
-	GE::setCameraPosition(camPos);
+	static bool fpsActive;
+
+	if (inputDevice->IsKeyDown(Keys::D1)) {
+		fpsActive = true;
+	}
+	if (inputDevice->IsKeyDown(Keys::D2)) {
+		fpsActive = false;
+	}
+	if (inputDevice->IsKeyDown(Keys::D3)) {
+		GE::setPerspectiveMatrix(45.0 / 180.0 * DirectX::XM_PI);
+	}
+	if (inputDevice->IsKeyDown(Keys::D4)) {
+		GE::setPerspectiveMatrix(90.0 / 180.0 * DirectX::XM_PI);
+	}
+
+	if (fpsActive) {
+		if (inputDevice->IsKeyDown(Keys::Right))
+		{
+			Matrix rot = Matrix::CreateRotationY(deltaTime);
+			GE::rotateCameraAroundCenter(rot);
+		}
+		if (inputDevice->IsKeyDown(Keys::Left))
+		{
+			Matrix rot = Matrix::CreateRotationY(-deltaTime);
+			GE::rotateCameraAroundCenter(rot);
+		}
+		if (inputDevice->IsKeyDown(Keys::Up)) {
+			Vector3 cameraForvardVector = -GE::getCameraPosition();
+			cameraForvardVector.Normalize();
+			Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
+			cameraRightVector.Normalize();
+			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime);
+			GE::rotateCameraAroundCenter(rot);
+		}
+		if (inputDevice->IsKeyDown(Keys::Down)) {
+			Vector3 cameraForvardVector = -GE::getCameraPosition();
+			cameraForvardVector.Normalize();
+			Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
+			cameraRightVector.Normalize();
+			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, deltaTime);
+			GE::rotateCameraAroundCenter(rot);
+		}
+	}
+	else {
+		Vector3 cameraForvardVector = -GE::getCameraPosition();
+		cameraForvardVector.Normalize();
+		Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
+		cameraRightVector.Normalize();
+		Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime / 5);
+		GE::rotateCameraAroundCenter(rot);
+	}
+
 }
 
 void Game::run()

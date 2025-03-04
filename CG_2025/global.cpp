@@ -39,24 +39,20 @@ const std::shared_ptr<BufferManager> GE::getBufferManager()
 	return bufferManager;
 }
 
-const Matrix GE::getPerspectiveMatrix()
+static Matrix projectionMatrix;
+const Matrix GE::getProjectionMatrix()
 {
-	float fov = 0.4f * 3.14f;
-	float aspectRatio = 1.0f;
-	float nearPlane = 1.0f;
-	float farPlane = 1000.0f;
-	Matrix perspectiveMatrix = Matrix::CreatePerspectiveFieldOfView(fov, aspectRatio, nearPlane, farPlane);
-	return perspectiveMatrix;
+	return projectionMatrix;
 }
 
-Vector3 cameraPosition = Vector3(0.0f, 1.0f, -1.0f);
+Vector3 cameraPosition = Vector3(0.0f, 0.0f, -1.0f);
+Vector3 upCameraVector = Vector3(0.0f, 1.0f, 0.0f);
 
 const Matrix GE::getCameraViewMatrix()
 {
 	Vector3 centerPos = Vector3(0.0f, 0.0f, 0.0f);
-	Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
 
-	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, centerPos, up);
+	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, centerPos, upCameraVector);
 	return cameraMatrix;
 }
 
@@ -65,9 +61,29 @@ Vector3 GE::getCameraPosition()
 	return cameraPosition;
 }
 
+Vector3 GE::getCameraUpVector()
+{
+	return upCameraVector;
+}
+
 void GE::setCameraPosition(Vector3 pos)
 {
 	cameraPosition = pos;
+}
+
+void GE::rotateCameraAroundCenter(Matrix rotationMatrix)
+{
+	cameraPosition = Vector3::Transform(cameraPosition, rotationMatrix);
+	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
+	tmpUp.Normalize();
+	upCameraVector = tmpUp;
+}
+
+void GE::setPerspectiveMatrix(float fov, float ratio)
+{
+	float nearPlane = 1.0f;
+	float farPlane = 1000.0f;
+	projectionMatrix = Matrix::CreatePerspectiveFieldOfView(fov, ratio, nearPlane, farPlane);
 }
 
 void GE::initGraphicsEngine()

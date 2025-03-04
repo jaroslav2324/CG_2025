@@ -17,12 +17,16 @@ struct AdditionalData {
 
 class PlanetComponent : public MeshComponent {
 public:
+	using Vector3 = DirectX::SimpleMath::Vector3;
 	PlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
 	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 	int draw(float deltaTime) override;
 	int update(float deltaTime) override;
 	void destroyResources() override;
+
+	void setAngularSpeedSelf(float speed) { angularSpeedSelf = speed; };
+	void setAngularSpeedAroundParent(float speed) { angularSpeedAroundParent = speed; };
 
 	void setBoxMesh();
 	void setSphereMesh();
@@ -38,8 +42,11 @@ protected:
 	DirectX::SimpleMath::Matrix translationMatrix;
 	DirectX::SimpleMath::Matrix rotationMatrix;
 	DirectX::SimpleMath::Matrix scaleMatrix;
+	DirectX::SimpleMath::Matrix rotationAroundParentMatrix;
 	DirectX::SimpleMath::Vector3 planetAxis = { 0.0f, 1.0f, 0.0f };
-	float angularSpeed = 0.1;
+	Vector3 rotationAroundParentAxis = { 0.0f, 1.0f, 0.0f };
+	float angularSpeedSelf = 0.1;
+	float angularSpeedAroundParent = 0.2f;
 	float totalTime = 0.0f;
 
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;

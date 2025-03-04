@@ -42,8 +42,11 @@ namespace GE {
 	const std::shared_ptr<ShaderManager> getShaderManager();
 	const std::shared_ptr<BufferManager> getBufferManager();
 
-	const Matrix getPerspectiveMatrix();
+	const Matrix getProjectionMatrix();
 	const Matrix getCameraViewMatrix();
 	Vector3 getCameraPosition();
+	Vector3 getCameraUpVector();
 	void setCameraPosition(Vector3 pos);
+	void rotateCameraAroundCenter(Matrix rotationMatrix);
+	void setPerspectiveMatrix(float fov = 45.0 / 180.0 * DirectX::XM_PI, float ratio = 1.0);
 }
