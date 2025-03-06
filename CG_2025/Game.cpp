@@ -226,14 +226,16 @@ void Game::cretePlanetsScene()
 	PlanetComponent* sun = (PlanetComponent*)components[0];
 	PlanetComponent* p1 = (PlanetComponent*)components[1];
 	p1->setParentPlanet(sun);
+	p1->setBoxMesh({ -0.6f, 0.0f, 0.0f }, { 0.1 , 0.1 , 0.1 });
 	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.03);
 	PlanetComponent* p2 = (PlanetComponent*)components[2];
 	p2->setParentPlanet(p1);
-	p2->setAngularSpeedSelf(0.2f);
-	p2->setAngularSpeedAroundParent(-0.1f);
+	//p2->setAngularSpeedSelf(0.2f);
+	//p2->setAngularSpeedAroundParent(-0.1f);
 
 }
 
+static bool fpsActive = true;
 void Game::updatePlanetsScene(float deltaTime)
 {
 	auto win = GE::getWindowHandler();
@@ -241,8 +243,6 @@ void Game::updatePlanetsScene(float deltaTime)
 	float winHeight = static_cast<float>(win->getWinHeight());
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
-
-	static bool fpsActive;
 
 	if (inputDevice->IsKeyDown(Keys::D1)) {
 		fpsActive = true;

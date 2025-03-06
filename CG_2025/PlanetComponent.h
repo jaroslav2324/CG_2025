@@ -17,6 +17,7 @@ struct AdditionalData {
 
 class PlanetComponent : public MeshComponent {
 public:
+	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
 	PlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
 	int init(const std::wstring& vertShaderPath,
@@ -28,8 +29,8 @@ public:
 	void setAngularSpeedSelf(float speed) { angularSpeedSelf = speed; };
 	void setAngularSpeedAroundParent(float speed) { angularSpeedAroundParent = speed; };
 
-	void setBoxMesh();
-	void setSphereMesh();
+	void setBoxMesh(DirectX::SimpleMath::Vector3 position, Vector3 widthHeightDephths);
+	void setSphereMesh(DirectX::SimpleMath::Vector3 position, float radius);
 
 	void setParentPlanet(PlanetComponent* parent) { parentPlanet = parent; };
 	PlanetComponent* getParentPlanet() { return parentPlanet; };
@@ -43,6 +44,7 @@ protected:
 	DirectX::SimpleMath::Matrix rotationMatrix;
 	DirectX::SimpleMath::Matrix scaleMatrix;
 	DirectX::SimpleMath::Matrix rotationAroundParentMatrix;
+	DirectX::SimpleMath::Matrix initialTranslationMatrix;
 	DirectX::SimpleMath::Vector3 planetAxis = { 0.0f, 1.0f, 0.0f };
 	Vector3 rotationAroundParentAxis = { 0.0f, 1.0f, 0.0f };
 	float angularSpeedSelf = 0.1;

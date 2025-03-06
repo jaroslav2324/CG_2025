@@ -31,6 +31,7 @@ PlanetComponent::PlanetComponent(Vector3 position, float radius) : MeshComponent
 {
 	planetAxis.Normalize();
 	translationMatrix = translationMatrix.CreateTranslation(position);
+	initialTranslationMatrix = translationMatrix;
 
 	int stacks = 16, slices = 16;
 
@@ -46,12 +47,12 @@ PlanetComponent::PlanetComponent(Vector3 position, float radius) : MeshComponent
 	for (int i = 0; i <= stacks; ++i) {
 		float phi = DirectX::XM_PI * i / stacks;
 		for (int j = 0; j <= slices; ++j) {
-			float theta = DirectX::XM_2PI * j / slices; // От 0 до 2PI
+			float theta = DirectX::XM_2PI * j / slices; 
 
 			float x = radius * sinf(phi) * cosf(theta);
 			float y = radius * cosf(phi);
 			float z = radius * sinf(phi) * sinf(theta);
-			std::cout << x << " " << y << " " << z << " " << std::endl;
+			//std::cout << x << " " << y << " " << z << " " << std::endl;
 
 			points.push_back({ x, y, z, 1.0f });
 			points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
@@ -84,18 +85,20 @@ int PlanetComponent::draw(float deltaTime)
 		totalTime -= 1.0f;
 	}
 	rotationMatrix *= Matrix::CreateFromAxisAngle(planetAxis, angularSpeedSelf * deltaTime * DirectX::XM_2PI);
-	Matrix transformMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+	Matrix transformMatrix = scaleMatrix * rotationMatrix * initialTranslationMatrix;
+
 	PlanetComponent* parent = parentPlanet;
 	if (parent != nullptr) {
 		rotationAroundParentMatrix *= Matrix::CreateFromAxisAngle(rotationAroundParentAxis, angularSpeedAroundParent * deltaTime * DirectX::XM_2PI);
+		translationMatrix = initialTranslationMatrix * rotationAroundParentMatrix;
+
 		transformMatrix *= rotationAroundParentMatrix;
-		//transformMatrix *= parent->rotationMatrix;
 		transformMatrix *= parent->translationMatrix;
+
 		parent = parent->parentPlanet;
 	}
 	while (parent != nullptr) {
 		transformMatrix *= parent->rotationAroundParentMatrix;
-		transformMatrix *= parent->rotationMatrix;
 		transformMatrix *= parent->translationMatrix;
 		parent = parent->parentPlanet;
 	}
@@ -134,4 +137,104 @@ int PlanetComponent::update(float deltaTime)
 void PlanetComponent::destroyResources()
 {
 	MeshComponent::destroyResources();
+}
+
+void PlanetComponent::setBoxMesh(DirectX::SimpleMath::Vector3 position, Vector3 widthHeightDephths)
+{
+	translationMatrix = translationMatrix.CreateTranslation(position);
+	initialTranslationMatrix = translationMatrix;
+
+	indices.clear();
+	points.clear();
+	strides.clear();
+	offsets.clear();
+
+	float halfWidth = widthHeightDephths.x * 0.5f;
+	float halfHeight = widthHeightDephths.y * 0.5f;
+	float halfDepth = widthHeightDephths.z * 0.5f;
+
+	std::vector<DirectX::SimpleMath::Vector4> vertices = {
+		{ -halfWidth, -halfHeight,  halfDepth, 1.0f },
+		{  halfWidth, -halfHeight,  halfDepth, 1.0f },
+		{  halfWidth,  halfHeight,  halfDepth, 1.0f },
+		{ -halfWidth,  halfHeight,  halfDepth, 1.0f },
+		{ -halfWidth, -halfHeight, -halfDepth, 1.0f },
+		{  halfWidth, -halfHeight, -halfDepth, 1.0f },
+		{  halfWidth,  halfHeight, -halfDepth, 1.0f },
+		{ -halfWidth,  halfHeight, -halfDepth, 1.0f }
+	};
+
+	for (const auto& vertex : vertices) {
+		points.push_back(vertex);
+		points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
+	}
+
+	indices = {
+		0, 1, 2,  0, 2, 3,
+		4, 6, 5,  4, 7, 6,
+		0, 4, 5,  0, 5, 1,
+		3, 2, 6,  3, 6, 7,
+		0, 3, 7,  0, 7, 4,
+		1, 5, 6,  1, 6, 2
+	};
+
+	strides = { 32 };
+	offsets = { 0 };
+
+	init(L"./shaders/planetShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
+}
+
+void PlanetComponent::setSphereMesh(DirectX::SimpleMath::Vector3 position, float radius)
+{
+	translationMatrix = translationMatrix.CreateTranslation(position);
+	initialTranslationMatrix = translationMatrix;
+
+	indices.clear();
+	points.clear();
+
+	int stacks = 16, slices = 16;
+
+	auto context = GE::getGameSubsystem()->getDeviceContext();
+
+	auto win = GE::getWindowHandler();
+	int winWidth = win->getWinWidth();
+	int winHeight = win->getWinHeight();
+	addData.screenCoords.x = winWidth;
+	addData.screenCoords.y = winHeight;
+
+	for (int i = 0; i <= stacks; ++i) {
+		float phi = DirectX::XM_PI * i / stacks;
+		for (int j = 0; j <= slices; ++j) {
+			float theta = DirectX::XM_2PI * j / slices; // От 0 до 2PI
+
+			float x = radius * sinf(phi) * cosf(theta);
+			float y = radius * cosf(phi);
+			float z = radius * sinf(phi) * sinf(theta);
+
+			points.push_back({ x, y, z, 1.0f });
+			points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
+		}
+	}
+
+	for (int i = 0; i < stacks; ++i) {
+		for (int j = 0; j < slices; ++j) {
+			int first = i * (slices + 1) + j;
+			int second = first + slices + 1;
+
+			indices.push_back(first);
+			indices.push_back(second);
+			indices.push_back(first + 1);
+
+			indices.push_back(second);
+			indices.push_back(second + 1);
+			indices.push_back(first + 1);
+		}
+	}
+
+	strides = { 32 };
+	offsets = { 0 };
+
+	init(L"./shaders/planetShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
 }
