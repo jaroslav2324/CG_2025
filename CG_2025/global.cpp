@@ -45,14 +45,13 @@ const Matrix GE::getProjectionMatrix()
 	return projectionMatrix;
 }
 
+Vector3 cameraForwardVector = Vector3(0.0f, 0.0f, 1.0f);
 Vector3 cameraPosition = Vector3(0.0f, 0.0f, -1.0f);
 Vector3 upCameraVector = Vector3(0.0f, 1.0f, 0.0f);
 
 const Matrix GE::getCameraViewMatrix()
 {
-	Vector3 centerPos = Vector3(0.0f, 0.0f, 0.0f);
-
-	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, centerPos, upCameraVector);
+	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, cameraPosition + cameraForwardVector, upCameraVector);
 	return cameraMatrix;
 }
 
@@ -66,17 +65,37 @@ Vector3 GE::getCameraUpVector()
 	return upCameraVector;
 }
 
+Vector3 GE::getCameraForwardVector()
+{
+	return cameraForwardVector;
+}
+
 void GE::setCameraPosition(Vector3 pos)
 {
 	cameraPosition = pos;
 }
 
+void GE::setCameraForwardVector(Vector3 vec)
+{
+	vec.Normalize();
+	cameraForwardVector = vec;
+}
+
+void GE::setCameraUpVector(Vector3 vec)
+{
+	vec.Normalize();
+	upCameraVector = vec;
+}
+
 void GE::rotateCameraAroundCenter(Matrix rotationMatrix)
 {
-	cameraPosition = Vector3::Transform(cameraPosition, rotationMatrix);
+	//cameraPosition = Vector3::Transform(cameraPosition, rotationMatrix);
 	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
 	tmpUp.Normalize();
+	Vector3 tmpForward = Vector3::Transform(cameraForwardVector, rotationMatrix);
+	tmpForward.Normalize();
 	upCameraVector = tmpUp;
+	cameraForwardVector = tmpForward;
 }
 
 void GE::setPerspectiveMatrix(float fov, float ratio)
@@ -94,6 +113,7 @@ void GE::initGraphicsEngine()
 	initShaderManager();
 	initInputDevice(winHandler);
 	initPhysicsSubsystem();
+	setPerspectiveMatrix();
 }
 
 void GE::initWindowHandler()

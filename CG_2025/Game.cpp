@@ -221,21 +221,49 @@ void Game::cretePlanetsScene()
 	auto winWidth = static_cast<float>(win->getWinWidth());
 	float winHeight = static_cast<float>(win->getWinHeight());
 
+	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 10.0);
+	PlanetComponent* p3 = (PlanetComponent*)components[0];
+	p3->setSphereMesh({ 0.0f, 0.0f, 0.0f }, 50.0, 128, 128);
+	p3->setAngularSpeedSelf(0.0f);
+	p3->setStarsColor(0.98f);
+
 	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.15);
 	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.05);
-	PlanetComponent* sun = (PlanetComponent*)components[0];
-	PlanetComponent* p1 = (PlanetComponent*)components[1];
+	PlanetComponent* sun = (PlanetComponent*)components[1];
+	sun->setColor({ 1.0f, 1.0f, 0.0f, 1.0f });
+	PlanetComponent* p1 = (PlanetComponent*)components[2];
 	p1->setParentPlanet(sun);
 	p1->setBoxMesh({ -0.6f, 0.0f, 0.0f }, { 0.1 , 0.1 , 0.1 });
+	p1->setAngularSpeedAroundParent(0.01f);
 	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.03);
-	PlanetComponent* p2 = (PlanetComponent*)components[2];
+	PlanetComponent* p2 = (PlanetComponent*)components[3];
 	p2->setParentPlanet(p1);
-	//p2->setAngularSpeedSelf(0.2f);
-	//p2->setAngularSpeedAroundParent(-0.1f);
+	p2->setRotationAroundParentAxis({ 0.0f, 0.0f, 1.0f });
 
+	createPlanetComponent({ -0.1f, 0.0f, 0.0f }, 0.01);
+	PlanetComponent* p4 = (PlanetComponent*)components[4];
+	p4->setParentPlanet(p2);
+	p4->setColor({ 0.7f, 0.0f, 0.0f, 1.0f });
+	p4->setRotationAroundParentAxis({ 0.0f, 0.0f, 1.0f });
+
+	createPlanetComponent({ -1.0f, 0.0f, 0.0f }, 0.03);
+	PlanetComponent* p5 = (PlanetComponent*)components[5];
+	p5->setBoxMesh({ -1.0f, 0.0f, 0.0f }, { 0.1 , 0.05 , 0.05 });
+	p5->setAngularSpeedAroundParent(-0.2f);
+	p5->setColor({ 1.0f, 0.0f, 1.0f, 1.0f });
+	p5->setParentPlanet(sun);
+
+	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.01);
+	PlanetComponent* p6 = (PlanetComponent*)components[6];
+	p6->setBoxMesh({ -0.2f, 0.0f, 0.0f }, { 0.05 , 0.05 , 0.05 });
+	p6->setAngularSpeedAroundParent(-0.05f);
+	p6->setColor({ 0.0f, 0.0f, 0.5f, 1.0f });
+	p6->setAngularSpeedSelf(-0.1f);
+	p6->setPlanetAxis({ 0.2f, 0.5f, 0.5f });
+	p6->setParentPlanet(p5);
 }
 
-static bool fpsActive = true;
+static bool orbitCameraActive = true;
 void Game::updatePlanetsScene(float deltaTime)
 {
 	auto win = GE::getWindowHandler();
@@ -245,10 +273,13 @@ void Game::updatePlanetsScene(float deltaTime)
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 
 	if (inputDevice->IsKeyDown(Keys::D1)) {
-		fpsActive = true;
+		orbitCameraActive = true;
+		GE::setCameraForwardVector({ 0.0f, 0.0f, 1.0f });
+		GE::setCameraPosition({ 0.0f, 0.0f, -3.0f });
+		GE::setCameraUpVector({ 0.0f, 1.0f, 0.0f });
 	}
 	if (inputDevice->IsKeyDown(Keys::D2)) {
-		fpsActive = false;
+		orbitCameraActive = false;
 	}
 	if (inputDevice->IsKeyDown(Keys::D3)) {
 		GE::setPerspectiveMatrix(45.0 / 180.0 * DirectX::XM_PI);
@@ -257,16 +288,18 @@ void Game::updatePlanetsScene(float deltaTime)
 		GE::setPerspectiveMatrix(90.0 / 180.0 * DirectX::XM_PI);
 	}
 
-	if (fpsActive) {
+	if (orbitCameraActive) {
 		if (inputDevice->IsKeyDown(Keys::Right))
 		{
 			Matrix rot = Matrix::CreateRotationY(deltaTime);
 			GE::rotateCameraAroundCenter(rot);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Left))
 		{
 			Matrix rot = Matrix::CreateRotationY(-deltaTime);
 			GE::rotateCameraAroundCenter(rot);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Up)) {
 			Vector3 cameraForvardVector = -GE::getCameraPosition();
@@ -275,6 +308,7 @@ void Game::updatePlanetsScene(float deltaTime)
 			cameraRightVector.Normalize();
 			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime);
 			GE::rotateCameraAroundCenter(rot);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Down)) {
 			Vector3 cameraForvardVector = -GE::getCameraPosition();
@@ -283,15 +317,50 @@ void Game::updatePlanetsScene(float deltaTime)
 			cameraRightVector.Normalize();
 			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, deltaTime);
 			GE::rotateCameraAroundCenter(rot);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 	}
 	else {
-		Vector3 cameraForvardVector = -GE::getCameraPosition();
-		cameraForvardVector.Normalize();
-		Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
-		cameraRightVector.Normalize();
-		Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime / 5);
-		GE::rotateCameraAroundCenter(rot);
+		Vector2 mousePos = inputDevice->MousePosition;
+		if (!apprEqual(prevMousePosition.x, mousePos.x)) {
+			Vector3 camPos = GE::getCameraPosition();
+			GE::setCameraPosition({ 0.0f, 0.0f, 0.0f });
+			Matrix rot = Matrix::CreateRotationY(deltaTime * (mousePos.x - prevMousePosition.x));
+			GE::rotateCameraAroundCenter(rot);
+			//GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
+			GE::setCameraPosition(camPos);
+		}
+		if (!apprEqual(prevMousePosition.y, mousePos.y)) {
+			Vector3 camPos = GE::getCameraPosition();
+			GE::setCameraPosition({ 0.0f, 0.0f, 0.0f });
+			Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
+			cameraRightVector.Normalize();
+			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime * (mousePos.y - prevMousePosition.y));
+			GE::rotateCameraAroundCenter(rot);
+			//GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
+			GE::setCameraPosition(camPos);
+		}
+		prevMousePosition = mousePos;
+
+		if (inputDevice->IsKeyDown(Keys::W)) {
+			Matrix tr = Matrix::CreateTranslation(GE::getCameraForwardVector() * deltaTime);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), tr));
+		}
+		if (inputDevice->IsKeyDown(Keys::S)) {
+			Matrix tr = Matrix::CreateTranslation(-GE::getCameraForwardVector() * deltaTime);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), tr));
+		}
+
+		if (inputDevice->IsKeyDown(Keys::D)) {
+			Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
+			Matrix tr = Matrix::CreateTranslation(cameraRightVector * deltaTime);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), tr));
+		}
+		if (inputDevice->IsKeyDown(Keys::A)) {
+			Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
+			Matrix tr = Matrix::CreateTranslation(-cameraRightVector * deltaTime);
+			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), tr));
+		}
 	}
 
 }

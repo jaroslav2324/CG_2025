@@ -5,6 +5,9 @@
 #include <directxtk/SimpleMath.h>
 #include <directxtk/GeometricPrimitive.h>
 
+#include <ctime>
+#include <random>
+
 #include "MeshComponent.h"
 #include "global.h"
 
@@ -26,11 +29,17 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
+	void setPlanetAxis(Vector3 axis);
+	void setRotationAroundParentAxis(Vector3 axis);
+
 	void setAngularSpeedSelf(float speed) { angularSpeedSelf = speed; };
 	void setAngularSpeedAroundParent(float speed) { angularSpeedAroundParent = speed; };
 
 	void setBoxMesh(DirectX::SimpleMath::Vector3 position, Vector3 widthHeightDephths);
-	void setSphereMesh(DirectX::SimpleMath::Vector3 position, float radius);
+	void setSphereMesh(DirectX::SimpleMath::Vector3 position, float radius, int stacks = 16, int slices = 16);
+
+	void setColor(DirectX::XMFLOAT4 clr);
+	void setStarsColor(float probability);
 
 	void setParentPlanet(PlanetComponent* parent) { parentPlanet = parent; };
 	PlanetComponent* getParentPlanet() { return parentPlanet; };
@@ -38,12 +47,12 @@ public:
 		return scaleMatrix * rotationMatrix * translationMatrix;
 	};
 protected:
-	void rotateAroundParent();
 	PlanetComponent* parentPlanet = nullptr;
 	DirectX::SimpleMath::Matrix translationMatrix;
 	DirectX::SimpleMath::Matrix rotationMatrix;
 	DirectX::SimpleMath::Matrix scaleMatrix;
 	DirectX::SimpleMath::Matrix rotationAroundParentMatrix;
+	DirectX::SimpleMath::Matrix initialrotationAroundParentMatrix;
 	DirectX::SimpleMath::Matrix initialTranslationMatrix;
 	DirectX::SimpleMath::Vector3 planetAxis = { 0.0f, 1.0f, 0.0f };
 	Vector3 rotationAroundParentAxis = { 0.0f, 1.0f, 0.0f };

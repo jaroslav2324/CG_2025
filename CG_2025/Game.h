@@ -64,5 +64,7 @@ private:
 	float startBallVelocity = 250;
 	bool reflectedFromLeftRocket = true;
 
+	DirectX::SimpleMath::Vector2 prevMousePosition = { 0, 0 };
+
 	DirectX::SimpleMath::Vector2 generateRandomBallDirection();
 };

@@ -46,7 +46,10 @@ namespace GE {
 	const Matrix getCameraViewMatrix();
 	Vector3 getCameraPosition();
 	Vector3 getCameraUpVector();
+	Vector3 getCameraForwardVector();
 	void setCameraPosition(Vector3 pos);
+	void setCameraForwardVector(Vector3 vec);
+	void setCameraUpVector(Vector3 vec);
 	void rotateCameraAroundCenter(Matrix rotationMatrix);
 	void setPerspectiveMatrix(float fov = 45.0 / 180.0 * DirectX::XM_PI, float ratio = 1.0);
 }
