@@ -18,6 +18,8 @@
 #include "RectComponent.h"
 #include "BufferManager.h"
 #include "PlanetComponent.h"
+#include "CatamariBall.h"
+#include "CatamariBox.h"
 
 class Game {
 
@@ -28,7 +30,6 @@ public:
 	int draw(float deltaTime);
 	~Game();
 	void destroyResources();
-	// TODO : create renderer and move there
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
 private:
@@ -38,7 +39,8 @@ private:
 	void updatePongScene(float deltaTime);
 	void cretePlanetsScene();
 	void updatePlanetsScene(float deltaTime);
-
+	void createKatamariScene();
+	void updateKatamariScene(float deltaTime);
 	HWND hWnd;
 
 	// TODO: ComPtr
@@ -47,6 +49,8 @@ private:
 	IDXGISwapChain* swapChain = nullptr;
 	ID3D11Texture2D* backTex = nullptr;
 	ID3D11RenderTargetView* rtv = nullptr;
+	ComPtr<ID3D11Texture2D> depthBuffer;
+	ComPtr<ID3D11DepthStencilView> depthView;
 
 	std::vector<GameComponent*> components;
 
@@ -56,6 +60,9 @@ private:
 		std::vector<int>&& indices);
 	int createRectComponent(DirectX::SimpleMath::Vector2 centerPoint, float width, float height);
 	int createPlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
+	CatamariBall* createCatamariBallComponent(DirectX::SimpleMath::Vector3 position, float radius, int stacks = 16, int slices = 16);
+	CatamariBox* createCatamariBoxComponent(DirectX::SimpleMath::Vector3 position, DirectX::SimpleMath::Vector3 size);
+
 
 	int leftPongScore = 0;
 	int rightPongScore = 0;
@@ -67,4 +74,6 @@ private:
 	DirectX::SimpleMath::Vector2 prevMousePosition = { 0, 0 };
 
 	DirectX::SimpleMath::Vector2 generateRandomBallDirection();
+
+
 };

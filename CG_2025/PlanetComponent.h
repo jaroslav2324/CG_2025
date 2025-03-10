@@ -10,13 +10,7 @@
 
 #include "MeshComponent.h"
 #include "global.h"
-
-struct AdditionalData {
-	DirectX::SimpleMath::Matrix transformMatrix;
-	DirectX::SimpleMath::Vector2 screenCoords;
-	DirectX::SimpleMath::Vector2 unused;
-
-};
+#include "addData.h"
 
 class PlanetComponent : public MeshComponent {
 public:
@@ -59,6 +53,7 @@ protected:
 	float angularSpeedSelf = 0.1;
 	float angularSpeedAroundParent = 0.2f;
 	float totalTime = 0.0f;
+	float summedAroundParentAngle = 0.0f;
 
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
 	AdditionalData addData;

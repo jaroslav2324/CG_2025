@@ -15,6 +15,7 @@ using Microsoft::WRL::ComPtr;
 
 //#define PONG
 #define PLANETS
+//#define CATAMARI
 
 namespace GE {
 	using Matrix = DirectX::SimpleMath::Matrix;
@@ -50,6 +51,7 @@ namespace GE {
 	void setCameraPosition(Vector3 pos);
 	void setCameraForwardVector(Vector3 vec);
 	void setCameraUpVector(Vector3 vec);
-	void rotateCameraAroundCenter(Matrix rotationMatrix);
+	void rotateCamera(Matrix rotationMatrix);
+	void rotateCameraAroundCenter(Vector3 parentPos, Matrix rotationMatrix);
 	void setPerspectiveMatrix(float fov = 45.0 / 180.0 * DirectX::XM_PI, float ratio = 1.0);
 }

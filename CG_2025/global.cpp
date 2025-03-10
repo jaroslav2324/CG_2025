@@ -87,7 +87,7 @@ void GE::setCameraUpVector(Vector3 vec)
 	upCameraVector = vec;
 }
 
-void GE::rotateCameraAroundCenter(Matrix rotationMatrix)
+void GE::rotateCamera(Matrix rotationMatrix)
 {
 	//cameraPosition = Vector3::Transform(cameraPosition, rotationMatrix);
 	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
@@ -98,9 +98,20 @@ void GE::rotateCameraAroundCenter(Matrix rotationMatrix)
 	cameraForwardVector = tmpForward;
 }
 
+void GE::rotateCameraAroundCenter(Vector3 camPos, Matrix rotationMatrix)
+{
+	cameraPosition = Vector3::Transform(cameraPosition - camPos, rotationMatrix) + camPos;
+	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
+	tmpUp.Normalize();
+	Vector3 tmpForward = Vector3::Transform(cameraForwardVector, rotationMatrix);
+	tmpForward.Normalize();
+	upCameraVector = tmpUp;
+	cameraForwardVector = tmpForward;
+}
+
 void GE::setPerspectiveMatrix(float fov, float ratio)
 {
-	float nearPlane = 1.0f;
+	float nearPlane = 0.1f;
 	float farPlane = 1000.0f;
 	projectionMatrix = Matrix::CreatePerspectiveFieldOfView(fov, ratio, nearPlane, farPlane);
 }

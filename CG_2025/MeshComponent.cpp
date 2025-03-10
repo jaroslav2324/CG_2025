@@ -70,10 +70,12 @@ int MeshComponent::init(
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
-#if defined(PONG)
-	rastDesc.FillMode = D3D11_FILL_SOLID;
-#else
+#if defined(PLANETS)
 	rastDesc.FillMode = D3D11_FILL_WIREFRAME;
+#elif defined (CATAMARI)
+	rastDesc.FillMode = D3D11_FILL_WIREFRAME;
+#else
+	rastDesc.FillMode = D3D11_FILL_SOLID;
 #endif
 
 	HRESULT res = device->CreateRasterizerState(&rastDesc, &rastState);

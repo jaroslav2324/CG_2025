@@ -20,10 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferManager.cpp" />
+    <ClCompile Include="CatamariBox.cpp" />
     <ClCompile Include="Delegates.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="InputDevice.cpp" />
+    <ClCompile Include="CatamariBall.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PhysicsSubsystem.cpp" />
     <ClCompile Include="PlanetComponent.cpp" />
@@ -49,6 +51,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="addData.h" />
     <ClInclude Include="appExceptions.h" />
     <ClInclude Include="BufferManager.h" />
     <ClInclude Include="Delegates.h" />
@@ -56,6 +59,8 @@
     <ClInclude Include="GameComponent.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="CatamariBall.h" />
+    <ClInclude Include="CatamariBox.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="RectComponent.h" />

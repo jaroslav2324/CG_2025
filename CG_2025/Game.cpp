@@ -5,6 +5,47 @@ using DirectX::SimpleMath::Vector4;
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
 using DirectX::SimpleMath::Matrix;
+using DirectX::BoundingBox;
+
+void coutVector(Vector3 v) {
+	std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+}
+
+bool CheckSphereAABBCollision(const Vector3& sphereCenter, float sphereRadius, const BoundingBox& aabb) {
+	// Находим ближайшую точку на AABB к центру сферы
+	Vector3 closestPoint;
+
+	Vector3 corners[8];
+	aabb.GetCorners(corners);
+	closestPoint = corners[0];
+	Vector3 minDiff;
+	minDiff.x = std::abs(corners[0].x - sphereCenter.x);
+	minDiff.y = std::abs(corners[0].y - sphereCenter.y);
+	minDiff.z = std::abs(corners[0].z - sphereCenter.z);
+	for (auto p : corners) {
+		if (std::abs(p.x - sphereCenter.x) < minDiff.x) {
+			minDiff.x = std::abs(p.x - sphereCenter.x);
+			closestPoint.x = p.x;
+		}
+		if (std::abs(p.y - sphereCenter.y) < minDiff.y) {
+			minDiff.y = std::abs(p.y - sphereCenter.y);
+			closestPoint.y = p.y;
+		}
+		if (std::abs(p.z - sphereCenter.z) < minDiff.z) {
+			minDiff.z = std::abs(p.z - sphereCenter.z);
+			closestPoint.z = p.z;
+		}
+	}
+
+	// Вычисляем вектор от центра сферы до ближайшей точки
+	Vector3 distanceVector = closestPoint - sphereCenter;
+
+	// Вычисляем квадрат расстояния
+	float distanceSquared = distanceVector.LengthSquared();
+
+	// Проверяем, меньше ли квадрат расстояния радиуса сферы
+	return distanceSquared <= (sphereRadius * sphereRadius);
+}
 
 Game::Game()
 {
@@ -61,6 +102,26 @@ Game::Game()
 	{
 		throw GraphicsException("Creating render target view for back buffer failed");
 	}
+
+	D3D11_TEXTURE2D_DESC depthTexDesc = {};
+	depthTexDesc.Width = GE::getWindowHandler()->getWinWidth();
+	depthTexDesc.Height = GE::getWindowHandler()->getWinHeight();
+	depthTexDesc.MipLevels = 1;
+	depthTexDesc.ArraySize = 1;
+	depthTexDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthTexDesc.SampleDesc.Count = 1;
+	depthTexDesc.SampleDesc.Quality = 0;
+	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthTexDesc.CPUAccessFlags = 0;
+	depthTexDesc.MiscFlags = 0;
+	depthTexDesc.SampleDesc = { 1, 0 };
+
+	// Создание текстуры глубины
+	res = device->CreateTexture2D(&depthTexDesc, nullptr, depthBuffer.GetAddressOf());
+
+	res = device->CreateTexture2D(&depthTexDesc, nullptr, &depthBuffer);
+	res = device->CreateDepthStencilView(depthBuffer.Get(), nullptr, &depthView);
 }
 
 void Game::init()
@@ -70,6 +131,9 @@ void Game::init()
 #endif
 #if defined(PLANETS)
 	cretePlanetsScene();
+#endif
+#if defined (CATAMARI)
+	createKatamariScene();
 #endif
 }
 
@@ -138,6 +202,9 @@ void Game::update(float deltaTime)
 #endif
 #if defined(PLANETS)
 	updatePlanetsScene(deltaTime);
+#endif
+#if defined(CATAMARI)
+	updateKatamariScene(deltaTime);
 #endif
 }
 
@@ -228,39 +295,60 @@ void Game::cretePlanetsScene()
 	p3->setStarsColor(0.98f);
 
 	createPlanetComponent({ 0.0f, 0.0f, 0.0f }, 0.15);
-	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.05);
 	PlanetComponent* sun = (PlanetComponent*)components[1];
 	sun->setColor({ 1.0f, 1.0f, 0.0f, 1.0f });
+	createPlanetComponent({ -0.6f, 0.0f, 0.0f }, 0.05);
+	// cyan box
 	PlanetComponent* p1 = (PlanetComponent*)components[2];
 	p1->setParentPlanet(sun);
+	p1->setAngularSpeedAroundParent(0.0);
 	p1->setBoxMesh({ -0.6f, 0.0f, 0.0f }, { 0.1 , 0.1 , 0.1 });
-	p1->setAngularSpeedAroundParent(0.01f);
+	//p1->setAngularSpeedAroundParent(0.01f);
+
+	// cyan sphere
 	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.03);
 	PlanetComponent* p2 = (PlanetComponent*)components[3];
 	p2->setParentPlanet(p1);
 	p2->setRotationAroundParentAxis({ 0.0f, 0.0f, 1.0f });
 
-	createPlanetComponent({ -0.1f, 0.0f, 0.0f }, 0.01);
+	// red
+	createPlanetComponent({ 0.1f, 0.1f, 0.1f }, 0.01);
 	PlanetComponent* p4 = (PlanetComponent*)components[4];
 	p4->setParentPlanet(p2);
 	p4->setColor({ 0.7f, 0.0f, 0.0f, 1.0f });
-	p4->setRotationAroundParentAxis({ 0.0f, 0.0f, 1.0f });
+	Vector3 rp4 = { 1.0, -1.0, 1.0 };
+	rp4.Normalize();
+	p4->setRotationAroundParentAxis(rp4);
 
+	// purple box
 	createPlanetComponent({ -1.0f, 0.0f, 0.0f }, 0.03);
 	PlanetComponent* p5 = (PlanetComponent*)components[5];
 	p5->setBoxMesh({ -1.0f, 0.0f, 0.0f }, { 0.1 , 0.05 , 0.05 });
-	p5->setAngularSpeedAroundParent(-0.2f);
+	p5->setAngularSpeedAroundParent(-0.05f);
 	p5->setColor({ 1.0f, 0.0f, 1.0f, 1.0f });
 	p5->setParentPlanet(sun);
 
 	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.01);
 	PlanetComponent* p6 = (PlanetComponent*)components[6];
 	p6->setBoxMesh({ -0.2f, 0.0f, 0.0f }, { 0.05 , 0.05 , 0.05 });
-	p6->setAngularSpeedAroundParent(-0.05f);
+	p6->setAngularSpeedAroundParent(-0.01f);
 	p6->setColor({ 0.0f, 0.0f, 0.5f, 1.0f });
 	p6->setAngularSpeedSelf(-0.1f);
-	p6->setPlanetAxis({ 0.2f, 0.5f, 0.5f });
+	Vector3 r6 = { 0.2f, 0.5f, 0.5f };
+	r6.Normalize();
+	p6->setPlanetAxis(r6);
+	Vector3 rp6 = { 0.3f, 0.8f, 0.3f };
+	rp6.Normalize();
+	p6->setRotationAroundParentAxis(rp6);
 	p6->setParentPlanet(p5);
+
+	createPlanetComponent({ -0.5f, -0.5f, -0.5f }, 0.01);
+	PlanetComponent* p7 = (PlanetComponent*)components[7];
+	p7->setColor({ 0.5, 0.2, 0.4, 1.0 });
+	Vector3 rp7 = { -0.5f, 0.5f, 0.5f };
+	rp7.Normalize();
+	p7->setRotationAroundParentAxis(rp7);
+	p7->setParentPlanet(sun);
 }
 
 static bool orbitCameraActive = true;
@@ -292,13 +380,13 @@ void Game::updatePlanetsScene(float deltaTime)
 		if (inputDevice->IsKeyDown(Keys::Right))
 		{
 			Matrix rot = Matrix::CreateRotationY(deltaTime);
-			GE::rotateCameraAroundCenter(rot);
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Left))
 		{
 			Matrix rot = Matrix::CreateRotationY(-deltaTime);
-			GE::rotateCameraAroundCenter(rot);
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Up)) {
@@ -307,7 +395,7 @@ void Game::updatePlanetsScene(float deltaTime)
 			Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
 			cameraRightVector.Normalize();
 			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime);
-			GE::rotateCameraAroundCenter(rot);
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 		if (inputDevice->IsKeyDown(Keys::Down)) {
@@ -316,7 +404,7 @@ void Game::updatePlanetsScene(float deltaTime)
 			Vector3 cameraRightVector = cameraForvardVector.Cross(GE::getCameraUpVector());
 			cameraRightVector.Normalize();
 			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, deltaTime);
-			GE::rotateCameraAroundCenter(rot);
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
 		}
 	}
@@ -326,8 +414,7 @@ void Game::updatePlanetsScene(float deltaTime)
 			Vector3 camPos = GE::getCameraPosition();
 			GE::setCameraPosition({ 0.0f, 0.0f, 0.0f });
 			Matrix rot = Matrix::CreateRotationY(deltaTime * (mousePos.x - prevMousePosition.x));
-			GE::rotateCameraAroundCenter(rot);
-			//GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(camPos);
 		}
 		if (!apprEqual(prevMousePosition.y, mousePos.y)) {
@@ -336,8 +423,7 @@ void Game::updatePlanetsScene(float deltaTime)
 			Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
 			cameraRightVector.Normalize();
 			Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -deltaTime * (mousePos.y - prevMousePosition.y));
-			GE::rotateCameraAroundCenter(rot);
-			//GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), rot));
+			GE::rotateCamera(rot);
 			GE::setCameraPosition(camPos);
 		}
 		prevMousePosition = mousePos;
@@ -360,6 +446,130 @@ void Game::updatePlanetsScene(float deltaTime)
 			Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
 			Matrix tr = Matrix::CreateTranslation(-cameraRightVector * deltaTime);
 			GE::setCameraPosition(Vector3::Transform(GE::getCameraPosition(), tr));
+		}
+	}
+
+}
+
+void Game::createKatamariScene()
+{
+	//createMeshComponent({ { -1.0f, -1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
+	//	{ 1.0f, -1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
+	//	{ 1.0f,  1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
+	//	{ -1.0f,  1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f } }, { 32 }, { 0 }, {
+	//	0, 1, 2,
+	//	0, 2, 3
+	//	});
+	//
+	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
+	createCatamariBoxComponent({ 0, 0, 1 }, { 0.1, 0.1, 0.1 });
+	GE::setCameraPosition(ball->getPosition() + Vector3(0, 1, -1));
+	GE::setCameraForwardVector(Vector3(0, -1, 1));
+	GE::setCameraUpVector(Vector3(0, 1, 1));
+	CatamariBox* plane = createCatamariBoxComponent({ 0, -1.1f, 0 }, { 10.0f, 0.04f, 10.0f });
+	plane->attached = true;
+	plane->setColor({ 1, 1, 1, 0 });
+
+}
+
+void Game::updateKatamariScene(float deltaTime)
+{
+	auto win = GE::getWindowHandler();
+	float winWidth = static_cast<float>(win->getWinWidth());
+	float winHeight = static_cast<float>(win->getWinHeight());
+
+	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
+
+	CatamariBall* ball = (CatamariBall*)components[0];
+
+	Vector2 mousePos = inputDevice->MousePosition;
+	if (!apprEqual(prevMousePosition.x, mousePos.x, 1e-6)) {
+		float angle = deltaTime * (mousePos.x - prevMousePosition.x);
+		Matrix rot = Matrix::CreateRotationY(angle);
+		GE::rotateCameraAroundCenter(ball->getPosition(), rot);
+
+	}
+	if (!apprEqual(prevMousePosition.y, mousePos.y, 1e-6)) {
+		float angle = deltaTime * (mousePos.y - prevMousePosition.y);
+		Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
+		cameraRightVector.Normalize();
+		Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -angle);
+		GE::rotateCameraAroundCenter(ball->getPosition(), rot);
+	}
+	prevMousePosition = mousePos;
+
+	if (inputDevice->IsKeyDown(Keys::W) || inputDevice->IsKeyDown(Keys::S)) {
+		Vector3 shiftDirection = GE::getCameraForwardVector();
+		//std::cout << camForwardVec.x << " " << camForwardVec.y << " " << camForwardVec.y << std::endl;
+		shiftDirection.y = 0;
+		shiftDirection.Normalize();
+		if (inputDevice->IsKeyDown(Keys::S)) {
+			shiftDirection *= -1;
+		}
+		Vector3 shiftVec = deltaTime * shiftDirection;
+		Vector3 rotationAxis = shiftDirection.Cross(Vector3(0, 1, 0));
+		rotationAxis.Normalize();
+		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
+		float distance = shiftVec.Length();
+		float rotationAngle = distance / ball->getRadius();
+		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
+	}
+	if (inputDevice->IsKeyDown(Keys::D) || inputDevice->IsKeyDown(Keys::A)) {
+		Vector3 shiftDirection = GE::getCameraForwardVector().Cross(Vector3(0, 1, 0));
+		shiftDirection.y = 0;
+		shiftDirection.Normalize();
+		if (inputDevice->IsKeyDown(Keys::A)) {
+			shiftDirection *= -1;
+		}
+		Vector3 shiftVec = deltaTime * shiftDirection;
+		Vector3 rotationAxis = shiftDirection.Cross(Vector3(0, -1, 0));
+		rotationAxis.Normalize();
+		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
+		float distance = shiftVec.Length();
+		float rotationAngle = distance / ball->getRadius();
+		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
+	}
+
+	for (int i = 0; i < components.size(); i++) {
+		CatamariBox* box = (CatamariBox*)components[i];
+		if (!box->isAttached()) {
+
+		}
+	}
+
+	// check collision
+	float radius = ball->getRadius();
+	Vector3 center = ball->getPosition();
+	for (int i = 1; i < components.size(); i++) {
+		auto box = (CatamariBox*)components[i];
+		if (!box->isAttached() && CheckSphereAABBCollision(center, radius, box->getAABB())) {
+			box->setAttached(ball);
+			ball->attachObject(box);
+			std::cout << "box attached" << std::endl;
+		}
+	}
+
+	for (int i = 1; i < components.size(); i++) {
+		for (int j = i; j < components.size(); j++) {
+			auto box1 = (CatamariBox*)components[i];
+			auto box2 = (CatamariBox*)components[j];
+			if (box1->isAttached() && box2->isAttached()) {
+				continue;
+			}
+			if (!box1->isAttached() && !box2->isAttached()) {
+				continue;
+			}
+
+			if (box1->getAABB().Intersects(box2->getAABB())) {
+				if (box1->isAttached()) {
+					box2->setAttached(ball);
+					ball->attachObject(box2);
+				}
+				else {
+					box1->setAttached(ball);
+					ball->attachObject(box1);
+				}
+			}
 		}
 	}
 
@@ -429,7 +639,8 @@ int Game::draw(float deltaTime)
 
 	float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	context->ClearRenderTargetView(rtv, color);
-	context->OMSetRenderTargets(1, &rtv, nullptr);
+	context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->OMSetRenderTargets(1, &rtv, depthView.Get());
 
 	for (const auto gameComponent : components) {
 		gameComponent->draw(deltaTime);
@@ -476,6 +687,26 @@ int Game::createPlanetComponent(DirectX::SimpleMath::Vector3 position, float rad
 		L"./shaders/planetShader.hlsl",
 		L"./shaders/pixelShader.hlsl");
 	return 0;
+}
+
+CatamariBall* Game::createCatamariBallComponent(DirectX::SimpleMath::Vector3 position, float radius, int stacks, int slices)
+{
+	CatamariBall* ball = new CatamariBall(position, radius, stacks, slices);
+	components.push_back(ball);
+	components[components.size() - 1]->init(
+		L"./shaders/planetShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
+	return ball;
+}
+
+CatamariBox* Game::createCatamariBoxComponent(DirectX::SimpleMath::Vector3 position, DirectX::SimpleMath::Vector3 size)
+{
+	CatamariBox* box = new CatamariBox(position, size);
+	components.push_back(box);
+	components[components.size() - 1]->init(
+		L"./shaders/planetShader.hlsl",
+		L"./shaders/pixelShader.hlsl");
+	return box;
 }
 
 DirectX::SimpleMath::Vector2 Game::generateRandomBallDirection()

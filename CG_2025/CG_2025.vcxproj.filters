@@ -57,6 +57,12 @@
     <ClCompile Include="PlanetComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CatamariBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CatamariBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\pixelShader.hlsl">
@@ -119,6 +125,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PlanetComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CatamariBall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CatamariBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
