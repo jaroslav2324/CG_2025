@@ -301,22 +301,23 @@ void Game::cretePlanetsScene()
 	// cyan box
 	PlanetComponent* p1 = (PlanetComponent*)components[2];
 	p1->setParentPlanet(sun);
-	p1->setAngularSpeedAroundParent(0.0);
 	p1->setBoxMesh({ -0.6f, 0.0f, 0.0f }, { 0.1 , 0.1 , 0.1 });
-	//p1->setAngularSpeedAroundParent(0.01f);
+	p1->setAngularSpeedAroundParent(0.01f);
+	//p1->setAngularSpeedAroundParent(0.0);
 
 	// cyan sphere
 	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.03);
 	PlanetComponent* p2 = (PlanetComponent*)components[3];
 	p2->setParentPlanet(p1);
 	p2->setRotationAroundParentAxis({ 0.0f, 0.0f, 1.0f });
+	//p2->setAngularSpeedAroundParent(0.0);
 
 	// red
-	createPlanetComponent({ 0.1f, 0.1f, 0.1f }, 0.01);
+	createPlanetComponent({ 0.05f, 0.05f, 0.05f }, 0.01);
 	PlanetComponent* p4 = (PlanetComponent*)components[4];
 	p4->setParentPlanet(p2);
 	p4->setColor({ 0.7f, 0.0f, 0.0f, 1.0f });
-	Vector3 rp4 = { 1.0, -1.0, 1.0 };
+	Vector3 rp4 = { -1.0, 1.0, 1.0 };
 	rp4.Normalize();
 	p4->setRotationAroundParentAxis(rp4);
 
@@ -325,16 +326,18 @@ void Game::cretePlanetsScene()
 	PlanetComponent* p5 = (PlanetComponent*)components[5];
 	p5->setBoxMesh({ -1.0f, 0.0f, 0.0f }, { 0.1 , 0.05 , 0.05 });
 	p5->setAngularSpeedAroundParent(-0.05f);
+	p5->setRotationAroundParentAxis({ 0.0, 1.0, 0.0 });
 	p5->setColor({ 1.0f, 0.0f, 1.0f, 1.0f });
 	p5->setParentPlanet(sun);
 
-	createPlanetComponent({ -0.2f, 0.0f, 0.0f }, 0.01);
+	// blue box
+	createPlanetComponent({ -0.1f, 0.1f, 0.1f }, 0.01);
 	PlanetComponent* p6 = (PlanetComponent*)components[6];
-	p6->setBoxMesh({ -0.2f, 0.0f, 0.0f }, { 0.05 , 0.05 , 0.05 });
+	p6->setBoxMesh({ -0.1f, 0.1f, 0.1f }, { 0.05 , 0.05 , 0.05 });
 	p6->setAngularSpeedAroundParent(-0.01f);
 	p6->setColor({ 0.0f, 0.0f, 0.5f, 1.0f });
 	p6->setAngularSpeedSelf(-0.1f);
-	Vector3 r6 = { 0.2f, 0.5f, 0.5f };
+	Vector3 r6 = { 0.5f, 0.5f, 0.5f };
 	r6.Normalize();
 	p6->setPlanetAxis(r6);
 	Vector3 rp6 = { 0.3f, 0.8f, 0.3f };
@@ -342,6 +345,7 @@ void Game::cretePlanetsScene()
 	p6->setRotationAroundParentAxis(rp6);
 	p6->setParentPlanet(p5);
 
+	//purple
 	createPlanetComponent({ -0.5f, -0.5f, -0.5f }, 0.01);
 	PlanetComponent* p7 = (PlanetComponent*)components[7];
 	p7->setColor({ 0.5, 0.2, 0.4, 1.0 });
@@ -462,7 +466,8 @@ void Game::createKatamariScene()
 	//	});
 	//
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
-	createCatamariBoxComponent({ 0, 0, 1 }, { 0.1, 0.1, 0.1 });
+	CatamariBox* obj1 = createCatamariBoxComponent({ 0, 0, 1 }, { 0.1, 0.1, 0.1 });
+	obj1->initTexturedObject(L"./models/lamp.cmo");
 	GE::setCameraPosition(ball->getPosition() + Vector3(0, 1, -1));
 	GE::setCameraForwardVector(Vector3(0, -1, 1));
 	GE::setCameraUpVector(Vector3(0, 1, 1));
@@ -500,7 +505,7 @@ void Game::updateKatamariScene(float deltaTime)
 
 	if (inputDevice->IsKeyDown(Keys::W) || inputDevice->IsKeyDown(Keys::S)) {
 		Vector3 shiftDirection = GE::getCameraForwardVector();
-		//std::cout << camForwardVec.x << " " << camForwardVec.y << " " << camForwardVec.y << std::endl;
+		//std::cout << shiftDirection.x << " " << shiftDirection.y << " " << shiftDirection.z << std::endl;
 		shiftDirection.y = 0;
 		shiftDirection.Normalize();
 		if (inputDevice->IsKeyDown(Keys::S)) {
@@ -509,6 +514,7 @@ void Game::updateKatamariScene(float deltaTime)
 		Vector3 shiftVec = deltaTime * shiftDirection;
 		Vector3 rotationAxis = shiftDirection.Cross(Vector3(0, 1, 0));
 		rotationAxis.Normalize();
+		//coutVector(rotationAxis);
 		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
 		float distance = shiftVec.Length();
 		float rotationAngle = distance / ball->getRadius();
@@ -529,6 +535,10 @@ void Game::updateKatamariScene(float deltaTime)
 		float rotationAngle = distance / ball->getRadius();
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
 	}
+
+	auto camPos = GE::getCameraPosition();
+	camPos.y = ball->getPosition().y + 2;
+	GE::setCameraPosition(camPos);
 
 	for (int i = 0; i < components.size(); i++) {
 		CatamariBox* box = (CatamariBox*)components[i];

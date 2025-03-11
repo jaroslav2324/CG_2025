@@ -1,9 +1,8 @@
 #include "CatamariBox.h"
 #include "global.h"
 
-using DirectX::SimpleMath::Matrix;
-using DirectX::SimpleMath::Vector3;
-using DirectX::BoundingBox;
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
 
 CatamariBox::CatamariBox(DirectX::SimpleMath::Vector3 position, DirectX::SimpleMath::Vector3 size)
 	: position(position), size(size) {
@@ -65,10 +64,15 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 
 int CatamariBox::draw(float deltaTime)
 {
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	if (texturedModelSet) {
+		model->Draw(context, *states, Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position), GE::getCameraViewMatrix(), GE::getProjectionMatrix());
+		return 0;
+	}
+
 	Matrix transformMatrix = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
-	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -114,6 +118,15 @@ int CatamariBox::update(float deltaTime)
 void CatamariBox::destroyResources()
 {
 	MeshComponent::destroyResources();
+}
+
+void CatamariBox::initTexturedObject(const std::wstring& modelPath)
+{
+	auto device = GE::getGameSubsystem()->getDevice();
+	states = std::make_unique<CommonStates>(device);
+	fxFactory = std::make_unique<EffectFactory>(device);
+	model = Model::CreateFromCMO(device, modelPath.c_str(), *fxFactory);
+	texturedModelSet = true;
 }
 
 bool CatamariBox::isAttached() const

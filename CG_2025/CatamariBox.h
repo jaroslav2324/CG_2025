@@ -22,6 +22,8 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
+	void initTexturedObject(const std::wstring& modelPath);
+
 	void setColor(DirectX::XMFLOAT4 clr);
 
 	bool isAttached() const;
@@ -48,4 +50,9 @@ protected:
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
 	AdditionalData addData;
 	CatamariBall* ball = nullptr;
+
+	bool texturedModelSet = false;
+	std::unique_ptr<DirectX::Model> model;
+	std::unique_ptr<DirectX::IEffectFactory> fxFactory;
+	std::unique_ptr<DirectX::CommonStates> states;
 };

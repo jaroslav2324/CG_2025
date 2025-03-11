@@ -102,27 +102,27 @@ int CatamariBall::update(float deltaTime)
 	// gravity
 	Vector3 downShiftVec = Vector3(0, -deltaTime, 0);
 	position += downShiftVec;
-	//for (int i = 0; i < attachedObjects.size(); i++) {
-	//	CatamariBox* box = attachedObjects[i];
-	//	box->setPosition(box->getPosition() + downShiftVec);
-	//}
+	for (int i = 0; i < attachedObjects.size(); i++) {
+		CatamariBox* box = attachedObjects[i];
+		box->setPosition(box->getPosition() + downShiftVec);
+	}
 
 	float lowerPointY = position.y - radius;
-	//for (auto box : attachedObjects) {
-	//	float boxMinY = box->getLowestPoint().y;
-	//	if (boxMinY < lowerPointY) {
-	//		lowerPointY = boxMinY;
-	//	}
-	//}
+	for (auto box : attachedObjects) {
+		float boxMinY = box->getLowestPoint().y;
+		if (boxMinY < lowerPointY) {
+			lowerPointY = boxMinY;
+		}
+	}
 
 	////// because ground plane is (0, -1, 0)
 	if (lowerPointY < -1) {
 		float diff = -(lowerPointY + 1);
 		//shift all attached and ball up
 		position.y += diff;
-		//for (auto box : attachedObjects) {
-		//	box->setPosition(box->getPosition() + Vector3(0, diff, 0));
-	//}
+		for (auto box : attachedObjects) {
+			box->setPosition(box->getPosition() + Vector3(0, diff, 0));
+		}
 	}
 
 	D3D11_MAPPED_SUBRESOURCE res = {};
@@ -162,12 +162,13 @@ void CatamariBall::moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotati
 	shiftVec.Normalize();
 	if (distance > 0.00001f) {
 		rotationAxis.Normalize();
-		// Создаём КВАТЕРНИОН для глобального вращения
 		Quaternion globalRotation = Quaternion::CreateFromAxisAngle(rotationAxis, rotationAngle);
-		// Применяем ГЛОБАЛЬНОЕ вращение перед локальным
 		Quaternion newRotation = globalRotation * qRot;
-		newRotation.Normalize(); // Важно нормализовать кватернион после умножения
+		newRotation.Normalize();
 		qRot = newRotation;
+		//Vector3 v = qRot.ToEuler();
+		//std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+		//std::cout << qRot.x << " " << qRot.y << " " << qRot.z << std::endl;
 		//std::cout << rotation.x << " " << rotation.y << " " << rotation.z << std::endl;
 		for (auto attachedBox : attachedObjects) {
 			attachedBox->rotateAttached(Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle));

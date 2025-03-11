@@ -8,6 +8,9 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include <directxtk/SimpleMath.h>
+#include <directxtk/Model.h>
+#include <directxtk/Effects.h>
+#include <directxtk/CommonStates.h>
 
 #include "util.h"
 #include "GameComponent.h"

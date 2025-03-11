@@ -14,8 +14,8 @@
 using Microsoft::WRL::ComPtr;
 
 //#define PONG
-#define PLANETS
-//#define CATAMARI
+//#define PLANETS
+#define CATAMARI
 
 namespace GE {
 	using Matrix = DirectX::SimpleMath::Matrix;
