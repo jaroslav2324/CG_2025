@@ -1,5 +1,6 @@
 #include "CatamariBox.h"
 #include "global.h"
+#include "ModelImporter.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -65,7 +66,24 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 int CatamariBox::draw(float deltaTime)
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	context->RSSetState(rastState);
+	context->IASetInputLayout(layout.Get());
+
+	if (drawDebugCollider) {
+		auto bb = getAABB();
+		cornersPoints.clear();
+		Vector3 corners[8];
+		bb.GetCorners(corners);
+		for (int i = 0; i < 8; i++) {
+			const auto cp = corners[i];
+			cornersPoints.push_back(Vector4(cp.x, cp.y, cp.z, 1.0f) + Vector4(position.x, position.y, position.z, 1.0));
+			cornersPoints.push_back(Vector4(1.0, 0.0, 0.0, 1.0f));
+		}
+		//TODO: draw
+	}
+
 	if (texturedModelSet) {
+		// TODO: draw obj model
 		model->Draw(context, *states, Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position), GE::getCameraViewMatrix(), GE::getProjectionMatrix());
 		return 0;
 	}
@@ -73,8 +91,6 @@ int CatamariBox::draw(float deltaTime)
 	Matrix transformMatrix = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
-	context->RSSetState(rastState);
-	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = vertexBuffer.Get();
@@ -126,6 +142,8 @@ void CatamariBox::initTexturedObject(const std::wstring& modelPath)
 	states = std::make_unique<CommonStates>(device);
 	fxFactory = std::make_unique<EffectFactory>(device);
 	model = Model::CreateFromCMO(device, modelPath.c_str(), *fxFactory);
+	//ModelImporter importer;
+	//importer.loadOBJ(modelPath, modelVertices, modelTexCoords, modelNormals, modelFaces);
 	texturedModelSet = true;
 }
 
@@ -199,12 +217,13 @@ void CatamariBox::setColor(DirectX::XMFLOAT4 clr)
 			p.z = clr.z;
 		}
 	}
-	init(L"./shaders/planetShader.hlsl",
-		L"./shaders/pixelShader.hlsl");
+	init(L"./shaders/texVertexShader.hlsl",
+		L"./shaders/texPixelShader.hlsl");
 }
 
 void CatamariBox::rotateAttached(Matrix rot)
 {
+	rotation *= Quaternion::CreateFromRotationMatrix(rot);
 	Vector3 localPos = position - ball->getPosition();
 	localPos = Vector3::Transform(localPos, rot);
 	position = ball->getPosition() + localPos;

@@ -57,16 +57,16 @@ int MeshComponent::init(
 		nullptr, &pixelShader);
 
 	auto bufferManager = GE::getBufferManager();
-	layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
+	//layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
 
-	D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
-	D3D11_SUBRESOURCE_DATA vertexData = bufferManager->getDefaultSubresourceData(points);
-	vertexBuffer = bufferManager->createBuffer(vertexBufDesc, vertexData);
+	//D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
+	//D3D11_SUBRESOURCE_DATA vertexData = bufferManager->getDefaultSubresourceData(points);
+	//vertexBuffer = bufferManager->createBuffer(vertexBufDesc, vertexData);
 
-	D3D11_BUFFER_DESC indexBufDesc = bufferManager->getBasicBufferDescription(indices);
-	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	D3D11_SUBRESOURCE_DATA indexData = bufferManager->getDefaultSubresourceData(indices);
-	indexBuffer = bufferManager->createBuffer(indexBufDesc, indexData);
+	//D3D11_BUFFER_DESC indexBufDesc = bufferManager->getBasicBufferDescription(indices);
+	//indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	//D3D11_SUBRESOURCE_DATA indexData = bufferManager->getDefaultSubresourceData(indices);
+	//indexBuffer = bufferManager->createBuffer(indexBufDesc, indexData);
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;

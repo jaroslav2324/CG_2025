@@ -21,42 +21,45 @@ CatamariBall::CatamariBall(DirectX::SimpleMath::Vector3 position, float radius, 
 	addData.screenCoords.x = winWidth;
 	addData.screenCoords.y = winHeight;
 
-	for (int i = 0; i <= stacks; ++i) {
-		float phi = DirectX::XM_PI * i / stacks;
-		for (int j = 0; j <= slices; ++j) {
-			float theta = DirectX::XM_2PI * j / slices;
+	//for (int i = 0; i <= stacks; ++i) {
+	//	float phi = DirectX::XM_PI * i / stacks;
+	//	for (int j = 0; j <= slices; ++j) {
+	//		float theta = DirectX::XM_2PI * j / slices;
 
-			float x = radius * sinf(phi) * cosf(theta);
-			float y = radius * cosf(phi);
-			float z = radius * sinf(phi) * sinf(theta);
+	//		float x = radius * sinf(phi) * cosf(theta);
+	//		float y = radius * cosf(phi);
+	//		float z = radius * sinf(phi) * sinf(theta);
 
-			points.push_back({ x, y, z, 1.0f });
-			points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
-		}
-	}
+	//		points.push_back({ x, y, z, 1.0f });
+	//		points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
+	//	}
+	//}
 
-	for (int i = 0; i < stacks; ++i) {
-		for (int j = 0; j < slices; ++j) {
-			int first = i * (slices + 1) + j;
-			int second = first + slices + 1;
+	//for (int i = 0; i < stacks; ++i) {
+	//	for (int j = 0; j < slices; ++j) {
+	//		int first = i * (slices + 1) + j;
+	//		int second = first + slices + 1;
 
-			indices.push_back(first);
-			indices.push_back(second);
-			indices.push_back(first + 1);
+	//		indices.push_back(first);
+	//		indices.push_back(second);
+	//		indices.push_back(first + 1);
 
-			indices.push_back(second);
-			indices.push_back(second + 1);
-			indices.push_back(first + 1);
-		}
-	}
+	//		indices.push_back(second);
+	//		indices.push_back(second + 1);
+	//		indices.push_back(first + 1);
+	//	}
+	//}
 
-	strides = { 32 };
+	//strides = { 32 };
+	//offsets = { 0 };
+	strides = { 48 };
 	offsets = { 0 };
 }
 
 int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
 {
 	MeshComponent::init(vertShaderPath, pixShaderPath);
+	initTexturedObject("./models/ballt.obj");
 	auto bufferManager = GE::getBufferManager();
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
@@ -78,22 +81,22 @@ int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& p
 
 int CatamariBall::draw(float deltaTime)
 {
-	Matrix transformMatrix = Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
+	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	ID3D11Buffer* rawVertBuffer = vertexBuffer.Get();
+	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
 
-	context->DrawIndexed(indices.size(), 0, 0);
+	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;
 }
 
@@ -140,6 +143,7 @@ void CatamariBall::destroyResources()
 	MeshComponent::destroyResources();
 }
 
+//TODO: remove?
 void CatamariBall::setColor(DirectX::XMFLOAT4 clr)
 {
 	int size = points.size();
@@ -155,23 +159,32 @@ void CatamariBall::setColor(DirectX::XMFLOAT4 clr)
 		L"./shaders/pixelShader.hlsl");
 }
 
+void CatamariBall::initTexturedObject(const std::string& modelPath)
+{
+	ModelImporter importer;
+	importer.loadOBJ(modelPath, vertexBufferData, indexBufferData);
+	auto bufferManager = GE::getBufferManager();
+
+	modelVerticesBuffer = bufferManager->createVertexBuffer(vertexBufferData);
+	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4(vertexByteCode);
+	modelIndiciesBuffer = bufferManager->createIndexBuffer(indexBufferData);
+	texturedModelLoaded = true;
+}
+
 void CatamariBall::moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotationAngle)
 {
 	position += shiftVec;
+	//rotationAxis = Vector3::Transform(rotationAxis, qRot);
 	float distance = shiftVec.Length();
 	shiftVec.Normalize();
 	if (distance > 0.00001f) {
 		rotationAxis.Normalize();
 		Quaternion globalRotation = Quaternion::CreateFromAxisAngle(rotationAxis, rotationAngle);
-		Quaternion newRotation = globalRotation * qRot;
+		Quaternion newRotation = qRot * globalRotation;
 		newRotation.Normalize();
 		qRot = newRotation;
-		//Vector3 v = qRot.ToEuler();
-		//std::cout << v.x << " " << v.y << " " << v.z << std::endl;
-		//std::cout << qRot.x << " " << qRot.y << " " << qRot.z << std::endl;
-		//std::cout << rotation.x << " " << rotation.y << " " << rotation.z << std::endl;
 		for (auto attachedBox : attachedObjects) {
-			attachedBox->rotateAttached(Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle));
+			attachedBox->rotateAttached(Matrix::CreateFromAxisAngle(-rotationAxis, rotationAngle));
 		}
 	}
 }

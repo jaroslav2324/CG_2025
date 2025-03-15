@@ -16,8 +16,13 @@ public:
 		ComPtr<ID3DBlob> shaderByteCode);
 
 	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode);
+	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_NormF4_TexF4(ComPtr<ID3DBlob> shaderByteCode);
 
 	template <typename T>
+	ComPtr <ID3D11Buffer> createVertexBuffer(const std::vector<T>& data);
+	template <typename T>
+	ComPtr <ID3D11Buffer> createIndexBuffer(const std::vector<T>& data);
+	template<typename T>
 	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(const std::vector<T>& data);
 	ComPtr <ID3D11Buffer> createBuffer(const D3D11_BUFFER_DESC buffDesc,
 		const D3D11_SUBRESOURCE_DATA subresourceData);
@@ -28,6 +33,20 @@ public:
 	template <typename T>
 	D3D11_BUFFER_DESC getBasicBufferDescription(const std::vector<T>& data) const;
 };
+
+template<typename T>
+inline ComPtr<ID3D11Buffer> BufferManager::createVertexBuffer(const std::vector<T>& data)
+{
+	return createBuffer(getBasicBufferDescription(data), getDefaultSubresourceData(data));
+}
+
+template<typename T>
+inline ComPtr<ID3D11Buffer> BufferManager::createIndexBuffer(const std::vector<T>& data)
+{
+	D3D11_BUFFER_DESC indexBufDesc = getBasicBufferDescription(data);
+	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	return createBuffer(indexBufDesc, getDefaultSubresourceData(data));
+}
 
 template<typename T>
 inline ComPtr<ID3D11Buffer> BufferManager::createConstDynamicBufferCPUWrite(const std::vector<T>& data)

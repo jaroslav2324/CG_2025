@@ -100,13 +100,18 @@ void GE::rotateCamera(Matrix rotationMatrix)
 
 void GE::rotateCameraAroundCenter(Vector3 camPos, Matrix rotationMatrix)
 {
-	cameraPosition = Vector3::Transform(cameraPosition - camPos, rotationMatrix) + camPos;
+	Vector3 tmpPos = Vector3::Transform(cameraPosition - camPos, rotationMatrix) + camPos;
 	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
 	tmpUp.Normalize();
 	Vector3 tmpForward = Vector3::Transform(cameraForwardVector, rotationMatrix);
 	tmpForward.Normalize();
+	if (tmpUp.Dot(Vector3(0, 1, 0)) > 0.9 || tmpUp.Dot(Vector3(0, -1.0, 0.0)) > 0.5) {
+		return;
+	}
+
 	upCameraVector = tmpUp;
 	cameraForwardVector = tmpForward;
+	cameraPosition = tmpPos;
 }
 
 void GE::setPerspectiveMatrix(float fov, float ratio)

@@ -3,15 +3,23 @@
 #include <vector>
 #include <DirectXMath.h>
 
+#include <directxtk/DDSTextureLoader.h>
+
+#include "Face.h"
 #include "MeshComponent.h"
 #include "addData.h"
+#include "ModelImporter.h"
+#include "Vertex.h"
 
 class CatamariBox;
 
 class CatamariBall : public MeshComponent {
 public:
+	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
+	using Vector4 = DirectX::SimpleMath::Vector4;
 	using Quaternion = DirectX::SimpleMath::Quaternion;
+	using Matrix = DirectX::SimpleMath::Matrix;
 	CatamariBall(DirectX::SimpleMath::Vector3 position, float radius, int stacks, int slices);
 
 	int init(const std::wstring& vertShaderPath,
@@ -21,6 +29,8 @@ public:
 	void destroyResources() override;
 
 	void setColor(DirectX::XMFLOAT4 clr);
+
+	void initTexturedObject(const std::string& modelPath);
 
 	void moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotationAngle);
 
@@ -32,13 +42,20 @@ public:
 	void setRotation(Quaternion rotAngles);
 
 protected:
-	std::vector<CatamariBox*> attachedObjects; // Список приклеенных объектов
-	float radius = 1.0f;                        // Радиус шара
-	Vector3 position = { 0.0f, 0.0f, 0.0f }; // Позиция шара в мире
-	//Vector3 rotation = { 0.0f, 0.0f, 0.0f }; // Вращение шара (Эйлеровы углы)
+	std::vector<CatamariBox*> attachedObjects;
+	float radius = 1.0f;
+	Vector3 position = { 0.0f, 0.0f, 0.0f };
+	Matrix scale = Matrix::CreateScale(0.01);
 	Quaternion qRot;
-	//Vector3 forward = {};
 
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
 	AdditionalData addData;
+
+	bool texturedModelLoaded = false;
+
+	std::vector<Vertex> vertexBufferData;
+	std::vector<unsigned int> indexBufferData;
+
+	ComPtr<ID3D11Buffer> modelVerticesBuffer = nullptr;
+	ComPtr<ID3D11Buffer> modelIndiciesBuffer = nullptr;
 };

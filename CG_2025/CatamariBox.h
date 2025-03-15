@@ -5,12 +5,15 @@
 
 #include "MeshComponent.h"
 #include "addData.h"
+#include "Face.h"
 
 class CatamariBall;
 
 class CatamariBox : public MeshComponent {
 public:
+	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
+	using Vector4 = DirectX::SimpleMath::Vector4;
 	using Matrix = DirectX::SimpleMath::Matrix;
 	using Quaternion = DirectX::SimpleMath::Quaternion;
 	friend class Game;
@@ -51,8 +54,19 @@ protected:
 	AdditionalData addData;
 	CatamariBall* ball = nullptr;
 
+	bool drawDebugCollider = true;
+
 	bool texturedModelSet = false;
 	std::unique_ptr<DirectX::Model> model;
 	std::unique_ptr<DirectX::IEffectFactory> fxFactory;
 	std::unique_ptr<DirectX::CommonStates> states;
+
+	std::vector<Vector4> cornersPoints;
+	ComPtr<ID3D11Buffer> debugVertexBuffer;
+	ComPtr<ID3D11Buffer> debugIndexBuffer;
+
+	std::vector<Vector3> modelVertices;
+	std::vector<Vector2> modelTexCoords;
+	std::vector<Vector3> modelNormals;
+	std::vector<Face> modelFaces;
 };

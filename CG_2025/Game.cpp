@@ -457,24 +457,32 @@ void Game::updatePlanetsScene(float deltaTime)
 
 void Game::createKatamariScene()
 {
-	//createMeshComponent({ { -1.0f, -1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
-	//	{ 1.0f, -1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
-	//	{ 1.0f,  1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f },
-	//	{ -1.0f,  1.0f, 0.0f, 1.0f },{ 1.0f,  1.0f, 1.0f, 1.0f } }, { 32 }, { 0 }, {
-	//	0, 1, 2,
-	//	0, 2, 3
-	//	});
-	//
+	std::vector<std::wstring> objectsPaths = {
+		L"./models/lamp.cmo",
+		L"./models/calculator.cmo",
+		L"./models/ruler.cmo"
+	};
+
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
-	CatamariBox* obj1 = createCatamariBoxComponent({ 0, 0, 1 }, { 0.1, 0.1, 0.1 });
-	obj1->initTexturedObject(L"./models/lamp.cmo");
-	GE::setCameraPosition(ball->getPosition() + Vector3(0, 1, -1));
+	//const int numObjects = 10;
+	//for (int i = 0; i < numObjects; i++) {
+	//	float x = generateRandomFloat(-5.0f, 5.0f);
+	//	float z = generateRandomFloat(-5.0f, 5.0f);
+	//	int objModelNum = generateRandomInt(0, 2);
+	//	CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
+	//	obj->initTexturedObject(objectsPaths[objModelNum]);
+	//}
+
+	GE::setCameraPosition(ball->getPosition() + Vector3(0, ball->getPosition().y + 2, -2));
 	GE::setCameraForwardVector(Vector3(0, -1, 1));
 	GE::setCameraUpVector(Vector3(0, 1, 1));
 	CatamariBox* plane = createCatamariBoxComponent({ 0, -1.1f, 0 }, { 10.0f, 0.04f, 10.0f });
 	plane->attached = true;
 	plane->setColor({ 1, 1, 1, 0 });
 
+	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
+	prevMousePosition = inputDevice->MousePosition;
+	//GE::setPerspectiveMatrix(1.4f);
 }
 
 void Game::updateKatamariScene(float deltaTime)
@@ -484,10 +492,13 @@ void Game::updateKatamariScene(float deltaTime)
 	float winHeight = static_cast<float>(win->getWinHeight());
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
+	Vector2 mousePos = inputDevice->MousePosition;
+	if (apprEqual(prevMousePosition.Length(), 0.0f)) {
+		prevMousePosition = mousePos;
+	}
 
 	CatamariBall* ball = (CatamariBall*)components[0];
 
-	Vector2 mousePos = inputDevice->MousePosition;
 	if (!apprEqual(prevMousePosition.x, mousePos.x, 1e-6)) {
 		float angle = deltaTime * (mousePos.x - prevMousePosition.x);
 		Matrix rot = Matrix::CreateRotationY(angle);
@@ -520,25 +531,13 @@ void Game::updateKatamariScene(float deltaTime)
 		float rotationAngle = distance / ball->getRadius();
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
 	}
-	if (inputDevice->IsKeyDown(Keys::D) || inputDevice->IsKeyDown(Keys::A)) {
-		Vector3 shiftDirection = GE::getCameraForwardVector().Cross(Vector3(0, 1, 0));
-		shiftDirection.y = 0;
-		shiftDirection.Normalize();
-		if (inputDevice->IsKeyDown(Keys::A)) {
-			shiftDirection *= -1;
-		}
-		Vector3 shiftVec = deltaTime * shiftDirection;
-		Vector3 rotationAxis = shiftDirection.Cross(Vector3(0, -1, 0));
-		rotationAxis.Normalize();
-		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
-		float distance = shiftVec.Length();
-		float rotationAngle = distance / ball->getRadius();
-		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
-	}
 
 	auto camPos = GE::getCameraPosition();
+	//coutVector(GE::getCameraForwardVector());
+	camPos = ball->getPosition() - 2 * GE::getCameraForwardVector();
 	camPos.y = ball->getPosition().y + 2;
 	GE::setCameraPosition(camPos);
+
 
 	for (int i = 0; i < components.size(); i++) {
 		CatamariBox* box = (CatamariBox*)components[i];
@@ -703,9 +702,8 @@ CatamariBall* Game::createCatamariBallComponent(DirectX::SimpleMath::Vector3 pos
 {
 	CatamariBall* ball = new CatamariBall(position, radius, stacks, slices);
 	components.push_back(ball);
-	components[components.size() - 1]->init(
-		L"./shaders/planetShader.hlsl",
-		L"./shaders/pixelShader.hlsl");
+	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
+		L"./shaders/texPixelShader.hlsl");
 	return ball;
 }
 
@@ -713,9 +711,8 @@ CatamariBox* Game::createCatamariBoxComponent(DirectX::SimpleMath::Vector3 posit
 {
 	CatamariBox* box = new CatamariBox(position, size);
 	components.push_back(box);
-	components[components.size() - 1]->init(
-		L"./shaders/planetShader.hlsl",
-		L"./shaders/pixelShader.hlsl");
+	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
+		L"./shaders/texPixelShader.hlsl");
 	return box;
 }
 

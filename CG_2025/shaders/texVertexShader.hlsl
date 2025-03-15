@@ -1,6 +1,7 @@
 struct VS_IN
 {
     float4 pos : POSITION0;
+    float4 norm : NORMAL;
     float4 tex : TEXCOORD;
 };
 
@@ -17,8 +18,8 @@ struct ConstantData
     float2 useless;
 };
 
-Texture2D texture : register(t0);
-SamplerState samplerState: register(s0);
+//Texture2D texture : register(t0);
+//SamplerState samplerState: register(s0);
 
 cbuffer ConstBuf : register(b0)
 {
