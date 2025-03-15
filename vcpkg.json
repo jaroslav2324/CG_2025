@@ -1,6 +1,7 @@
 {
   "dependencies": [
-    "directxtk"
+    "directxtk",
+    "tinyobjloader"
   ],
   "builtin-baseline": "0413db10ad778df118d55afc20c2da09fadee057"
 }
