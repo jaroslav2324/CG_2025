@@ -16,7 +16,7 @@ public:
 		ComPtr<ID3DBlob> shaderByteCode);
 
 	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode);
-	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_NormF4_TexF4(ComPtr<ID3DBlob> shaderByteCode);
+	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_NormF4_TexF4_AddF4(ComPtr<ID3DBlob> shaderByteCode);
 
 	template <typename T>
 	ComPtr <ID3D11Buffer> createVertexBuffer(const std::vector<T>& data);

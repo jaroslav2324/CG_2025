@@ -1,3 +1,5 @@
+#include "DirectXTex.h"
+
 #include "CatamariBall.h"
 #include "global.h" 
 
@@ -59,7 +61,7 @@ CatamariBall::CatamariBall(DirectX::SimpleMath::Vector3 position, float radius, 
 int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
 {
 	MeshComponent::init(vertShaderPath, pixShaderPath);
-	initTexturedObject("./models/ballt.obj");
+	initTexturedObject("./models/ball.obj");
 	auto bufferManager = GE::getBufferManager();
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
@@ -76,18 +78,26 @@ int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& p
 	buffDesc.ByteWidth = sizeof(addData);
 
 	additionalBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
+
+	DirectX::ScratchImage si;
+	DirectX::LoadFromDDSFile(L"./models/bt.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
+	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
+	
 	return 0;
 }
 
 int CatamariBall::draw(float deltaTime)
 {
+
 	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
+	addData.unused.x = GE::getGameSubsystem()->getTotalTime();
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->PSSetShaderResources(0, 1, &texture);
 	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
@@ -95,6 +105,8 @@ int CatamariBall::draw(float deltaTime)
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
+	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
+	context->PSSetSamplers(0, 1, &rawSampler);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;
@@ -163,10 +175,15 @@ void CatamariBall::initTexturedObject(const std::string& modelPath)
 {
 	ModelImporter importer;
 	importer.loadOBJ(modelPath, vertexBufferData, indexBufferData);
+	for (auto& v : vertexBufferData) {
+		v.tex.z = generateRandomFloat(0, DirectX::XM_2PI);
+		v.tex.w = generateRandomFloat(0, DirectX::XM_2PI);
+	}
+
 	auto bufferManager = GE::getBufferManager();
 
 	modelVerticesBuffer = bufferManager->createVertexBuffer(vertexBufferData);
-	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4(vertexByteCode);
+	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4_AddF4(vertexByteCode);
 	modelIndiciesBuffer = bufferManager->createIndexBuffer(indexBufferData);
 	texturedModelLoaded = true;
 }
@@ -184,7 +201,7 @@ void CatamariBall::moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotati
 		newRotation.Normalize();
 		qRot = newRotation;
 		for (auto attachedBox : attachedObjects) {
-			attachedBox->rotateAttached(Matrix::CreateFromAxisAngle(-rotationAxis, rotationAngle));
+			attachedBox->rotateAttached(Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle));
 		}
 	}
 }

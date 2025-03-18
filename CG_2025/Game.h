@@ -30,8 +30,10 @@ public:
 	int draw(float deltaTime);
 	~Game();
 	void destroyResources();
+	float getTotalTime();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
+	const ComPtr<ID3D11SamplerState> getSamplerState();
 private:
 	void update(float deltaTime);
 
@@ -51,6 +53,7 @@ private:
 	ID3D11RenderTargetView* rtv = nullptr;
 	ComPtr<ID3D11Texture2D> depthBuffer;
 	ComPtr<ID3D11DepthStencilView> depthView;
+	ComPtr<ID3D11SamplerState> sampler;
 
 	std::vector<GameComponent*> components;
 
@@ -75,5 +78,5 @@ private:
 
 	DirectX::SimpleMath::Vector2 generateRandomBallDirection();
 
-
+	float totalTime = 0.0f;
 };

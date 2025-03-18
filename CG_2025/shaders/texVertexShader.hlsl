@@ -2,13 +2,13 @@ struct VS_IN
 {
     float4 pos : POSITION0;
     float4 norm : NORMAL;
-    float4 tex : TEXCOORD;
+    float4 tex : TEXCOORD0;
 };
 
 struct PS_IN
 {
     float4 pos : SV_POSITION;
-    float4 tex : TEXCOORD;
+    float4 tex : TEXCOORD0;
 };
 
 struct ConstantData
@@ -18,9 +18,6 @@ struct ConstantData
     float2 useless;
 };
 
-//Texture2D texture : register(t0);
-//SamplerState samplerState: register(s0);
-
 cbuffer ConstBuf : register(b0)
 {
     ConstantData constData;
@@ -28,12 +25,15 @@ cbuffer ConstBuf : register(b0)
 
 PS_IN VSMain(VS_IN input, uint vId : SV_VertexID)
 {
+    float mulCoeff = 7.0f;
+    float sinArg = (constData.useless.x * 2.0f - 1.0f) * 3.14f * input.tex.w / 6.28f * mulCoeff;
+    input.pos = input.pos + input.norm * input.tex.z * 2 * mulCoeff + mulCoeff * input.norm * sin(sinArg);
     float4 clipPos = mul(float4(input.pos.xyz, 1.0f), constData.transformMatrix);
 
     PS_IN output = (PS_IN) 0;
     
     output.pos = clipPos;
-    output.tex = input.tex;
+    output.tex.xy = input.tex.xy;
     
     return output;
 }

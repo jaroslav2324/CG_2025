@@ -54,7 +54,7 @@ protected:
 	AdditionalData addData;
 	CatamariBall* ball = nullptr;
 
-	bool drawDebugCollider = true;
+	bool drawDebugCollider = false;
 
 	bool texturedModelSet = false;
 	std::unique_ptr<DirectX::Model> model;

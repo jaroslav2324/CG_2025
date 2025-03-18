@@ -73,7 +73,7 @@ int MeshComponent::init(
 #if defined(PLANETS)
 	rastDesc.FillMode = D3D11_FILL_WIREFRAME;
 #elif defined (CATAMARI)
-	rastDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rastDesc.FillMode = D3D11_FILL_SOLID;
 #else
 	rastDesc.FillMode = D3D11_FILL_SOLID;
 #endif

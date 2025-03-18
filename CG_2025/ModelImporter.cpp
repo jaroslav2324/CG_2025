@@ -4,7 +4,6 @@
 #include "ModelImporter.h"
 
 
-// пюанрюер рнкэйн дкъ OBJ я рпесцнкэмни ценлерпхеи
 bool ModelImporter::loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::vector<unsigned int>& indicies)
 {
 	tinyobj::ObjReader reader;

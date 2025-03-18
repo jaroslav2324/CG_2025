@@ -34,7 +34,7 @@ ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_ClrF4(ComPtr<ID
 	return layout;
 }
 
-ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_NormF4_TexF4(ComPtr<ID3DBlob> shaderByteCode)
+ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_NormF4_TexF4_AddF4(ComPtr<ID3DBlob> shaderByteCode)
 {
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 	D3D11_INPUT_ELEMENT_DESC {
@@ -61,6 +61,14 @@ ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_NormF4_TexF4(Co
 		D3D11_APPEND_ALIGNED_ELEMENT,
 		D3D11_INPUT_PER_VERTEX_DATA,
 		0}
+		//D3D11_INPUT_ELEMENT_DESC {
+		//"TEXCOORD",
+		//1,
+		//DXGI_FORMAT_R32G32B32A32_FLOAT,
+		//0,
+		//D3D11_APPEND_ALIGNED_ELEMENT,
+		//D3D11_INPUT_PER_VERTEX_DATA,
+		//0}
 	};
 
 	auto device = GE::getGameSubsystem()->getDevice();

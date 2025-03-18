@@ -51,7 +51,7 @@ Vector3 upCameraVector = Vector3(0.0f, 1.0f, 0.0f);
 
 const Matrix GE::getCameraViewMatrix()
 {
-	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, cameraPosition + cameraForwardVector, upCameraVector);
+	Matrix cameraMatrix = Matrix::CreateLookAt(cameraPosition, cameraPosition + 3.4f * cameraForwardVector, upCameraVector);
 	return cameraMatrix;
 }
 
@@ -100,6 +100,7 @@ void GE::rotateCamera(Matrix rotationMatrix)
 
 void GE::rotateCameraAroundCenter(Vector3 camPos, Matrix rotationMatrix)
 {
+
 	Vector3 tmpPos = Vector3::Transform(cameraPosition - camPos, rotationMatrix) + camPos;
 	Vector3 tmpUp = Vector3::Transform(upCameraVector, rotationMatrix);
 	tmpUp.Normalize();

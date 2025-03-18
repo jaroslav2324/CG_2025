@@ -45,7 +45,7 @@ protected:
 	std::vector<CatamariBox*> attachedObjects;
 	float radius = 1.0f;
 	Vector3 position = { 0.0f, 0.0f, 0.0f };
-	Matrix scale = Matrix::CreateScale(0.01);
+	Matrix scale = Matrix::CreateScale(0.003);
 	Quaternion qRot;
 
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
@@ -58,4 +58,5 @@ protected:
 
 	ComPtr<ID3D11Buffer> modelVerticesBuffer = nullptr;
 	ComPtr<ID3D11Buffer> modelIndiciesBuffer = nullptr;
+	ID3D11ShaderResourceView* texture = nullptr;
 };

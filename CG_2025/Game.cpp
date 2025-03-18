@@ -117,11 +117,27 @@ Game::Game()
 	depthTexDesc.MiscFlags = 0;
 	depthTexDesc.SampleDesc = { 1, 0 };
 
-	// Создание текстуры глубины
+	// Создание буфера глубины
 	res = device->CreateTexture2D(&depthTexDesc, nullptr, depthBuffer.GetAddressOf());
 
 	res = device->CreateTexture2D(&depthTexDesc, nullptr, &depthBuffer);
 	res = device->CreateDepthStencilView(depthBuffer.Get(), nullptr, &depthView);
+
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 1.0f;
+	samplerDesc.BorderColor[1] = 0.0f;
+	samplerDesc.BorderColor[2] = 0.0f;
+	samplerDesc.BorderColor[3] = 1.0f;
+	samplerDesc.MipLODBias = 0;
+	samplerDesc.MaxAnisotropy = 0;
+	samplerDesc.MaxLOD = INT_MAX;
+
+	device->CreateSamplerState(&samplerDesc, &sampler);
 }
 
 void Game::init()
@@ -464,25 +480,25 @@ void Game::createKatamariScene()
 	};
 
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
-	//const int numObjects = 10;
-	//for (int i = 0; i < numObjects; i++) {
-	//	float x = generateRandomFloat(-5.0f, 5.0f);
-	//	float z = generateRandomFloat(-5.0f, 5.0f);
-	//	int objModelNum = generateRandomInt(0, 2);
-	//	CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
-	//	obj->initTexturedObject(objectsPaths[objModelNum]);
-	//}
+	const int numObjects = 10;
+	for (int i = 0; i < numObjects; i++) {
+		float x = generateRandomFloat(-5.0f, 5.0f);
+		float z = generateRandomFloat(-5.0f, 5.0f);
+		int objModelNum = generateRandomInt(0, 2);
+		CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
+		obj->initTexturedObject(objectsPaths[objModelNum]);
+	}
 
 	GE::setCameraPosition(ball->getPosition() + Vector3(0, ball->getPosition().y + 2, -2));
 	GE::setCameraForwardVector(Vector3(0, -1, 1));
 	GE::setCameraUpVector(Vector3(0, 1, 1));
-	CatamariBox* plane = createCatamariBoxComponent({ 0, -1.1f, 0 }, { 10.0f, 0.04f, 10.0f });
-	plane->attached = true;
-	plane->setColor({ 1, 1, 1, 0 });
+	//CatamariBox* plane = createCatamariBoxComponent({ 0, -1.1f, 0 }, { 10.0f, 0.04f, 10.0f });
+	//plane->attached = true;
+	//plane->setColor({ 1, 1, 1, 0 });
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 	prevMousePosition = inputDevice->MousePosition;
-	//GE::setPerspectiveMatrix(1.4f);
+	GE::setPerspectiveMatrix(1.4f);
 }
 
 void Game::updateKatamariScene(float deltaTime)
@@ -523,7 +539,7 @@ void Game::updateKatamariScene(float deltaTime)
 			shiftDirection *= -1;
 		}
 		Vector3 shiftVec = deltaTime * shiftDirection;
-		Vector3 rotationAxis = shiftDirection.Cross(Vector3(0, 1, 0));
+		Vector3 rotationAxis = -shiftDirection.Cross(Vector3(0, 1, 0));
 		rotationAxis.Normalize();
 		//coutVector(rotationAxis);
 		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
@@ -587,7 +603,6 @@ void Game::updateKatamariScene(float deltaTime)
 void Game::run()
 {
 	std::chrono::time_point<std::chrono::steady_clock> prevTime = prevTime = std::chrono::steady_clock::now();
-	static float totalTime;
 	static unsigned int frameCount;
 	auto physicsSubsystem = GE::getPhysicsSubsystem();
 
@@ -755,6 +770,11 @@ void Game::destroyResources()
 
 }
 
+float Game::getTotalTime()
+{
+	return totalTime;
+}
+
 ID3D11Device* Game::getDevice()
 {
 	return device;
@@ -763,4 +783,9 @@ ID3D11Device* Game::getDevice()
 ID3D11DeviceContext* Game::getDeviceContext()
 {
 	return context;
+}
+
+const ComPtr<ID3D11SamplerState> Game::getSamplerState()
+{
+	return sampler;
 }
