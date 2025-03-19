@@ -77,6 +77,7 @@ int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& p
 	buffDesc.StructureByteStride = 0;
 	buffDesc.ByteWidth = sizeof(addData);
 
+	addData.material = material;
 	additionalBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
 
 	DirectX::ScratchImage si;
@@ -91,7 +92,15 @@ int CatamariBall::draw(float deltaTime)
 
 	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
+	addData.rotationMatrix = Matrix::CreateFromQuaternion(qRot).Transpose();
 	addData.unused.x = GE::getGameSubsystem()->getTotalTime();
+	Vector4 camPos4;
+	Vector3 camPos3 = GE::getCameraPosition();
+	camPos4.x = camPos3.x;
+	camPos4.y = camPos3.y;
+	camPos4.z = camPos3.z;
+	camPos4.w = 1.0f;
+	addData.camPos = camPos4;
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
@@ -117,6 +126,8 @@ int CatamariBall::update(float deltaTime)
 	// gravity
 	Vector3 downShiftVec = Vector3(0, -deltaTime, 0);
 	position += downShiftVec;
+	Vector3 camPos = GE::getCameraPosition();
+	camPos += downShiftVec;
 	for (int i = 0; i < attachedObjects.size(); i++) {
 		CatamariBox* box = attachedObjects[i];
 		box->setPosition(box->getPosition() + downShiftVec);
@@ -135,10 +146,12 @@ int CatamariBall::update(float deltaTime)
 		float diff = -(lowerPointY + 1);
 		//shift all attached and ball up
 		position.y += diff;
+		camPos.y += diff;
 		for (auto box : attachedObjects) {
 			box->setPosition(box->getPosition() + Vector3(0, diff, 0));
 		}
 	}
+	GE::setCameraPosition(camPos);
 
 	D3D11_MAPPED_SUBRESOURCE res = {};
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();

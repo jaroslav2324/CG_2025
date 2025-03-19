@@ -3,26 +3,19 @@ struct PS_IN
 {
     float4 pos : SV_POSITION;
     float4 tex : TEXCOORD0;
+    float4 color: COLOR;
+    float4 V: NORMAL0;
+    float4 N: NORMAL1;
+    float4 L: NORMAL2;
+    float4 R: NORMAL3;
 };
-
-//struct ConstantData
-//{
-//    float4x4 transformMatrix;
-//    float2 screenCoords;
-//    float2 useless;
-//};
 
 Texture2D myTexture : register(t0);
 SamplerState samplerState: register(s0);
 
-//cbuffer ConstBuf : register(b0)
-//{
-//    ConstantData constData;
-//}
-
 float4 PSMain(PS_IN input) : SV_Target
 {
-    //float4 col = float4(0.5, 0.5, 0.5, 1.0);
-    float4 col = myTexture.Sample(samplerState, input.tex.xy);
-    return col;
+    //float4 col = myTexture.Sample(samplerState, input.tex.xy);
+    //col *= float4(input.color, 1.0f);
+    return float4(input.color.xyz, 1.0f);
 }

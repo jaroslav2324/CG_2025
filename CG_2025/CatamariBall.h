@@ -10,6 +10,7 @@
 #include "addData.h"
 #include "ModelImporter.h"
 #include "Vertex.h"
+#include "Material.h"
 
 class CatamariBox;
 
@@ -59,4 +60,6 @@ protected:
 	ComPtr<ID3D11Buffer> modelVerticesBuffer = nullptr;
 	ComPtr<ID3D11Buffer> modelIndiciesBuffer = nullptr;
 	ID3D11ShaderResourceView* texture = nullptr;
+
+	Material material = getBrassMaterial();
 };

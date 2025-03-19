@@ -20,6 +20,7 @@
 #include "PlanetComponent.h"
 #include "CatamariBall.h"
 #include "CatamariBox.h"
+#include "LightSource.h"
 
 class Game {
 
@@ -79,4 +80,7 @@ private:
 	DirectX::SimpleMath::Vector2 generateRandomBallDirection();
 
 	float totalTime = 0.0f;
+
+	std::vector<LightSouce> lightSources;
+	ComPtr<ID3D11Buffer> lightSourcesBuffer = nullptr;
 };

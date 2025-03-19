@@ -499,6 +499,15 @@ void Game::createKatamariScene()
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 	prevMousePosition = inputDevice->MousePosition;
 	GE::setPerspectiveMatrix(1.4f);
+
+	LightSouce ls;
+	ls.sourceType = LightSourceType::GLOBAL_LIGHT;
+	ls.position = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+	ls.direction = Vector4(1.0f, -1.0f, 0.0f, 1.0f);
+	lightSources.push_back(ls);
+
+	auto bufferManager = GE::getBufferManager();
+	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSources);
 }
 
 void Game::updateKatamariScene(float deltaTime)
@@ -518,15 +527,33 @@ void Game::updateKatamariScene(float deltaTime)
 	if (!apprEqual(prevMousePosition.x, mousePos.x, 1e-6)) {
 		float angle = deltaTime * (mousePos.x - prevMousePosition.x);
 		Matrix rot = Matrix::CreateRotationY(angle);
-		GE::rotateCameraAroundCenter(ball->getPosition(), rot);
-
+		Vector3 relCamPos = GE::getCameraPosition() - ball->getPosition();
+		Vector3 tmpUp = Vector3::Transform(GE::getCameraUpVector(), rot);
+		tmpUp.Normalize();
+		Vector3 tmpForward = Vector3::Transform(GE::getCameraForwardVector(), rot);
+		tmpForward.Normalize();
+		Vector3 tmpCamPos = Vector3::Transform(relCamPos, rot);
+		tmpCamPos += ball->getPosition();
+		GE::setCameraPosition(tmpCamPos);
+		GE::setCameraUpVector(tmpUp);
+		GE::setCameraForwardVector(tmpForward);
 	}
 	if (!apprEqual(prevMousePosition.y, mousePos.y, 1e-6)) {
 		float angle = deltaTime * (mousePos.y - prevMousePosition.y);
 		Vector3 cameraRightVector = GE::getCameraForwardVector().Cross(GE::getCameraUpVector());
 		cameraRightVector.Normalize();
 		Matrix rot = Matrix::CreateFromAxisAngle(cameraRightVector, -angle);
-		GE::rotateCameraAroundCenter(ball->getPosition(), rot);
+		//GE::rotateCameraAroundCenter(ball->getPosition(), rot);
+		Vector3 relCamPos = GE::getCameraPosition() - ball->getPosition();
+		Vector3 tmpUp = Vector3::Transform(GE::getCameraUpVector(), rot);
+		tmpUp.Normalize();
+		Vector3 tmpForward = Vector3::Transform(GE::getCameraForwardVector(), rot);
+		tmpForward.Normalize();
+		Vector3 tmpCamPos = Vector3::Transform(relCamPos, rot);
+		tmpCamPos += ball->getPosition();
+		GE::setCameraPosition(tmpCamPos);
+		GE::setCameraUpVector(tmpUp);
+		GE::setCameraForwardVector(tmpForward);
 	}
 	prevMousePosition = mousePos;
 
@@ -547,13 +574,6 @@ void Game::updateKatamariScene(float deltaTime)
 		float rotationAngle = distance / ball->getRadius();
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
 	}
-
-	auto camPos = GE::getCameraPosition();
-	//coutVector(GE::getCameraForwardVector());
-	camPos = ball->getPosition() - 2 * GE::getCameraForwardVector();
-	camPos.y = ball->getPosition().y + 2;
-	GE::setCameraPosition(camPos);
-
 
 	for (int i = 0; i < components.size(); i++) {
 		CatamariBox* box = (CatamariBox*)components[i];
@@ -665,6 +685,16 @@ int Game::draw(float deltaTime)
 	context->ClearRenderTargetView(rtv, color);
 	context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->OMSetRenderTargets(1, &rtv, depthView.Get());
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+	ID3D11Buffer* rawLightSourcesBuffer = lightSourcesBuffer.Get();
+	context->Map(rawLightSourcesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	auto dataPtr = reinterpret_cast<float*>(mappedResource.pData);
+	memcpy(dataPtr, lightSources.data(), sizeof(LightSouce) * lightSources.size());
+	context->Unmap(rawLightSourcesBuffer, 0);
+
+	rawLightSourcesBuffer = lightSourcesBuffer.Get();
+	context->VSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
 
 	for (const auto gameComponent : components) {
 		gameComponent->draw(deltaTime);
