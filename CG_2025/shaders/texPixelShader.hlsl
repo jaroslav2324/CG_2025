@@ -15,7 +15,8 @@ SamplerState samplerState: register(s0);
 
 float4 PSMain(PS_IN input) : SV_Target
 {
-    //float4 col = myTexture.Sample(samplerState, input.tex.xy);
-    //col *= float4(input.color, 1.0f);
-    return float4(input.color.xyz, 1.0f);
+    float4 col = myTexture.Sample(samplerState, input.tex.xy);
+    col *= float4(input.color.xyz, 1.0f);
+    return col;
+//return float4(input.color.xyz, 1.0f);
 }

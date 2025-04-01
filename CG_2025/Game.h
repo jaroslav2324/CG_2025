@@ -17,10 +17,11 @@
 #include "MeshComponent.h"
 #include "RectComponent.h"
 #include "BufferManager.h"
-#include "PlanetComponent.h"
 #include "CatamariBall.h"
 #include "CatamariBox.h"
 #include "LightSource.h"
+
+class PlanetComponent;
 
 class Game {
 
@@ -66,7 +67,7 @@ private:
 	int createPlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
 	CatamariBall* createCatamariBallComponent(DirectX::SimpleMath::Vector3 position, float radius, int stacks = 16, int slices = 16);
 	CatamariBox* createCatamariBoxComponent(DirectX::SimpleMath::Vector3 position, DirectX::SimpleMath::Vector3 size);
-
+	PlanetComponent* createLightSourceComponent(DirectX::SimpleMath::Vector3 position, float radius);
 
 	int leftPongScore = 0;
 	int rightPongScore = 0;

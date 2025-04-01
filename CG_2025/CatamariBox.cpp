@@ -1,6 +1,9 @@
+#include "DirectXTex.h"
+
 #include "CatamariBox.h"
 #include "global.h"
 #include "ModelImporter.h"
+#include "Material.h"
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -37,14 +40,17 @@ CatamariBox::CatamariBox(DirectX::SimpleMath::Vector3 position, DirectX::SimpleM
 		1, 5, 6,  1, 6, 2
 	};
 
-	strides = { 32 };
+	strides = { 48 };
 	offsets = { 0 };
 }
 
 int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
 {
 	MeshComponent::init(vertShaderPath, pixShaderPath);
+	initTexturedObject("./models/cube.obj");
 	auto bufferManager = GE::getBufferManager();
+	material = getPolishedSilverMaterial();
+	addData.material = material;
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
 	subresourceData.pSysMem = &addData;
@@ -60,47 +66,48 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 	buffDesc.ByteWidth = sizeof(addData);
 
 	additionalBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
+
+	DirectX::ScratchImage si;
+	DirectX::LoadFromDDSFile(L"./models/wood.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
+	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
 	return 0;
 }
 
 int CatamariBox::draw(float deltaTime)
 {
+	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
+	addData.transformMatrix = transformMatrix.Transpose();
+
+	addData.scaleMatrix = scale.Transpose();
+	addData.rotationMatrix = Matrix::CreateFromQuaternion(rotation).Transpose();
+	addData.translationMatrix = Matrix::CreateTranslation(position).Transpose();
+	addData.viewMatrix = GE::getCameraViewMatrix().Transpose();
+	addData.projectionMatrix = GE::getProjectionMatrix().Transpose();
+
+	Vector4 camPos4;
+	Vector3 camPos3 = GE::getCameraPosition();
+	camPos4.x = camPos3.x;
+	camPos4.y = camPos3.y;
+	camPos4.z = camPos3.z;
+	camPos4.w = 1.0f;
+	addData.camPos = camPos4;
+
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
-
-	if (drawDebugCollider) {
-		auto bb = getAABB();
-		cornersPoints.clear();
-		Vector3 corners[8];
-		bb.GetCorners(corners);
-		for (int i = 0; i < 8; i++) {
-			const auto cp = corners[i];
-			cornersPoints.push_back(Vector4(cp.x, cp.y, cp.z, 1.0f) + Vector4(position.x, position.y, position.z, 1.0));
-			cornersPoints.push_back(Vector4(1.0, 0.0, 0.0, 1.0f));
-		}
-		//TODO: draw
-	}
-
-	if (texturedModelSet) {
-		// TODO: draw obj model
-		model->Draw(context, *states, Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position), GE::getCameraViewMatrix(), GE::getProjectionMatrix());
-		return 0;
-	}
-
-	Matrix transformMatrix = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
-	addData.transformMatrix = transformMatrix.Transpose();
-
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	ID3D11Buffer* rawVertBuffer = vertexBuffer.Get();
+	context->PSSetShaderResources(0, 1, &texture);
+	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
+	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
+	context->PSSetSamplers(0, 1, &rawSampler);
 
-	context->DrawIndexed(indices.size(), 0, 0);
+	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;
 }
 
@@ -136,15 +143,17 @@ void CatamariBox::destroyResources()
 	MeshComponent::destroyResources();
 }
 
-void CatamariBox::initTexturedObject(const std::wstring& modelPath)
+void CatamariBox::initTexturedObject(const std::string& modelPath)
 {
-	auto device = GE::getGameSubsystem()->getDevice();
-	states = std::make_unique<CommonStates>(device);
-	fxFactory = std::make_unique<EffectFactory>(device);
-	model = Model::CreateFromCMO(device, modelPath.c_str(), *fxFactory);
-	//ModelImporter importer;
-	//importer.loadOBJ(modelPath, modelVertices, modelTexCoords, modelNormals, modelFaces);
-	texturedModelSet = true;
+	ModelImporter importer;
+	importer.loadOBJ(modelPath, vertexBufferData, indexBufferData);
+
+	auto bufferManager = GE::getBufferManager();
+
+	modelVerticesBuffer = bufferManager->createVertexBuffer(vertexBufferData);
+	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4_AddF4(vertexByteCode);
+	modelIndiciesBuffer = bufferManager->createIndexBuffer(indexBufferData);
+	texturedModelLoaded = true;
 }
 
 bool CatamariBox::isAttached() const
@@ -204,21 +213,6 @@ Vector3 CatamariBox::getPosition() const
 void CatamariBox::setPosition(Vector3 pos)
 {
 	position = pos;
-}
-
-void CatamariBox::setColor(DirectX::XMFLOAT4 clr)
-{
-	int size = points.size();
-	for (int i = 0; i < size; i++) {
-		if (i % 2 == 1) {
-			auto& p = points[i];
-			p.x = clr.x;
-			p.y = clr.y;
-			p.z = clr.z;
-		}
-	}
-	init(L"./shaders/texVertexShader.hlsl",
-		L"./shaders/texPixelShader.hlsl");
 }
 
 void CatamariBox::rotateAttached(Matrix rot)

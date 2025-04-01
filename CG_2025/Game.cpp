@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "global.h"
 
+#include "PlanetComponent.h"
+
 using DirectX::SimpleMath::Vector4;
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
@@ -473,10 +475,8 @@ void Game::updatePlanetsScene(float deltaTime)
 
 void Game::createKatamariScene()
 {
-	std::vector<std::wstring> objectsPaths = {
-		L"./models/lamp.cmo",
-		L"./models/calculator.cmo",
-		L"./models/ruler.cmo"
+	std::vector<std::string> objectsPaths = {
+		"./models/box.obj"
 	};
 
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
@@ -484,9 +484,7 @@ void Game::createKatamariScene()
 	for (int i = 0; i < numObjects; i++) {
 		float x = generateRandomFloat(-5.0f, 5.0f);
 		float z = generateRandomFloat(-5.0f, 5.0f);
-		int objModelNum = generateRandomInt(0, 2);
 		CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
-		obj->initTexturedObject(objectsPaths[objModelNum]);
 	}
 
 	GE::setCameraPosition(ball->getPosition() + Vector3(0, ball->getPosition().y + 2, -2));
@@ -501,10 +499,19 @@ void Game::createKatamariScene()
 	GE::setPerspectiveMatrix(1.4f);
 
 	LightSouce ls;
+
 	ls.sourceType = LightSourceType::GLOBAL_LIGHT;
 	ls.position = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 	ls.direction = Vector4(1.0f, -1.0f, 0.0f, 1.0f);
 	lightSources.push_back(ls);
+	auto lsMesh1 = createLightSourceComponent(Vector3(0.0f, 1.0f, 0.0f), 0.1f);
+
+	LightSouce ls2;
+	ls2.sourceType = LightSourceType::POINT_LIGHT;
+	ls2.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	ls2.direction = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
+	ls2.shineDistance = 5.0f;
+	lightSources.push_back(ls2);
 
 	auto bufferManager = GE::getBufferManager();
 	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSources);
@@ -587,11 +594,11 @@ void Game::updateKatamariScene(float deltaTime)
 	Vector3 center = ball->getPosition();
 	for (int i = 1; i < components.size(); i++) {
 		auto box = (CatamariBox*)components[i];
-		if (!box->isAttached() && CheckSphereAABBCollision(center, radius, box->getAABB())) {
-			box->setAttached(ball);
-			ball->attachObject(box);
-			std::cout << "box attached" << std::endl;
-		}
+		//if (!box->isAttached() && CheckSphereAABBCollision(center, radius, box->getAABB())) {
+		//	box->setAttached(ball);
+		//	ball->attachObject(box);
+		//	std::cout << "box attached" << std::endl;
+		//}
 	}
 
 	for (int i = 1; i < components.size(); i++) {
@@ -605,16 +612,16 @@ void Game::updateKatamariScene(float deltaTime)
 				continue;
 			}
 
-			if (box1->getAABB().Intersects(box2->getAABB())) {
-				if (box1->isAttached()) {
-					box2->setAttached(ball);
-					ball->attachObject(box2);
-				}
-				else {
-					box1->setAttached(ball);
-					ball->attachObject(box1);
-				}
-			}
+			//if (box1->getAABB().Intersects(box2->getAABB())) {
+			//	if (box1->isAttached()) {
+			//		box2->setAttached(ball);
+			//		ball->attachObject(box2);
+			//	}
+			//	else {
+			//		box1->setAttached(ball);
+			//		ball->attachObject(box1);
+			//	}
+			//}
 		}
 	}
 
@@ -681,7 +688,7 @@ int Game::draw(float deltaTime)
 
 	context->RSSetViewports(1, &viewport);
 
-	float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float color[] = { 0.3f, 0.3f, 0.3f, 1.0f };
 	context->ClearRenderTargetView(rtv, color);
 	context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	context->OMSetRenderTargets(1, &rtv, depthView.Get());
@@ -759,6 +766,16 @@ CatamariBox* Game::createCatamariBoxComponent(DirectX::SimpleMath::Vector3 posit
 	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
 		L"./shaders/texPixelShader.hlsl");
 	return box;
+}
+
+PlanetComponent* Game::createLightSourceComponent(DirectX::SimpleMath::Vector3 position, float radius)
+{
+	PlanetComponent* ls = new PlanetComponent(position, radius);
+	components.push_back(ls);
+	components[components.size() - 1]->init(
+		L"./shaders/lightSourceVertShader.hlsl",
+		L"./shaders/lightSourcePixShader.hlsl");
+	return ls;
 }
 
 DirectX::SimpleMath::Vector2 Game::generateRandomBallDirection()

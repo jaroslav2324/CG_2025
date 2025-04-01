@@ -93,6 +93,11 @@ int CatamariBall::draw(float deltaTime)
 	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 	addData.rotationMatrix = Matrix::CreateFromQuaternion(qRot).Transpose();
+	addData.scaleMatrix = scale.Transpose();
+	addData.translationMatrix = Matrix::CreateTranslation(position).Transpose();
+	addData.viewMatrix = GE::getCameraViewMatrix().Transpose();
+	addData.projectionMatrix = GE::getProjectionMatrix().Transpose();
+
 	addData.unused.x = GE::getGameSubsystem()->getTotalTime();
 	Vector4 camPos4;
 	Vector3 camPos3 = GE::getCameraPosition();
@@ -168,22 +173,6 @@ void CatamariBall::destroyResources()
 	MeshComponent::destroyResources();
 }
 
-//TODO: remove?
-void CatamariBall::setColor(DirectX::XMFLOAT4 clr)
-{
-	int size = points.size();
-	for (int i = 0; i < size; i++) {
-		if (i % 2 == 1) {
-			auto& p = points[i];
-			p.x = clr.x;
-			p.y = clr.y;
-			p.z = clr.z;
-		}
-	}
-	init(L"./shaders/planetShader.hlsl",
-		L"./shaders/pixelShader.hlsl");
-}
-
 void CatamariBall::initTexturedObject(const std::string& modelPath)
 {
 	ModelImporter importer;
@@ -198,7 +187,6 @@ void CatamariBall::initTexturedObject(const std::string& modelPath)
 	modelVerticesBuffer = bufferManager->createVertexBuffer(vertexBufferData);
 	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4_AddF4(vertexByteCode);
 	modelIndiciesBuffer = bufferManager->createIndexBuffer(indexBufferData);
-	texturedModelLoaded = true;
 }
 
 void CatamariBall::moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotationAngle)

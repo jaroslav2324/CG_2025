@@ -2,10 +2,12 @@
 
 #include <algorithm>
 #include <DirectXMath.h>
+#include <directxtk/DDSTextureLoader.h>
 
 #include "MeshComponent.h"
 #include "addData.h"
 #include "Face.h"
+#include "Vertex.h"
 
 class CatamariBall;
 
@@ -25,9 +27,7 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
-	void initTexturedObject(const std::wstring& modelPath);
-
-	void setColor(DirectX::XMFLOAT4 clr);
+	void initTexturedObject(const std::string& modelPath);
 
 	bool isAttached() const;
 	void setAttached(CatamariBall* ball, bool flag = true);
@@ -44,9 +44,10 @@ public:
 	DirectX::BoundingBox getAABB() const;
 
 protected:
-	bool attached = false; // Флаг приклеенного объекта
-	Vector3 size = { 1.0f, 1.0f, 1.0f }; // Длина, ширина, высота
-	Vector3 position = { 0.0f, 0.0f, 0.0f }; // Позиция в мире
+	bool attached = false; 
+	Vector3 size ; 
+	Matrix scale = Matrix::CreateScale(0.3f);
+	Vector3 position = { 0.0f, 0.0f, 0.0f };
 	Quaternion rotation;
 	Vector3 attachedOffset = { 0, 0 ,0 };
 
@@ -54,19 +55,14 @@ protected:
 	AdditionalData addData;
 	CatamariBall* ball = nullptr;
 
-	bool drawDebugCollider = false;
+	bool texturedModelLoaded = false;
 
-	bool texturedModelSet = false;
-	std::unique_ptr<DirectX::Model> model;
-	std::unique_ptr<DirectX::IEffectFactory> fxFactory;
-	std::unique_ptr<DirectX::CommonStates> states;
+	std::vector<Vertex> vertexBufferData;
+	std::vector<unsigned int> indexBufferData;
 
-	std::vector<Vector4> cornersPoints;
-	ComPtr<ID3D11Buffer> debugVertexBuffer;
-	ComPtr<ID3D11Buffer> debugIndexBuffer;
+	ComPtr<ID3D11Buffer> modelVerticesBuffer = nullptr;
+	ComPtr<ID3D11Buffer> modelIndiciesBuffer = nullptr;
+	ID3D11ShaderResourceView* texture = nullptr;
 
-	std::vector<Vector3> modelVertices;
-	std::vector<Vector2> modelTexCoords;
-	std::vector<Vector3> modelNormals;
-	std::vector<Face> modelFaces;
+	Material material;
 };

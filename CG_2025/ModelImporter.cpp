@@ -1,13 +1,24 @@
 #include <locale>
+#include <filesystem>
 #include "tiny_obj_loader.h"
 
 #include "ModelImporter.h"
 
+static std::map<std::string, ModelData> models;
 
 bool ModelImporter::loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::vector<unsigned int>& indicies)
 {
+	std::string canonicalFilePath = std::filesystem::canonical(filename).string();
+	if (models.contains(canonicalFilePath)) {
+		vertices = models[canonicalFilePath].vertices;
+		indicies = models[canonicalFilePath].indicies;
+		return true;
+	}
+
 	tinyobj::ObjReader reader;
-	if (!reader.ParseFromFile(filename, tinyobj::ObjReaderConfig())) {
+	tinyobj::ObjReaderConfig config;
+	config.triangulate = true;
+	if (!reader.ParseFromFile(canonicalFilePath, config)) {
 		throw std::exception();
 	}
 
@@ -74,5 +85,8 @@ bool ModelImporter::loadOBJ(const std::string& filename, std::vector<Vertex>& ve
 			index_offset += fv;
 		}
 	}
+	models.try_emplace(canonicalFilePath, ModelData());
+	models[canonicalFilePath].vertices = vertices;
+	models[canonicalFilePath].indicies = indicies;
 	return true;
 }

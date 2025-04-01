@@ -29,8 +29,6 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
-	void setColor(DirectX::XMFLOAT4 clr);
-
 	void initTexturedObject(const std::string& modelPath);
 
 	void moveBall(Vector3 shiftVec, Vector3 rotationAxis, float rotationAngle);
@@ -52,8 +50,6 @@ protected:
 	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
 	AdditionalData addData;
 
-	bool texturedModelLoaded = false;
-
 	std::vector<Vertex> vertexBufferData;
 	std::vector<unsigned int> indexBufferData;
 
@@ -61,5 +57,5 @@ protected:
 	ComPtr<ID3D11Buffer> modelIndiciesBuffer = nullptr;
 	ID3D11ShaderResourceView* texture = nullptr;
 
-	Material material = getBrassMaterial();
+	Material material = getPolishedSilverMaterial();
 };

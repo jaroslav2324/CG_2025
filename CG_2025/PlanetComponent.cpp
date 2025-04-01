@@ -10,6 +10,16 @@ int PlanetComponent::init(const std::wstring& vertShaderPath, const std::wstring
 {
 	MeshComponent::init(vertShaderPath, pixShaderPath);
 	auto bufferManager = GE::getBufferManager();
+	layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
+
+	D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
+	D3D11_SUBRESOURCE_DATA vertexData = bufferManager->getDefaultSubresourceData(points);
+	vertexBuffer = bufferManager->createBuffer(vertexBufDesc, vertexData);
+
+	D3D11_BUFFER_DESC indexBufDesc = bufferManager->getBasicBufferDescription(indices);
+	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	D3D11_SUBRESOURCE_DATA indexData = bufferManager->getDefaultSubresourceData(indices);
+	indexBuffer = bufferManager->createBuffer(indexBufDesc, indexData);
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
 	subresourceData.pSysMem = &addData;
@@ -81,27 +91,27 @@ PlanetComponent::PlanetComponent(Vector3 position, float radius) : MeshComponent
 
 int PlanetComponent::draw(float deltaTime)
 {
-	totalTime += deltaTime;
-	if (totalTime >= 1.0f) {
-		totalTime -= 1.0f;
-	}
-	if (parentPlanet != nullptr) {
-		summedAroundParentAngle += angularSpeedAroundParent * deltaTime * 6;
-		if (summedAroundParentAngle > 360.0) { summedAroundParentAngle -= 360.0; }
-		if (summedAroundParentAngle < 0) { summedAroundParentAngle += 360.0; }
-		rotationAroundParentMatrix = Matrix::CreateFromAxisAngle(rotationAroundParentAxis, summedAroundParentAngle);
-		translationMatrix = initialTranslationMatrix * rotationAroundParentMatrix;
-	}
+	//totalTime += deltaTime;
+	//if (totalTime >= 1.0f) {
+	//	totalTime -= 1.0f;
+	//}
+	//if (parentPlanet != nullptr) {
+	//	summedAroundParentAngle += angularSpeedAroundParent * deltaTime * 6;
+	//	if (summedAroundParentAngle > 360.0) { summedAroundParentAngle -= 360.0; }
+	//	if (summedAroundParentAngle < 0) { summedAroundParentAngle += 360.0; }
+	//	rotationAroundParentMatrix = Matrix::CreateFromAxisAngle(rotationAroundParentAxis, summedAroundParentAngle);
+	//	translationMatrix = initialTranslationMatrix * rotationAroundParentMatrix;
+	//}
 
-	rotationMatrix *= Matrix::CreateFromAxisAngle(planetAxis, angularSpeedSelf * deltaTime * DirectX::XM_2PI);
-	Matrix transformMatrix = scaleMatrix * rotationMatrix *
-		rotationAroundParentMatrix.Invert() * initialTranslationMatrix * rotationAroundParentMatrix;
-	PlanetComponent* parent = parentPlanet;
-	while (parent != nullptr) {
-		transformMatrix = transformMatrix * parent->initialTranslationMatrix * parent->rotationAroundParentMatrix; //parent->translationMatrix;
-		parent = parent->parentPlanet;
-	}
-
+	//rotationMatrix *= Matrix::CreateFromAxisAngle(planetAxis, angularSpeedSelf * deltaTime * DirectX::XM_2PI);
+	//Matrix transformMatrix = scaleMatrix * rotationMatrix *
+	//	rotationAroundParentMatrix.Invert() * initialTranslationMatrix * rotationAroundParentMatrix;
+	//PlanetComponent* parent = parentPlanet;
+	//while (parent != nullptr) {
+	//	transformMatrix = transformMatrix * parent->initialTranslationMatrix * parent->rotationAroundParentMatrix; //parent->translationMatrix;
+	//	parent = parent->parentPlanet;
+	//}
+	Matrix transformMatrix = scaleMatrix * rotationMatrix * initialTranslationMatrix;
 	transformMatrix = transformMatrix * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
