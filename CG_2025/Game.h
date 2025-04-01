@@ -83,5 +83,6 @@ private:
 	float totalTime = 0.0f;
 
 	std::vector<LightSouce> lightSources;
+	std::vector<std::pair<LightSouce*, PlanetComponent*>> attachedLightSources;
 	ComPtr<ID3D11Buffer> lightSourcesBuffer = nullptr;
 };

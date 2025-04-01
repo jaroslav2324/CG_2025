@@ -487,6 +487,15 @@ void Game::createKatamariScene()
 		CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
 	}
 
+	CatamariBox* floor = new CatamariBox({ 0.0, -1.2, 0.0 }, { 4.0, 1.0, 4.0 });
+	floor->setAttached(ball, true);
+	floor->setModelPath("./models/ground.obj");
+	floor->setTexturePath(L"./models/carpet.dds");
+	components.push_back(floor);
+	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
+		L"./shaders/texPixelShader.hlsl");
+
+
 	GE::setCameraPosition(ball->getPosition() + Vector3(0, ball->getPosition().y + 2, -2));
 	GE::setCameraForwardVector(Vector3(0, -1, 1));
 	GE::setCameraUpVector(Vector3(0, 1, 1));
@@ -498,20 +507,41 @@ void Game::createKatamariScene()
 	prevMousePosition = inputDevice->MousePosition;
 	GE::setPerspectiveMatrix(1.4f);
 
+	lightSources.reserve(20);
 	LightSouce ls;
-
-	ls.sourceType = LightSourceType::GLOBAL_LIGHT;
-	ls.position = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-	ls.direction = Vector4(1.0f, -1.0f, 0.0f, 1.0f);
+	ls.sourceType = LightSourceType::POINT_LIGHT;
+	ls.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	ls.shineDistance = 5.0f;
 	lightSources.push_back(ls);
-	auto lsMesh1 = createLightSourceComponent(Vector3(0.0f, 1.0f, 0.0f), 0.1f);
+	PlanetComponent* lsMesh1 = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
+	attachedLightSources.push_back(std::make_pair(&(lightSources[0]), lsMesh1));
 
 	LightSouce ls2;
 	ls2.sourceType = LightSourceType::POINT_LIGHT;
-	ls2.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	ls2.direction = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
-	ls2.shineDistance = 5.0f;
+	ls2.position = Vector4(-1.0f, 0.0f, 0.5f, 1.0f);
+	ls2.shineDistance = 3.0f;
+	ls2.intensity = 1.5f;
 	lightSources.push_back(ls2);
+	PlanetComponent* lsMesh2 = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
+	attachedLightSources.push_back(std::make_pair(&(lightSources[1]), lsMesh2));
+
+	LightSouce ls3;
+	ls3.sourceType = LightSourceType::POINT_LIGHT;
+	ls3.position = Vector4(-10.0f, -10.0f, 0.0f, 1.0f);
+	ls3.shineDistance = 20.0f;
+	ls3.intensity = 2.0f;
+	lightSources.push_back(ls3);
+	PlanetComponent* lsMesh3 = createLightSourceComponent(Vector3(-10.0f, -10.0f, 0.0f), 1.0f);
+	attachedLightSources.push_back(std::make_pair(&(lightSources[2]), lsMesh3));
+
+	LightSouce ls4;
+	ls4.sourceType = LightSourceType::POINT_LIGHT;
+	ls4.position = Vector4(0.0f, -1.0f, 0.5f, 1.0f);
+	ls4.shineDistance = 8.0f;
+	ls4.intensity = 0.5f;
+	lightSources.push_back(ls4);
+	PlanetComponent* lsMesh4 = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
+	attachedLightSources.push_back(std::make_pair(&(lightSources[3]), lsMesh4));
 
 	auto bufferManager = GE::getBufferManager();
 	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSources);
@@ -580,6 +610,17 @@ void Game::updateKatamariScene(float deltaTime)
 		float distance = shiftVec.Length();
 		float rotationAngle = distance / ball->getRadius();
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
+
+		Vector3 ballPos = ball->getPosition();
+		for (auto& p: attachedLightSources) {
+			Vector3 lsPos(p.first->position);
+			lsPos -= ballPos;
+			Matrix m = Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle);
+			lsPos = Vector3::Transform(lsPos, m);
+			lsPos += ballPos;
+			p.first->position = Vector4(lsPos);
+			p.second->setPosition(lsPos);
+		}
 	}
 
 	for (int i = 0; i < components.size(); i++) {
@@ -595,7 +636,7 @@ void Game::updateKatamariScene(float deltaTime)
 	for (int i = 1; i < components.size(); i++) {
 		auto box = (CatamariBox*)components[i];
 		//if (!box->isAttached() && CheckSphereAABBCollision(center, radius, box->getAABB())) {
-		//	box->setAttached(ball);
+		// box->setAttached(ball);
 		//	ball->attachObject(box);
 		//	std::cout << "box attached" << std::endl;
 		//}

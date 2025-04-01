@@ -28,6 +28,7 @@ public:
 	void destroyResources() override;
 
 	void initTexturedObject(const std::string& modelPath);
+	void setTexture(const std::wstring& path);
 
 	bool isAttached() const;
 	void setAttached(CatamariBall* ball, bool flag = true);
@@ -40,6 +41,9 @@ public:
 	Quaternion getRotation() const;
 	void setRotation(Quaternion rotAngles);
 	void rotateAttached(Matrix rot);
+
+	void setModelPath(const std::string& path);
+	void setTexturePath(const std::wstring& path);
 
 	DirectX::BoundingBox getAABB() const;
 
@@ -65,4 +69,7 @@ protected:
 	ID3D11ShaderResourceView* texture = nullptr;
 
 	Material material;
+
+	std::string modelPath = "./models/cube.obj";
+	std::wstring texturePath = L"./models/wood.dds";
 };

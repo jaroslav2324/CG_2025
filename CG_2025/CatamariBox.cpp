@@ -47,7 +47,7 @@ CatamariBox::CatamariBox(DirectX::SimpleMath::Vector3 position, DirectX::SimpleM
 int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pixShaderPath)
 {
 	MeshComponent::init(vertShaderPath, pixShaderPath);
-	initTexturedObject("./models/cube.obj");
+	initTexturedObject(modelPath.c_str());
 	auto bufferManager = GE::getBufferManager();
 	material = getPolishedSilverMaterial();
 	addData.material = material;
@@ -68,7 +68,7 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 	additionalBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
 
 	DirectX::ScratchImage si;
-	DirectX::LoadFromDDSFile(L"./models/wood.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
+	DirectX::LoadFromDDSFile(texturePath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, si);
 	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
 	return 0;
 }
@@ -145,6 +145,14 @@ void CatamariBox::destroyResources()
 
 void CatamariBox::initTexturedObject(const std::string& modelPath)
 {
+	if (modelVerticesBuffer) {
+		modelVerticesBuffer->Release();
+	}
+
+	if (modelIndiciesBuffer) {
+		modelIndiciesBuffer->Release();
+	}
+
 	ModelImporter importer;
 	importer.loadOBJ(modelPath, vertexBufferData, indexBufferData);
 
@@ -154,6 +162,13 @@ void CatamariBox::initTexturedObject(const std::string& modelPath)
 	layout = bufferManager->createInputLayout_PosF4_NormF4_TexF4_AddF4(vertexByteCode);
 	modelIndiciesBuffer = bufferManager->createIndexBuffer(indexBufferData);
 	texturedModelLoaded = true;
+}
+
+void CatamariBox::setTexture(const std::wstring& path)
+{
+	DirectX::ScratchImage si;
+	DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, si);
+	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
 }
 
 bool CatamariBox::isAttached() const
@@ -221,6 +236,16 @@ void CatamariBox::rotateAttached(Matrix rot)
 	Vector3 localPos = position - ball->getPosition();
 	localPos = Vector3::Transform(localPos, rot);
 	position = ball->getPosition() + localPos;
+}
+
+void CatamariBox::setModelPath(const std::string& path)
+{
+	modelPath = path;
+}
+
+void CatamariBox::setTexturePath(const std::wstring& path)
+{
+	texturePath = path;
 }
 
 DirectX::BoundingBox CatamariBox::getAABB() const {

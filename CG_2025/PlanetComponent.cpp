@@ -111,7 +111,8 @@ int PlanetComponent::draw(float deltaTime)
 	//	transformMatrix = transformMatrix * parent->initialTranslationMatrix * parent->rotationAroundParentMatrix; //parent->translationMatrix;
 	//	parent = parent->parentPlanet;
 	//}
-	Matrix transformMatrix = scaleMatrix * rotationMatrix * initialTranslationMatrix;
+	//Matrix transformMatrix = scaleMatrix * rotationMatrix * initialTranslationMatrix;
+	Matrix transformMatrix = scaleMatrix * rotationMatrix * translationMatrix;
 	transformMatrix = transformMatrix * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
@@ -146,6 +147,11 @@ int PlanetComponent::update(float deltaTime)
 void PlanetComponent::destroyResources()
 {
 	MeshComponent::destroyResources();
+}
+
+void PlanetComponent::setPosition(Vector3 pos)
+{
+	translationMatrix = translationMatrix.CreateTranslation(pos);
 }
 
 void PlanetComponent::setPlanetAxis(Vector3 axis)

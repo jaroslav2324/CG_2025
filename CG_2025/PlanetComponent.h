@@ -23,6 +23,8 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 
+	void setPosition(Vector3 pos);
+
 	void setPlanetAxis(Vector3 axis);
 	void setRotationAroundParentAxis(Vector3 axis);
 

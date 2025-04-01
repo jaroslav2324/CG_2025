@@ -68,23 +68,25 @@ PS_IN VSMain(VS_IN input)
 
     PS_IN output = (PS_IN) 0;
 
-    LightSource ls = lights[0];
-    float3 L = normalize(ls.position.xyz - globalVertPos);
-    float3 V = normalize(constData.camPos.xyz-globalVertPos);
-    float3 N = normalize(input.norm.xyz);
-    float3 R = normalize(2 * dot(L, N) * N - L);
-    float3 Ia = constData.material.ambient.xyz;
-    float3 Is = clamp(constData.material.speculiar.xyz  * ls.intensity * pow(dot(V, R),constData.material.exponent.x), 0.0f, 1.0f);
-    float3 Id = 2 * constData.material.diffuse.xyz * ls.intensity * clamp(dot(L, N), 0.0f, 1.0f);
-    float3 I = Id + Is +  Ia;
+    for (int i = 0; i < 1; i++){
+}
+    float3 I = float3(0.0, 0.0, 0.0);
+    for (int i = 0; i < 4; i++){
+        LightSource ls = lights[i];
+        float3 L = normalize(ls.position.xyz - globalVertPos);
+        float3 V = normalize(constData.camPos.xyz-globalVertPos);
+        float3 N = normalize(input.norm.xyz);
+        float3 R = normalize(2 * dot(L, N) * N - L);
+        float shineCoeff = clamp(1 - length(L) / ls.shineDistance, 0.0f, 1.0f);
+        float3 Ia = constData.material.ambient.xyz;
+        float3 Is = shineCoeff * clamp(constData.material.speculiar.xyz  * ls.intensity * pow(dot(V, R),constData.material.exponent.x), 0.0f, 1.0f);
+        float3 Id = shineCoeff * constData.material.diffuse.xyz * ls.intensity * clamp(dot(L, N), 0.0f, 1.0f);
+        I = I + Id + Is + Ia / 4;
+    }
 
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.viewMatrix);
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.projectionMatrix);
 
-    output.L.xyz = L;
-    output.R.xyz = R;
-    output.N.xyz = N;
-    output.V.xyz = V;
     output.color = float4(I, 0.0f);
     output.pos = input.pos;
     output.tex.xy = input.tex.xy;    
