@@ -480,17 +480,17 @@ void Game::createKatamariScene()
 	};
 
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
-	const int numObjects = 10;
-	for (int i = 0; i < numObjects; i++) {
-		float x = generateRandomFloat(-5.0f, 5.0f);
-		float z = generateRandomFloat(-5.0f, 5.0f);
-		CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
-	}
+	//const int numObjects = 10;
+	//for (int i = 0; i < numObjects; i++) {
+	//	float x = generateRandomFloat(-5.0f, 5.0f);
+	//	float z = generateRandomFloat(-5.0f, 5.0f);
+	//	CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
+	//}
 
-	CatamariBox* floor = new CatamariBox({ 0.0, -1.2, 0.0 }, { 4.0, 1.0, 4.0 });
+	CatamariBox* floor = new CatamariBox({ 0.0, -1.2f, 0.0 }, { 1.0, 1.0, 1.0 });
 	floor->setAttached(ball, true);
 	floor->setModelPath("./models/ground.obj");
-	floor->setTexturePath(L"./models/carpet.dds");
+	floor->setTexturePath(L"./models/ss.dds");
 	components.push_back(floor);
 	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
 		L"./shaders/texPixelShader.hlsl");
@@ -511,6 +511,7 @@ void Game::createKatamariScene()
 	LightSouce ls;
 	ls.sourceType = LightSourceType::POINT_LIGHT;
 	ls.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	ls.rgb = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 	ls.shineDistance = 5.0f;
 	lightSources.push_back(ls);
 	PlanetComponent* lsMesh1 = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
@@ -519,8 +520,9 @@ void Game::createKatamariScene()
 	LightSouce ls2;
 	ls2.sourceType = LightSourceType::POINT_LIGHT;
 	ls2.position = Vector4(-1.0f, 0.0f, 0.5f, 1.0f);
-	ls2.shineDistance = 3.0f;
-	ls2.intensity = 1.5f;
+	ls2.rgb = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+	ls2.shineDistance = 1.0f;
+	ls2.intensity = 3.0f;
 	lightSources.push_back(ls2);
 	PlanetComponent* lsMesh2 = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
 	attachedLightSources.push_back(std::make_pair(&(lightSources[1]), lsMesh2));
@@ -528,6 +530,7 @@ void Game::createKatamariScene()
 	LightSouce ls3;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
 	ls3.position = Vector4(-10.0f, -10.0f, 0.0f, 1.0f);
+	ls3.rgb = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	ls3.shineDistance = 20.0f;
 	ls3.intensity = 2.0f;
 	lightSources.push_back(ls3);
@@ -537,8 +540,9 @@ void Game::createKatamariScene()
 	LightSouce ls4;
 	ls4.sourceType = LightSourceType::POINT_LIGHT;
 	ls4.position = Vector4(0.0f, -1.0f, 0.5f, 1.0f);
+	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
 	ls4.shineDistance = 8.0f;
-	ls4.intensity = 0.5f;
+	ls4.intensity = 3.0f;
 	lightSources.push_back(ls4);
 	PlanetComponent* lsMesh4 = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
 	attachedLightSources.push_back(std::make_pair(&(lightSources[3]), lsMesh4));
@@ -605,7 +609,7 @@ void Game::updateKatamariScene(float deltaTime)
 		Vector3 shiftVec = deltaTime * shiftDirection;
 		Vector3 rotationAxis = -shiftDirection.Cross(Vector3(0, 1, 0));
 		rotationAxis.Normalize();
-		//coutVector(rotationAxis);
+		//coutVector(GE::getCameraPosition());
 		GE::setCameraPosition(GE::getCameraPosition() + shiftVec);
 		float distance = shiftVec.Length();
 		float rotationAngle = distance / ball->getRadius();
@@ -743,6 +747,7 @@ int Game::draw(float deltaTime)
 
 	rawLightSourcesBuffer = lightSourcesBuffer.Get();
 	context->VSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
+	context->PSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
 
 	for (const auto gameComponent : components) {
 		gameComponent->draw(deltaTime);

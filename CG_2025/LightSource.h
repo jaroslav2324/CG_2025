@@ -15,6 +15,7 @@ struct LightSouce {
 
 	Vector4 position;
 	Vector4 direction;
+	Vector4 rgb;
 	LightSourceType sourceType;
 	float shineDistance;
 	float angle;
