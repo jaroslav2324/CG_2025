@@ -11,6 +11,7 @@
 #include <directxmath.h>
 
 #include "util.h"
+#include "addData.h"
 #include "appExceptions.h"
 #include "WindowHandler.h"
 #include "ShaderManager.h"
@@ -24,6 +25,8 @@
 class PlanetComponent;
 
 class Game {
+private:
+	using Matrix = DirectX::SimpleMath::Matrix;
 
 public:
 	Game();
@@ -38,6 +41,8 @@ public:
 	const ComPtr<ID3D11SamplerState> getSamplerState();
 private:
 	void update(float deltaTime);
+	void shadowPass();
+	void setShadowViewProj(Matrix lightView, Matrix lightProj, Vector4 lightPos);
 
 	void createPongScene();
 	void updatePongScene(float deltaTime);
@@ -82,7 +87,11 @@ private:
 
 	float totalTime = 0.0f;
 
-	std::vector<LightSouce> lightSources;
-	std::vector<std::pair<LightSouce*, PlanetComponent*>> attachedLightSources;
+	int countLightSources = 0;
+	std::vector<LightSource> lightSources;
+	std::vector<LightSourceData> lightSourcesMainPass;
 	ComPtr<ID3D11Buffer> lightSourcesBuffer = nullptr;
+
+	ShadowPassLightAddData shp_lightAddData;
+	ComPtr<ID3D11Buffer> shp_lightAddDataBuffer = nullptr;
 };

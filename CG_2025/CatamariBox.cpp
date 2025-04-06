@@ -70,6 +70,8 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 	DirectX::ScratchImage si;
 	DirectX::LoadFromDDSFile(texturePath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, si);
 	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
+
+	createShadowVertexShader(L"./shaders/vertexShadowShader.hlsl");
 	return 0;
 }
 
@@ -107,6 +109,28 @@ int CatamariBox::draw(float deltaTime)
 	context->PSSetShader(pixelShader, nullptr, 0);
 	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
 	context->PSSetSamplers(0, 1, &rawSampler);
+
+	context->DrawIndexed(indexBufferData.size(), 0, 0);
+	return 0;
+}
+
+int CatamariBox::drawShadow()
+{
+	addData.rotationMatrix = Matrix::CreateFromQuaternion(rotation).Transpose();
+	addData.scaleMatrix = scale.Transpose();
+	addData.translationMatrix = Matrix::CreateTranslation(position).Transpose();
+
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	context->RSSetState(rastState);
+	context->IASetInputLayout(layout.Get());
+	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
+	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
+	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
+	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
+	context->VSSetShader(vertexShadowShader, nullptr, 0);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

@@ -15,4 +15,5 @@ public:
 	virtual int update(float deltaTime) = 0;
 	virtual void destroyResources() = 0;
 	virtual int draw(float deltaTime) = 0;
+	virtual int drawShadow() { return 0; };
 };

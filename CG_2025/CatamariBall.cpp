@@ -23,37 +23,6 @@ CatamariBall::CatamariBall(DirectX::SimpleMath::Vector3 position, float radius, 
 	addData.screenCoords.x = winWidth;
 	addData.screenCoords.y = winHeight;
 
-	//for (int i = 0; i <= stacks; ++i) {
-	//	float phi = DirectX::XM_PI * i / stacks;
-	//	for (int j = 0; j <= slices; ++j) {
-	//		float theta = DirectX::XM_2PI * j / slices;
-
-	//		float x = radius * sinf(phi) * cosf(theta);
-	//		float y = radius * cosf(phi);
-	//		float z = radius * sinf(phi) * sinf(theta);
-
-	//		points.push_back({ x, y, z, 1.0f });
-	//		points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
-	//	}
-	//}
-
-	//for (int i = 0; i < stacks; ++i) {
-	//	for (int j = 0; j < slices; ++j) {
-	//		int first = i * (slices + 1) + j;
-	//		int second = first + slices + 1;
-
-	//		indices.push_back(first);
-	//		indices.push_back(second);
-	//		indices.push_back(first + 1);
-
-	//		indices.push_back(second);
-	//		indices.push_back(second + 1);
-	//		indices.push_back(first + 1);
-	//	}
-	//}
-
-	//strides = { 32 };
-	//offsets = { 0 };
 	strides = { 48 };
 	offsets = { 0 };
 }
@@ -83,13 +52,12 @@ int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& p
 	DirectX::ScratchImage si;
 	DirectX::LoadFromDDSFile(L"./models/bt.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
 	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
-	
+	createShadowVertexShader(L"./shaders/vertexShadowShader.hlsl");
 	return 0;
 }
 
 int CatamariBall::draw(float deltaTime)
 {
-
 	Matrix transformMatrix = scale * Matrix::CreateFromQuaternion(qRot) * Matrix::CreateTranslation(position) * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 	addData.rotationMatrix = Matrix::CreateFromQuaternion(qRot).Transpose();
@@ -122,6 +90,28 @@ int CatamariBall::draw(float deltaTime)
 	context->PSSetShader(pixelShader, nullptr, 0);
 	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
 	context->PSSetSamplers(0, 1, &rawSampler);
+
+	context->DrawIndexed(indexBufferData.size(), 0, 0);
+	return 0;
+}
+
+int CatamariBall::drawShadow()
+{
+	addData.rotationMatrix = Matrix::CreateFromQuaternion(qRot).Transpose();
+	addData.scaleMatrix = scale.Transpose();
+	addData.translationMatrix = Matrix::CreateTranslation(position).Transpose();
+
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	context->RSSetState(rastState);
+	context->IASetInputLayout(layout.Get());
+	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
+	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
+	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
+	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
+	context->VSSetShader(vertexShadowShader, nullptr, 0);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

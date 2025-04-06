@@ -28,8 +28,10 @@ public:
 	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 	int draw(float deltaTime) override;
+	int drawShadow() override;
 	int update(float deltaTime) override;
 	void destroyResources() override;
+	void createShadowVertexShader(const std::wstring& path);
 
 protected:
 	//TODO: ComPtr
@@ -49,4 +51,7 @@ protected:
 	std::vector<UINT> strides;
 	std::vector<UINT> offsets;
 	ID3D11RasterizerState* rastState = nullptr;
+
+	ID3D11VertexShader* vertexShadowShader = nullptr;
+	ID3DBlob* vertexShadowByteCode = nullptr;
 };

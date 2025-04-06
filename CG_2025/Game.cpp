@@ -226,6 +226,69 @@ void Game::update(float deltaTime)
 #endif
 }
 
+void Game::shadowPass()
+{
+	for (auto& light : lightSources)
+	{
+		if (light.ls.sourceType != POINT_LIGHT) continue;
+
+		auto& shadowMap = light.shMap;
+		const auto lightPos = light.ls.position;
+
+		const DirectX::SimpleMath::Vector3 pos3(lightPos.x, lightPos.y, lightPos.z);
+		const std::array<DirectX::SimpleMath::Vector3, 6> directionVectors = {
+			{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1} }
+		};
+		const std::array<DirectX::SimpleMath::Vector3, 6> upVectors = {
+			{ {0, 1, 0}, {-1, 0, 0}, {0, 1, 0}, {0, 1, 0}, {1, 0, 0}, {0, 1, 0} }
+		};
+		for (int i = 0; i < 6; ++i) {
+			shadowMap.viewMatrices[i] = DirectX::SimpleMath::Matrix::CreateLookAt(
+				pos3,
+				pos3 + directionVectors[i],
+				upVectors[i]
+			);
+		}
+
+		D3D11_VIEWPORT shadowViewport = {};
+		shadowViewport.Width = static_cast<float>(shadowMap.textureSize);
+		shadowViewport.Height = static_cast<float>(shadowMap.textureSize);
+		shadowViewport.MinDepth = 0.0f;
+		shadowViewport.MaxDepth = 1.0f;
+		shadowViewport.TopLeftX = 0.0f;
+		shadowViewport.TopLeftY = 0.0f;
+
+		context->RSSetViewports(1, &shadowViewport);
+
+		for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
+		{
+			context->ClearDepthStencilView(shadowMap.depthViews[faceIdx].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+			context->OMSetRenderTargets(0, nullptr, shadowMap.depthViews[faceIdx].Get());
+			setShadowViewProj(light.shMap.viewMatrices[faceIdx], light.shMap.projectionMatrix, lightPos);
+
+			for (auto* component : components)
+			{
+				component->drawShadow();
+			}
+		}
+	}
+}
+
+void Game::setShadowViewProj(Matrix lightView, Matrix lightProj, Vector4 lightPos)
+{
+	shp_lightAddData.lightSourcePos = lightPos;
+	shp_lightAddData.projMatrix = lightProj.Transpose();
+	shp_lightAddData.viewMatrix = lightView.Transpose();
+	D3D11_MAPPED_SUBRESOURCE res = {};
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	ID3D11Buffer* rawAdditionalLightBuffer = shp_lightAddDataBuffer.Get();
+	context->Map(rawAdditionalLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	memcpy(dataPtr, &shp_lightAddData, sizeof(ShadowPassLightAddData));
+	context->Unmap(rawAdditionalLightBuffer, 0);
+	context->VSSetConstantBuffers(1, 1, &rawAdditionalLightBuffer);
+}
+
 void Game::updatePongScene(float deltaTime)
 {
 	const int pongRocketSpeedCoeff = 400.0f;
@@ -480,12 +543,12 @@ void Game::createKatamariScene()
 	};
 
 	CatamariBall* ball = createCatamariBallComponent({ 0, 0, 0 }, 0.2);
-	//const int numObjects = 10;
-	//for (int i = 0; i < numObjects; i++) {
-	//	float x = generateRandomFloat(-5.0f, 5.0f);
-	//	float z = generateRandomFloat(-5.0f, 5.0f);
-	//	CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
-	//}
+	const int numObjects = 10;
+	for (int i = 0; i < numObjects; i++) {
+		float x = generateRandomFloat(-5.0f, 5.0f);
+		float z = generateRandomFloat(-5.0f, 5.0f);
+		CatamariBox* obj = createCatamariBoxComponent({ x, 0, z }, { 0.1, 0.1, 0.1 });
+	}
 
 	CatamariBox* floor = new CatamariBox({ 0.0, -1.2f, 0.0 }, { 1.0, 1.0, 1.0 });
 	floor->setAttached(ball, true);
@@ -499,56 +562,71 @@ void Game::createKatamariScene()
 	GE::setCameraPosition(ball->getPosition() + Vector3(0, ball->getPosition().y + 2, -2));
 	GE::setCameraForwardVector(Vector3(0, -1, 1));
 	GE::setCameraUpVector(Vector3(0, 1, 1));
-	//CatamariBox* plane = createCatamariBoxComponent({ 0, -1.1f, 0 }, { 10.0f, 0.04f, 10.0f });
-	//plane->attached = true;
-	//plane->setColor({ 1, 1, 1, 0 });
 
 	std::shared_ptr<InputDevice> inputDevice = GE::getInputDevice();
 	prevMousePosition = inputDevice->MousePosition;
 	GE::setPerspectiveMatrix(1.4f);
 
-	lightSources.reserve(20);
-	LightSouce ls;
+	lightSources.reserve(10);
+	lightSourcesMainPass.reserve(10);
+	for (int i = 0; i < 4; i++) {
+		lightSources.emplace_back(LightSource());
+		lightSourcesMainPass.emplace_back(LightSourceData());
+	}
+	
+	LightSourceData& ls = lightSources[0].ls;
 	ls.sourceType = LightSourceType::POINT_LIGHT;
 	ls.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	ls.rgb = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 	ls.shineDistance = 5.0f;
-	lightSources.push_back(ls);
-	PlanetComponent* lsMesh1 = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
-	attachedLightSources.push_back(std::make_pair(&(lightSources[0]), lsMesh1));
+	lightSources[0].mesh = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
 
-	LightSouce ls2;
+	LightSourceData& ls2 = lightSources[1].ls;
 	ls2.sourceType = LightSourceType::POINT_LIGHT;
 	ls2.position = Vector4(-1.0f, 0.0f, 0.5f, 1.0f);
 	ls2.rgb = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-	ls2.shineDistance = 1.0f;
-	ls2.intensity = 3.0f;
-	lightSources.push_back(ls2);
-	PlanetComponent* lsMesh2 = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
-	attachedLightSources.push_back(std::make_pair(&(lightSources[1]), lsMesh2));
+	ls2.shineDistance = 4.0f;
+	ls2.intensity = 1.0f;
+	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
 
-	LightSouce ls3;
+	LightSourceData& ls3 = lightSources[2].ls;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
 	ls3.position = Vector4(-10.0f, -10.0f, 0.0f, 1.0f);
 	ls3.rgb = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	ls3.shineDistance = 20.0f;
 	ls3.intensity = 2.0f;
-	lightSources.push_back(ls3);
-	PlanetComponent* lsMesh3 = createLightSourceComponent(Vector3(-10.0f, -10.0f, 0.0f), 1.0f);
-	attachedLightSources.push_back(std::make_pair(&(lightSources[2]), lsMesh3));
+	lightSources[2].mesh = createLightSourceComponent(Vector3(-10.0f, -10.0f, 0.0f), 1.0f);
 
-	LightSouce ls4;
+	LightSourceData& ls4 = lightSources[3].ls;
 	ls4.sourceType = LightSourceType::POINT_LIGHT;
 	ls4.position = Vector4(0.0f, -1.0f, 0.5f, 1.0f);
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
 	ls4.shineDistance = 8.0f;
 	ls4.intensity = 3.0f;
-	lightSources.push_back(ls4);
-	PlanetComponent* lsMesh4 = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
-	attachedLightSources.push_back(std::make_pair(&(lightSources[3]), lsMesh4));
+	lightSources[3].mesh = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
+
+	for (int i = 0; i < countLightSources; i++) {
+		lightSources[i].init();
+		lightSourcesMainPass[i] = lightSources[i].ls;
+	}
 
 	auto bufferManager = GE::getBufferManager();
-	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSources);
+	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSourcesMainPass);
+
+	D3D11_SUBRESOURCE_DATA subresourceData = {};
+	subresourceData.pSysMem = &shp_lightAddData;
+	subresourceData.SysMemPitch = 0;
+	subresourceData.SysMemSlicePitch = 0;
+
+	D3D11_BUFFER_DESC buffDesc = {};
+	buffDesc.Usage = D3D11_USAGE_DYNAMIC;
+	buffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	buffDesc.MiscFlags = 0;
+	buffDesc.StructureByteStride = 0;
+	buffDesc.ByteWidth = sizeof(shp_lightAddData);
+
+	shp_lightAddDataBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
 }
 
 void Game::updateKatamariScene(float deltaTime)
@@ -616,14 +694,14 @@ void Game::updateKatamariScene(float deltaTime)
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
 
 		Vector3 ballPos = ball->getPosition();
-		for (auto& p: attachedLightSources) {
-			Vector3 lsPos(p.first->position);
+		for (auto& ls: lightSources) {
+			Vector3 lsPos(ls.ls.position);
 			lsPos -= ballPos;
 			Matrix m = Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle);
 			lsPos = Vector3::Transform(lsPos, m);
 			lsPos += ballPos;
-			p.first->position = Vector4(lsPos);
-			p.second->setPosition(lsPos);
+			ls.ls.position = Vector4(lsPos);
+			ls.mesh->setPosition(lsPos);
 		}
 	}
 
@@ -723,6 +801,8 @@ int Game::draw(float deltaTime)
 
 	context->ClearState();
 
+	shadowPass();
+
 	D3D11_VIEWPORT viewport = {};
 	viewport.Width = static_cast<float>(winHandler->getWinWidth());
 	viewport.Height = static_cast<float>(winHandler->getWinHeight());
@@ -732,17 +812,19 @@ int Game::draw(float deltaTime)
 	viewport.MaxDepth = 1.0f;
 
 	context->RSSetViewports(1, &viewport);
-
+	context->OMSetRenderTargets(1, &rtv, depthView.Get());
 	float color[] = { 0.3f, 0.3f, 0.3f, 1.0f };
 	context->ClearRenderTargetView(rtv, color);
 	context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	context->OMSetRenderTargets(1, &rtv, depthView.Get());
 
+	for (int i = 0; i < countLightSources; i++) {
+		lightSourcesMainPass[i] = lightSources[i].ls;
+	}
 	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
 	ID3D11Buffer* rawLightSourcesBuffer = lightSourcesBuffer.Get();
 	context->Map(rawLightSourcesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	auto dataPtr = reinterpret_cast<float*>(mappedResource.pData);
-	memcpy(dataPtr, lightSources.data(), sizeof(LightSouce) * lightSources.size());
+	memcpy(dataPtr, lightSourcesMainPass.data(), sizeof(LightSourceData) * lightSourcesMainPass.size());
 	context->Unmap(rawLightSourcesBuffer, 0);
 
 	rawLightSourcesBuffer = lightSourcesBuffer.Get();
@@ -821,6 +903,7 @@ PlanetComponent* Game::createLightSourceComponent(DirectX::SimpleMath::Vector3 p
 	components[components.size() - 1]->init(
 		L"./shaders/lightSourceVertShader.hlsl",
 		L"./shaders/lightSourcePixShader.hlsl");
+	countLightSources++;
 	return ls;
 }
 

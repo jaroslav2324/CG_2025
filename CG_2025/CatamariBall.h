@@ -26,6 +26,7 @@ public:
 	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 	int draw(float deltaTime) override;
+	int drawShadow() override;
 	int update(float deltaTime) override;
 	void destroyResources() override;
 

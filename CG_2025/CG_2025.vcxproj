@@ -26,6 +26,7 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="CatamariBall.cpp" />
+    <ClCompile Include="LightSource.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="RectF.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="WindowHandler.cpp" />
   </ItemGroup>
@@ -63,6 +65,9 @@
     <FxCompile Include="shaders\vertexShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="shaders\vertexShadowShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addData.h" />
@@ -86,6 +91,7 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="PlanetComponent.h" />
+    <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="WindowHandler.h" />

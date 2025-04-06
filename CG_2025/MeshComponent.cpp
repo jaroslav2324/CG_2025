@@ -100,6 +100,11 @@ int MeshComponent::draw(float deltaTime)
 	return 0;
 }
 
+int MeshComponent::drawShadow()
+{
+	return 0;
+}
+
 int MeshComponent::update(float deltaTime)
 {
 	return 0;
@@ -113,4 +118,20 @@ void MeshComponent::destroyResources()
 	releaseIfNotNullptr(&pixelShader);
 
 	releaseIfNotNullptr(&rastState);
+}
+
+void MeshComponent::createShadowVertexShader(const std::wstring& path)
+{
+	auto game = GE::getGameSubsystem();
+	auto shaderManager = GE::getShaderManager();
+	if (!shaderManager->getShader(path)) {
+		shaderManager->compileShader(path, "VSMain", "vs_5_0", nullptr);
+	};
+	vertexShadowByteCode = shaderManager->getShader(path);
+
+	ID3D11Device* device = game->getDevice();
+	device->CreateVertexShader(
+		vertexShadowByteCode->GetBufferPointer(),
+		vertexShadowByteCode->GetBufferSize(),
+		nullptr, &vertexShadowShader);
 }

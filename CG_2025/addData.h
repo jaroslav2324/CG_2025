@@ -18,3 +18,10 @@ struct AdditionalData {
 	Material material;
 	DirectX::SimpleMath::Vector4 camPos;
 };
+
+struct ShadowPassLightAddData
+{
+	DirectX::SimpleMath::Matrix viewMatrix; 
+	DirectX::SimpleMath::Matrix projMatrix;
+	DirectX::SimpleMath::Vector4 lightSourcePos;
+};
