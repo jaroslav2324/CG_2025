@@ -51,6 +51,20 @@ cbuffer ConstBuf : register(b0)
 
 Texture2D myTexture : register(t0);
 SamplerState samplerState: register(s0);
+TextureCube shadowCubeMap[10] : register(t1);
+SamplerState shadowSampler : register(s1);
+
+float SampleShadowCube(int idx, float3 worldPos, LightSource light)
+{
+    float3 lightToFragment = worldPos - light.position.xyz;
+    float distanceToLight = length(lightToFragment);
+
+    float sampledDepth = shadowCubeMap[idx].Sample(shadowSampler, normalize(lightToFragment)).r;
+    sampledDepth *= light.shineDistance;
+    float shadow = distanceToLight - 0.005 > sampledDepth * light.shineDistance ? 0.3 : 1.0;
+
+    return shadow;
+}
 
 float4 PSMain(PS_IN input) : SV_Target
 {
@@ -66,11 +80,11 @@ float4 PSMain(PS_IN input) : SV_Target
         float3 Ia = constData.material.ambient.xyz;
         float3 Is = shineCoeff * ls.rgb.xyz * clamp(constData.material.speculiar.xyz  * ls.intensity * pow(dot(V, R),constData.material.exponent.x), 0.0f, 1.0f);
         float3 Id = shineCoeff * ls.rgb.xyz * constData.material.diffuse.xyz * ls.intensity * clamp(dot(L, N), 0.0f, 1.0f);
-        I = I + Id + Is + Ia / 4;
+        float shadow = SampleShadowCube(i, globalVertPos, ls);
+        I = I + (Id + Is) * shadow + Ia / 4;
     }
 
     float4 col = myTexture.Sample(samplerState, input.tex.xy);
     col *= float4(I.xyz, 1.0f);
     return col;
-//return float4(input.color.xyz, 1.0f);
 }

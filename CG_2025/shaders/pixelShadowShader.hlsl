@@ -24,15 +24,9 @@ cbuffer ShadowLightData : register(b1)
 {
     matrix lightViewMatrix;
     matrix lightProjMatrix;
-    float4 lightSourcePos;// xyz Ч позици€ источника света, w Ч shineDistance
+    float4 lightSourcePos;
 };
 
-struct VS_IN
-{
-    float4 position : POSITION0;
-    float4 norm : NORMAL;
-    float4 tex : TEXCOORD0;
-};
 
 struct PS_IN
 {
@@ -41,17 +35,12 @@ struct PS_IN
 };
 
 
-PS_IN VSMain(VS_IN input)
+float4 PSMain(PS_IN input) : SV_TARGET
 {
-    PS_IN output = (PS_IN) 0;
-	
-    matrix modelMatrix = mul(scaleMatrix, mul(rotationMatrix, translationMatrix));
-    float4 worldPos = mul(float4(input.position.xyz, 1.0f), modelMatrix);
+    float distToLight = length(input.worldPos - lightSourcePos.xyz);
+    float normalizedDepth = distToLight / lightSourcePos.w;
 
-    float4 lightViewPos = mul(worldPos, lightViewMatrix);
-    output.position = mul(lightViewPos, lightProjMatrix);
+    normalizedDepth = saturate(normalizedDepth);
 
-    output.worldPos = worldPos.xyz;
-	
-    return output;
+    return float4(normalizedDepth, normalizedDepth, normalizedDepth, 1.0f);
 }

@@ -53,6 +53,7 @@ int CatamariBall::init(const std::wstring& vertShaderPath, const std::wstring& p
 	DirectX::LoadFromDDSFile(L"./models/bt.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
 	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &texture);
 	createShadowVertexShader(L"./shaders/vertexShadowShader.hlsl");
+	createShadowPixelShader(L"./shaders/pixelShadowShader.hlsl");
 	return 0;
 }
 
@@ -112,6 +113,7 @@ int CatamariBall::drawShadow()
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShadowShader, nullptr, 0);
+	context->PSSetShader(pixelShadowShader, nullptr, 0);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

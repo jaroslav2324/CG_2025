@@ -8,19 +8,19 @@ void ShadowMap::init()
 	const Vector3 eye(0.0f, 0.0f, 0.0f);
 	const std::array<Vector3, 6> directionVectors = { 
 		Vector3(1.f, 0.f, 0.f),
-		Vector3(0.f, 1.f, 0.f),
-		Vector3(0.f, 0.f, 1.f),
 		Vector3(-1.f, 0.f, 0.f),
+		Vector3(0.f, 1.f, 0.f),
 		Vector3(0.f, -1.f, 0.f),
+		Vector3(0.f, 0.f, 1.f),
 		Vector3(0.f, 0.f, -1.f),
 	};
 	const std::array<Vector3, 6> directionUpVectors = {
 		Vector3(0.f, 1.f, 0.f),
-		Vector3(-1.f, 0.f, 0.f),
 		Vector3(0.f, 1.f, 0.f),
-		Vector3(0.f, 1.f, 0.f),
+		Vector3(0.f, 0.f, -1.f),
+		Vector3(0.f, 0.f, 1.f),
 		Vector3(1.f, 0.f, 0.f),
-		Vector3(0.f, 1.f, 0.f),
+		Vector3(1.f, 0.f, 0.f),
 	};
 	for (int i = 0; i < 6; i++)
 	{

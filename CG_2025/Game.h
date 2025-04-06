@@ -42,7 +42,7 @@ public:
 private:
 	void update(float deltaTime);
 	void shadowPass();
-	void setShadowViewProj(Matrix lightView, Matrix lightProj, Vector4 lightPos);
+	void setShadowViewProj(Matrix lightView, Matrix lightProj, const LightSourceData& lightData);
 
 	void createPongScene();
 	void updatePongScene(float deltaTime);
@@ -61,6 +61,7 @@ private:
 	ComPtr<ID3D11Texture2D> depthBuffer;
 	ComPtr<ID3D11DepthStencilView> depthView;
 	ComPtr<ID3D11SamplerState> sampler;
+	ComPtr<ID3D11SamplerState> shadowSampler;
 
 	std::vector<GameComponent*> components;
 

@@ -140,6 +140,17 @@ Game::Game()
 	samplerDesc.MaxLOD = INT_MAX;
 
 	device->CreateSamplerState(&samplerDesc, &sampler);
+
+	samplerDesc = {};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&samplerDesc, &shadowSampler);
 }
 
 void Game::init()
@@ -237,10 +248,10 @@ void Game::shadowPass()
 
 		const DirectX::SimpleMath::Vector3 pos3(lightPos.x, lightPos.y, lightPos.z);
 		const std::array<DirectX::SimpleMath::Vector3, 6> directionVectors = {
-			{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1} }
+			{ {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1} }
 		};
 		const std::array<DirectX::SimpleMath::Vector3, 6> upVectors = {
-			{ {0, 1, 0}, {-1, 0, 0}, {0, 1, 0}, {0, 1, 0}, {1, 0, 0}, {0, 1, 0} }
+			{ {0, 1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0} }
 		};
 		for (int i = 0; i < 6; ++i) {
 			shadowMap.viewMatrices[i] = DirectX::SimpleMath::Matrix::CreateLookAt(
@@ -264,7 +275,7 @@ void Game::shadowPass()
 		{
 			context->ClearDepthStencilView(shadowMap.depthViews[faceIdx].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 			context->OMSetRenderTargets(0, nullptr, shadowMap.depthViews[faceIdx].Get());
-			setShadowViewProj(light.shMap.viewMatrices[faceIdx], light.shMap.projectionMatrix, lightPos);
+			setShadowViewProj(light.shMap.viewMatrices[faceIdx], light.shMap.projectionMatrix, light.ls);
 
 			for (auto* component : components)
 			{
@@ -274,9 +285,10 @@ void Game::shadowPass()
 	}
 }
 
-void Game::setShadowViewProj(Matrix lightView, Matrix lightProj, Vector4 lightPos)
+void Game::setShadowViewProj(Matrix lightView, Matrix lightProj, const LightSourceData& lightData)
 {
-	shp_lightAddData.lightSourcePos = lightPos;
+	shp_lightAddData.lightSourcePos = lightData.position;
+	shp_lightAddData.lightSourcePos.w = lightData.shineDistance;
 	shp_lightAddData.projMatrix = lightProj.Transpose();
 	shp_lightAddData.viewMatrix = lightView.Transpose();
 	D3D11_MAPPED_SUBRESOURCE res = {};
@@ -287,6 +299,7 @@ void Game::setShadowViewProj(Matrix lightView, Matrix lightProj, Vector4 lightPo
 	memcpy(dataPtr, &shp_lightAddData, sizeof(ShadowPassLightAddData));
 	context->Unmap(rawAdditionalLightBuffer, 0);
 	context->VSSetConstantBuffers(1, 1, &rawAdditionalLightBuffer);
+	context->PSSetConstantBuffers(1, 1, &rawAdditionalLightBuffer);
 }
 
 void Game::updatePongScene(float deltaTime)
@@ -830,6 +843,14 @@ int Game::draw(float deltaTime)
 	rawLightSourcesBuffer = lightSourcesBuffer.Get();
 	context->VSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
 	context->PSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
+	ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
+	context->PSSetSamplers(1, 1, &rawShadowSampler);
+
+	ID3D11ShaderResourceView* arrayCubemaps[10] = {};
+	for (int i = 0; i < countLightSources; i++) {
+		arrayCubemaps[i] = lightSources[i].shMap.shaderResView.Get();
+	}
+	context->PSSetShaderResources(1, 10, arrayCubemaps);
 
 	for (const auto gameComponent : components) {
 		gameComponent->draw(deltaTime);

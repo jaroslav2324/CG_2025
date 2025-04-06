@@ -32,7 +32,7 @@ public:
 	int update(float deltaTime) override;
 	void destroyResources() override;
 	void createShadowVertexShader(const std::wstring& path);
-
+	void createShadowPixelShader(const std::wstring& path);
 protected:
 	//TODO: ComPtr
 	ID3DBlob* vertexByteCode = nullptr;
@@ -54,4 +54,6 @@ protected:
 
 	ID3D11VertexShader* vertexShadowShader = nullptr;
 	ID3DBlob* vertexShadowByteCode = nullptr;
+	ID3D11PixelShader* pixelShadowShader = nullptr;
+	ID3DBlob* pixelShadowByteCode = nullptr;
 };
