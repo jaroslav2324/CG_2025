@@ -1,4 +1,5 @@
 #include "ShaderManager.h"
+#include "global.h"
 
 void ShaderManager::compileShader(const std::wstring& filePath, const std::string& entryPoint,
 	const std::string& target, const D3D_SHADER_MACRO* macros) {
@@ -35,6 +36,44 @@ void ShaderManager::compileShader(const std::wstring& filePath, const std::strin
 		savedShaderMacros.push_back(*macros);
 		++macros;
 	}
+}
+
+ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(const std::wstring& filePath, const std::string& entryPoint, const std::string& target, const D3D_SHADER_MACRO* macros)
+{
+	ID3DBlob* pixelByteCode = getShader(filePath);
+	if (!pixelByteCode) {
+		compileShader(filePath, entryPoint, target, macros);
+		pixelByteCode = getShader(filePath);
+	}
+
+	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
+
+	ComPtr<ID3D11PixelShader> pixelShader = nullptr;
+	ID3D11PixelShader* rawPixelShader = pixelShader.Get();
+	device->CreatePixelShader(
+		pixelByteCode->GetBufferPointer(),
+		pixelByteCode->GetBufferSize(),
+		nullptr, &rawPixelShader);
+	return pixelShader;
+}
+
+ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(const std::wstring& filePath, const std::string& entryPoint, const std::string& target, const D3D_SHADER_MACRO* macros)
+{
+	ID3DBlob* vertexByteCode = getShader(filePath);
+	if (!vertexByteCode) {
+		compileShader(filePath, entryPoint, target, macros);
+		vertexByteCode = getShader(filePath);
+	}
+
+	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
+
+	ComPtr<ID3D11VertexShader> vertexShader = nullptr;
+	ID3D11VertexShader* rawPixelShader = vertexShader.Get();
+	device->CreateVertexShader(
+		vertexByteCode->GetBufferPointer(),
+		vertexByteCode->GetBufferSize(),
+		nullptr, &rawPixelShader);
+	return vertexShader;
 }
 
 ID3DBlob* ShaderManager::getShader(const std::wstring& filePath)

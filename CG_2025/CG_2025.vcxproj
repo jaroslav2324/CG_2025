@@ -23,6 +23,7 @@
     <ClCompile Include="CatamariBox.cpp" />
     <ClCompile Include="Delegates.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GBuffer.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="CatamariBall.cpp" />
@@ -34,6 +35,7 @@
     <ClCompile Include="PlanetComponent.cpp" />
     <ClCompile Include="RectComponent.cpp" />
     <ClCompile Include="RectF.cpp" />
+    <ClCompile Include="RenderSubsystem.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
@@ -41,6 +43,12 @@
     <ClCompile Include="WindowHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\deferredOpaquePixel.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\deferredOpaqueVertex.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="shaders\lightSourcePixShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -80,6 +88,7 @@
     <ClInclude Include="Face.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />
+    <ClInclude Include="GBuffer.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="CatamariBall.h" />
@@ -91,6 +100,7 @@
     <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="RectComponent.h" />
     <ClInclude Include="RectF.h" />
+    <ClInclude Include="RenderSubsystem.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="PlanetComponent.h" />

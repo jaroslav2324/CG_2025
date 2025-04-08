@@ -274,7 +274,8 @@ void Game::shadowPass()
 		for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
 		{
 			context->ClearDepthStencilView(shadowMap.depthViews[faceIdx].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-			context->OMSetRenderTargets(0, nullptr, shadowMap.depthViews[faceIdx].Get());
+			auto depthStencilView = shadowMap.depthViews[faceIdx].Get();
+			context->OMSetRenderTargets(0, nullptr, depthStencilView);
 			setShadowViewProj(light.shMap.viewMatrices[faceIdx], light.shMap.projectionMatrix, light.ls);
 
 			for (auto* component : components)
@@ -598,7 +599,7 @@ void Game::createKatamariScene()
 	ls2.sourceType = LightSourceType::POINT_LIGHT;
 	ls2.position = Vector4(-1.0f, 0.0f, 0.5f, 1.0f);
 	ls2.rgb = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-	ls2.shineDistance = 4.0f;
+	ls2.shineDistance = 20.0f;
 	ls2.intensity = 1.0f;
 	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
 
@@ -614,7 +615,7 @@ void Game::createKatamariScene()
 	ls4.sourceType = LightSourceType::POINT_LIGHT;
 	ls4.position = Vector4(0.0f, -1.0f, 0.5f, 1.0f);
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-	ls4.shineDistance = 8.0f;
+	ls4.shineDistance = 100.0f;
 	ls4.intensity = 3.0f;
 	lightSources[3].mesh = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
 

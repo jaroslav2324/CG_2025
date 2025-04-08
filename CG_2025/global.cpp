@@ -39,6 +39,12 @@ const std::shared_ptr<BufferManager> GE::getBufferManager()
 	return bufferManager;
 }
 
+const std::shared_ptr<RenderSubsystem> GE::getRenderSubsystem()
+{
+	assert(renderSubsystem);
+	return renderSubsystem;
+}
+
 static Matrix projectionMatrix;
 const Matrix GE::getProjectionMatrix()
 {
@@ -130,6 +136,7 @@ void GE::initGraphicsEngine()
 	initShaderManager();
 	initInputDevice(winHandler);
 	initPhysicsSubsystem();
+	initRenderSubsystem();
 	setPerspectiveMatrix();
 }
 
@@ -172,5 +179,12 @@ void GE::initBufferManager()
 {
 	if (!bufferManager) {
 		bufferManager = std::make_shared<BufferManager>();
+	}
+}
+
+void GE::initRenderSubsystem()
+{
+	if (!renderSubsystem) {
+		renderSubsystem = std::make_shared<RenderSubsystem>();
 	}
 }

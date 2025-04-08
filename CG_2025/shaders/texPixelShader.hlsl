@@ -54,14 +54,26 @@ SamplerState samplerState: register(s0);
 TextureCube shadowCubeMap[10] : register(t1);
 SamplerState shadowSampler : register(s1);
 
+
+float ConvertDistanceToCubemapDepth(float distanceToLight, float nearPlane, float farPlane)
+{
+    float z = distanceToLight;
+    float depth = (farPlane + nearPlane) / (farPlane - nearPlane) - (2.0 * farPlane * nearPlane) / ((farPlane - nearPlane) * z);
+    return 0.5f * (depth + 1.0f); 
+}
+
 float SampleShadowCube(int idx, float3 worldPos, LightSource light)
 {
     float3 lightToFragment = worldPos - light.position.xyz;
     float distanceToLight = length(lightToFragment);
 
-    float sampledDepth = shadowCubeMap[idx].Sample(shadowSampler, normalize(lightToFragment)).r;
-    sampledDepth *= light.shineDistance;
-    float shadow = distanceToLight - 0.005 > sampledDepth * light.shineDistance ? 0.3 : 1.0;
+    float nonlinearDepth = ConvertDistanceToCubemapDepth(distanceToLight, 0.1f, 1000.0f);
+
+    float3 cubeCoords = normalize(float3(lightToFragment.x, lightToFragment.y, -lightToFragment.z));
+    float sampledDepth = shadowCubeMap[idx].Sample(shadowSampler, cubeCoords).r;
+
+    float bias = 0.07;
+    float shadow = (nonlinearDepth > sampledDepth + bias) ? 0.3 : 1.0;
 
     return shadow;
 }
@@ -70,19 +82,20 @@ float4 PSMain(PS_IN input) : SV_Target
 {
     float3 globalVertPos = input.globalPos.xyz;
     float3 I = float3(0.0, 0.0, 0.0);
-    for (int i = 0; i < 4; i++){
+    float3 Ia = constData.material.ambient.xyz;
+    for (int i = 1; i < 2; i++){
         LightSource ls = lights[i];
         float3 L = normalize(ls.position.xyz - globalVertPos);
         float3 V = normalize(constData.camPos.xyz-globalVertPos);
         float3 N = normalize(input.norm.xyz);
         float3 R = normalize(2 * dot(L, N) * N - L);
         float shineCoeff = clamp(1 - length(ls.position.xyz - globalVertPos) / ls.shineDistance, 0.0f, 1.0f);
-        float3 Ia = constData.material.ambient.xyz;
         float3 Is = shineCoeff * ls.rgb.xyz * clamp(constData.material.speculiar.xyz  * ls.intensity * pow(dot(V, R),constData.material.exponent.x), 0.0f, 1.0f);
         float3 Id = shineCoeff * ls.rgb.xyz * constData.material.diffuse.xyz * ls.intensity * clamp(dot(L, N), 0.0f, 1.0f);
         float shadow = SampleShadowCube(i, globalVertPos, ls);
-        I = I + (Id + Is) * shadow + Ia / 4;
+        I = I + (Id + Is) * shadow;
     }
+    I = I + Ia;
 
     float4 col = myTexture.Sample(samplerState, input.tex.xy);
     col *= float4(I.xyz, 1.0f);
