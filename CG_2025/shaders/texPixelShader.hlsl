@@ -65,14 +65,14 @@ float ConvertDistanceToCubemapDepth(float distanceToLight, float nearPlane, floa
 float SampleShadowCube(int idx, float3 worldPos, LightSource light)
 {
     float3 lightToFragment = worldPos - light.position.xyz;
-    float distanceToLight = length(lightToFragment);
 
-    float nonlinearDepth = ConvertDistanceToCubemapDepth(distanceToLight, 0.1f, 1000.0f);
+    float depth = max(abs(lightToFragment.x), max(abs(lightToFragment.y), abs(lightToFragment.z)));
+    float nonlinearDepth = ConvertDistanceToCubemapDepth(depth, 0.1f, 1000.0f);
 
-    float3 cubeCoords = normalize(float3(lightToFragment.x, lightToFragment.y, -lightToFragment.z));
+    float3 cubeCoords = normalize(lightToFragment);
     float sampledDepth = shadowCubeMap[idx].Sample(shadowSampler, cubeCoords).r;
 
-    float bias = 0.07;
+    float bias = 0.0001f;
     float shadow = (nonlinearDepth > sampledDepth + bias) ? 0.3 : 1.0;
 
     return shadow;

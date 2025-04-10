@@ -260,6 +260,7 @@ void Game::shadowPass()
 				upVectors[i]
 			);
 		}
+		//shadowMap.projectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 0.1f, light.ls.shineDistance);
 
 		D3D11_VIEWPORT shadowViewport = {};
 		shadowViewport.Width = static_cast<float>(shadowMap.textureSize);
@@ -707,16 +708,16 @@ void Game::updateKatamariScene(float deltaTime)
 		float rotationAngle = distance / ball->getRadius();
 		ball->moveBall(shiftVec, rotationAxis, rotationAngle);
 
-		Vector3 ballPos = ball->getPosition();
-		for (auto& ls: lightSources) {
-			Vector3 lsPos(ls.ls.position);
-			lsPos -= ballPos;
-			Matrix m = Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle);
-			lsPos = Vector3::Transform(lsPos, m);
-			lsPos += ballPos;
-			ls.ls.position = Vector4(lsPos);
-			ls.mesh->setPosition(lsPos);
-		}
+		//Vector3 ballPos = ball->getPosition();
+		//for (auto& ls: lightSources) {
+		//	Vector3 lsPos(ls.ls.position);
+		//	lsPos -= ballPos;
+		//	Matrix m = Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle);
+		//	lsPos = Vector3::Transform(lsPos, m);
+		//	lsPos += ballPos;
+		//	ls.ls.position = Vector4(lsPos);
+		//	ls.mesh->setPosition(lsPos);
+		//}
 	}
 
 	for (int i = 0; i < components.size(); i++) {
