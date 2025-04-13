@@ -37,11 +37,8 @@ struct PS_IN
 
 float4 PSMain(PS_IN input) : SV_TARGET
 {
-// מבלאם
-    float distToLight = length(input.worldPos - lightSourcePos.xyz);
-    float normalizedDepth = distToLight / lightSourcePos.w;
+    // מבלאם
 
-    normalizedDepth = saturate(normalizedDepth);
-
-    return float4(normalizedDepth, normalizedDepth, normalizedDepth, 1.0f);
+    return float4 (0.0f, 0.0f, 0.0f, 0.0f);
+    //return float4(normalizedDepth, normalizedDepth, normalizedDepth, 1.0f);
 }

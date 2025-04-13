@@ -9,7 +9,7 @@
 class PlanetComponent;
 
 enum LightSourceType {
-	GLOBAL_LIGHT = 0,
+	DIRECTIONAL_LIGHT = 0,
 	POINT_LIGHT = 1,
 	SPOT_LIGHT = 2
 };

@@ -1,17 +1,3 @@
-struct LightSource {
-    float4 position;
-    float4 direction;
-    float4 rgb;
-    int sourceType;
-    float shineDistance;
-    float angle;
-    float intensity;
-};
-
-cbuffer LightBuffer : register(b1) {
-    LightSource lights[10]; 
-    int lightCount;
-};
 
 struct VS_IN
 {

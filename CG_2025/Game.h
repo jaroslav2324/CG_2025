@@ -92,6 +92,8 @@ private:
 	std::vector<LightSource> lightSources;
 	std::vector<LightSourceData> lightSourcesMainPass;
 	ComPtr<ID3D11Buffer> lightSourcesBuffer = nullptr;
+	std::vector<LightSourceShadowMapData> shadowMapsData;
+	ComPtr<ID3D11Buffer> shadowMapsDataBuffer = nullptr;
 
 	ShadowPassLightAddData shp_lightAddData;
 	ComPtr<ID3D11Buffer> shp_lightAddDataBuffer = nullptr;

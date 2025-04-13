@@ -1,6 +1,8 @@
 #include "util.h"
 
 using DirectX::SimpleMath::Vector2;
+using DirectX::SimpleMath::Vector4;
+using DirectX::SimpleMath::Matrix;
 
 bool apprEqual(float f1, float f2, float epsilon /*= 1e-6*/) {
 	return (std::abs(f1 - f2) <= epsilon);
@@ -55,3 +57,4 @@ int generateRandomInt(int min, int max) {
 	std::uniform_int_distribution<> dist(min, max);
 	return dist(gen);
 }
+

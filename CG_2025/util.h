@@ -1,10 +1,10 @@
 #pragma once
 
 #include <random>
+#include <vector>
 #include <cmath>
 #include <d3d.h>
 #include <d3d11.h>
-#include <directxmath.h>
 #include <directxtk/SimpleMath.h>
 
 using DirectX::SimpleMath::Vector2;

@@ -142,13 +142,14 @@ Game::Game()
 	device->CreateSamplerState(&samplerDesc, &sampler);
 
 	samplerDesc = {};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
 
 	device->CreateSamplerState(&samplerDesc, &shadowSampler);
 }
@@ -241,30 +242,15 @@ void Game::shadowPass()
 {
 	for (auto& light : lightSources)
 	{
-		if (light.ls.sourceType != POINT_LIGHT) continue;
+		if (light.ls.sourceType != LightSourceType::DIRECTIONAL_LIGHT) continue;
 
 		auto& shadowMap = light.shMap;
 		const auto lightPos = light.ls.position;
-
-		const DirectX::SimpleMath::Vector3 pos3(lightPos.x, lightPos.y, lightPos.z);
-		const std::array<DirectX::SimpleMath::Vector3, 6> directionVectors = {
-			{ {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1} }
-		};
-		const std::array<DirectX::SimpleMath::Vector3, 6> upVectors = {
-			{ {0, 1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0} }
-		};
-		for (int i = 0; i < 6; ++i) {
-			shadowMap.viewMatrices[i] = DirectX::SimpleMath::Matrix::CreateLookAt(
-				pos3,
-				pos3 + directionVectors[i],
-				upVectors[i]
-			);
-		}
-		shadowMap.projectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 0.1f, 1000.0f);
+		Vector3 lightPos3 = Vector3(lightPos);
 
 		D3D11_VIEWPORT shadowViewport = {};
-		shadowViewport.Width = static_cast<float>(shadowMap.textureSize);
-		shadowViewport.Height = static_cast<float>(shadowMap.textureSize);
+		shadowViewport.Width = static_cast<float>(shadowMap.data.textureSize);
+		shadowViewport.Height = static_cast<float>(shadowMap.data.textureSize);
 		shadowViewport.MinDepth = 0.0f;
 		shadowViewport.MaxDepth = 1.0f;
 		shadowViewport.TopLeftX = 0.0f;
@@ -272,18 +258,17 @@ void Game::shadowPass()
 
 		context->RSSetViewports(1, &shadowViewport);
 
-		for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
-		{
-			context->ClearDepthStencilView(shadowMap.depthViews[faceIdx].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-			auto depthStencilView = shadowMap.depthViews[faceIdx].Get();
-			context->OMSetRenderTargets(0, nullptr, depthStencilView);
-			setShadowViewProj(light.shMap.viewMatrices[faceIdx], light.shMap.projectionMatrix, light.ls);
+		for (int cascadeIdx = 0; cascadeIdx < 4; ++cascadeIdx){
+			context->ClearDepthStencilView(shadowMap.depthViews[cascadeIdx].Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+			context->OMSetRenderTargets(0, nullptr, (shadowMap.depthViews[cascadeIdx]).Get());
+			shadowMap.recalculateMatrices(Vector3(light.ls.direction));
+			setShadowViewProj(light.shMap.data.viewMatrix, light.shMap.data.projectionMatrices[cascadeIdx], light.ls);
 
 			for (auto* component : components)
 			{
 				component->drawShadow();
 			}
-		}
+		}	
 	}
 }
 
@@ -584,9 +569,11 @@ void Game::createKatamariScene()
 
 	lightSources.reserve(10);
 	lightSourcesMainPass.reserve(10);
+	shadowMapsData.reserve(10);
 	for (int i = 0; i < 4; i++) {
 		lightSources.emplace_back(LightSource());
 		lightSourcesMainPass.emplace_back(LightSourceData());
+		shadowMapsData.emplace_back(LightSourceShadowMapData());
 	}
 	
 	LightSourceData& ls = lightSources[0].ls;
@@ -597,12 +584,13 @@ void Game::createKatamariScene()
 	lightSources[0].mesh = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
 
 	LightSourceData& ls2 = lightSources[1].ls;
-	ls2.sourceType = LightSourceType::POINT_LIGHT;
-	ls2.position = Vector4(-1.0f, 0.0f, 0.5f, 1.0f);
+	ls2.sourceType = LightSourceType::DIRECTIONAL_LIGHT;
+	ls2.direction = Vector4( 0.3, -1, 0.3, 0.0f);
+	ls2.position = Vector4(-1.0f, 3.0f, -1.0f, 1.0f);
 	ls2.rgb = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 	ls2.shineDistance = 20.0f;
 	ls2.intensity = 1.0f;
-	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 0.0f, 0.5f), 0.05f);
+	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 3.0f, -1.0f), 0.05f);
 
 	LightSourceData& ls3 = lightSources[2].ls;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
@@ -623,10 +611,12 @@ void Game::createKatamariScene()
 	for (int i = 0; i < countLightSources; i++) {
 		lightSources[i].init();
 		lightSourcesMainPass[i] = lightSources[i].ls;
+		shadowMapsData[i] = lightSources[i].shMap.data;
 	}
 
 	auto bufferManager = GE::getBufferManager();
 	lightSourcesBuffer = bufferManager->createConstDynamicBufferCPUWrite(lightSourcesMainPass);
+	shadowMapsDataBuffer = bufferManager->createConstDynamicBufferCPUWrite(shadowMapsData);
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
 	subresourceData.pSysMem = &shp_lightAddData;
@@ -834,6 +824,11 @@ int Game::draw(float deltaTime)
 
 	for (int i = 0; i < countLightSources; i++) {
 		lightSourcesMainPass[i] = lightSources[i].ls;
+		shadowMapsData[i] = lightSources[i].shMap.data;
+		shadowMapsData[i].viewMatrix = shadowMapsData[i].viewMatrix.Transpose();
+		for (int j = 0; j < cascadeCount; j++) {
+			shadowMapsData[i].projectionMatrices[j] = shadowMapsData[i].projectionMatrices[j].Transpose();
+		}
 	}
 	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
 	ID3D11Buffer* rawLightSourcesBuffer = lightSourcesBuffer.Get();
@@ -842,17 +837,26 @@ int Game::draw(float deltaTime)
 	memcpy(dataPtr, lightSourcesMainPass.data(), sizeof(LightSourceData) * lightSourcesMainPass.size());
 	context->Unmap(rawLightSourcesBuffer, 0);
 
+	mappedResource = {};
+	context->Map(shadowMapsDataBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dataPtr = reinterpret_cast<float*>(mappedResource.pData);
+	memcpy(dataPtr, shadowMapsData.data(), sizeof(LightSourceShadowMapData) * shadowMapsData.size());
+	context->Unmap(shadowMapsDataBuffer.Get(), 0);
+
 	rawLightSourcesBuffer = lightSourcesBuffer.Get();
-	context->VSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
 	context->PSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
+	auto rawLightShadowMapDataBuffer = shadowMapsDataBuffer.Get();
+	context->PSSetConstantBuffers(2, 1, &rawLightShadowMapDataBuffer);
+
 	ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
 	context->PSSetSamplers(1, 1, &rawShadowSampler);
 
-	ID3D11ShaderResourceView* arrayCubemaps[10] = {};
+	ID3D11ShaderResourceView* arrayCascadedShadowMaps[10] = {};
 	for (int i = 0; i < countLightSources; i++) {
-		arrayCubemaps[i] = lightSources[i].shMap.shaderResView.Get();
+		arrayCascadedShadowMaps[i] = lightSources[i].shMap.shaderResView.Get();
 	}
-	context->PSSetShaderResources(1, 10, arrayCubemaps);
+	// really bad
+	context->PSSetShaderResources(1, 1, &arrayCascadedShadowMaps[1]);
 
 	for (const auto gameComponent : components) {
 		gameComponent->draw(deltaTime);

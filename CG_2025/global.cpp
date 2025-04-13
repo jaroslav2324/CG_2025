@@ -1,4 +1,5 @@
 #include "global.h"
+#include "WindowHandler.h"
 
 using DirectX::SimpleMath::Matrix;
 using DirectX::SimpleMath::Vector3;
@@ -124,7 +125,7 @@ void GE::rotateCameraAroundCenter(Vector3 camPos, Matrix rotationMatrix)
 void GE::setPerspectiveMatrix(float fov, float ratio)
 {
 	float nearPlane = 0.1f;
-	float farPlane = 1000.0f;
+	float farPlane = 10.0f;
 	projectionMatrix = Matrix::CreatePerspectiveFieldOfView(fov, ratio, nearPlane, farPlane);
 }
 

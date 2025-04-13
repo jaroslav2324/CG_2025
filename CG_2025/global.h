@@ -4,7 +4,6 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-#include "WindowHandler.h"
 #include "InputDevice.h"
 #include "PhysicsSubsystem.h"
 #include "ShaderManager.h"
@@ -13,6 +12,8 @@
 #include "RenderSubsystem.h"
 
 using Microsoft::WRL::ComPtr;
+
+class WindowHandler;
 
 //#define PONG
 //#define PLANETS
