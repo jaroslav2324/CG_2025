@@ -24,7 +24,7 @@ cbuffer ShadowLightData : register(b1)
 {
     matrix lightViewMatrix;
     matrix lightProjMatrix;
-    float4 lightSourcePos;
+    float4 lightSourcePos; // xyz Ч позици€ источника света, w Ч shineDistance
 };
 
 
@@ -37,6 +37,7 @@ struct PS_IN
 
 float4 PSMain(PS_IN input) : SV_TARGET
 {
+// обман
     float distToLight = length(input.worldPos - lightSourcePos.xyz);
     float normalizedDepth = distToLight / lightSourcePos.w;
 

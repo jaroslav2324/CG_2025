@@ -5,30 +5,6 @@ using namespace DirectX::SimpleMath;
 
 void ShadowMap::init()
 {
-	const Vector3 eye(0.0f, 0.0f, 0.0f);
-	const std::array<Vector3, 6> directionVectors = { 
-		Vector3(1.f, 0.f, 0.f),
-		Vector3(-1.f, 0.f, 0.f),
-		Vector3(0.f, 1.f, 0.f),
-		Vector3(0.f, -1.f, 0.f),
-		Vector3(0.f, 0.f, 1.f),
-		Vector3(0.f, 0.f, -1.f),
-	};
-	const std::array<Vector3, 6> directionUpVectors = {
-		Vector3(0.f, 1.f, 0.f),
-		Vector3(0.f, 1.f, 0.f),
-		Vector3(0.f, 0.f, -1.f),
-		Vector3(0.f, 0.f, 1.f),
-		Vector3(1.f, 0.f, 0.f),
-		Vector3(1.f, 0.f, 0.f),
-	};
-	for (int i = 0; i < 6; i++)
-	{
-		viewMatrices[i] = Matrix::CreateLookAt(eye, eye + directionVectors[i], directionUpVectors[i]);
-	}
-
-	projectionMatrix = Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 0.1f, 10000.0f);
-
 	auto device = GE::getGameSubsystem()->getDevice();
 
 	D3D11_TEXTURE2D_DESC depthTexDesc = {};

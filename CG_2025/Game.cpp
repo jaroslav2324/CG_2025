@@ -260,7 +260,7 @@ void Game::shadowPass()
 				upVectors[i]
 			);
 		}
-		//shadowMap.projectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 0.1f, light.ls.shineDistance);
+		shadowMap.projectionMatrix = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PIDIV2, 1.0f, 0.1f, 1000.0f);
 
 		D3D11_VIEWPORT shadowViewport = {};
 		shadowViewport.Width = static_cast<float>(shadowMap.textureSize);
