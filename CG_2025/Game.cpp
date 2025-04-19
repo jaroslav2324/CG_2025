@@ -51,7 +51,6 @@ bool CheckSphereAABBCollision(const Vector3& sphereCenter, float sphereRadius, c
 
 Game::Game()
 {
-	// TODO: move to renderer
 	auto winHandler = GE::getWindowHandler();
 	HWND hWnd = winHandler->getWindowHandle();
 
@@ -553,7 +552,7 @@ void Game::createKatamariScene()
 	CatamariBox* floor = new CatamariBox({ 0.0, -1.2f, 0.0 }, { 1.0, 1.0, 1.0 });
 	floor->setAttached(ball, true);
 	floor->setModelPath("./models/ground.obj");
-	floor->setTexturePath(L"./models/ss.dds");
+	floor->setTexturePath(L"./models/bt.dds");
 	components.push_back(floor);
 	components[components.size() - 1]->init(L"./shaders/texVertexShader.hlsl",
 		L"./shaders/texPixelShader.hlsl");
@@ -581,13 +580,13 @@ void Game::createKatamariScene()
 	ls.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	ls.rgb = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 	ls.shineDistance = 5.0f;
-	lightSources[0].mesh = createLightSourceComponent(Vector3(1.0f, 1.0f, 1.0f), 0.1f);
+	lightSources[0].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 1.0f), 0.1f);
 
 	LightSourceData& ls2 = lightSources[1].ls;
 	ls2.sourceType = LightSourceType::DIRECTIONAL_LIGHT;
 	ls2.direction = Vector4( 0.3, -1, 0.3, 0.0f);
 	ls2.position = Vector4(-1.0f, 3.0f, -1.0f, 1.0f);
-	ls2.rgb = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+	ls2.rgb = Vector4(0.9f, 0.9f, 0.0f, 1.0f);
 	ls2.shineDistance = 20.0f;
 	ls2.intensity = 1.0f;
 	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 3.0f, -1.0f), 0.05f);
@@ -598,7 +597,7 @@ void Game::createKatamariScene()
 	ls3.rgb = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	ls3.shineDistance = 20.0f;
 	ls3.intensity = 2.0f;
-	lightSources[2].mesh = createLightSourceComponent(Vector3(-10.0f, -10.0f, 0.0f), 1.0f);
+	lightSources[2].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.0f), 1.0f);
 
 	LightSourceData& ls4 = lightSources[3].ls;
 	ls4.sourceType = LightSourceType::POINT_LIGHT;
@@ -606,7 +605,7 @@ void Game::createKatamariScene()
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
 	ls4.shineDistance = 100.0f;
 	ls4.intensity = 3.0f;
-	lightSources[3].mesh = createLightSourceComponent(Vector3(0.0f, -1.0f, 0.5f), 0.07f);
+	lightSources[3].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.5f), 0.07f);
 
 	for (int i = 0; i < countLightSources; i++) {
 		lightSources[i].init();

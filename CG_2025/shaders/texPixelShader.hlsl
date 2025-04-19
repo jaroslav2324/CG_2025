@@ -65,6 +65,16 @@ SamplerState samplerState: register(s0);
 Texture2DArray shadowMap : register(t1);
 SamplerComparisonState shadowCmpSampler : register(s1);
 
+int getLayer(int idx, float3 worldPos){
+    float depthFromCamera = length(constData.camPos.xyz - worldPos);
+    for (int i = 0; i < 4; i++){
+        if (depthFromCamera < mapData[idx].distances[i]){
+            return i;
+        }
+    }
+    return 3;
+}
+
 float getShadowCoeff(int idx, float3 worldPos, LightSource light)
 {
     float depthFromCamera = length(constData.camPos.xyz - worldPos);
@@ -89,10 +99,9 @@ float getShadowCoeff(int idx, float3 worldPos, LightSource light)
         return 1.0f;
 
     float depth = lightSpacePos.z;
-    float bias = 0.0001f;
+    float bias = 0.0005f;
 
     float shadow = shadowMap.SampleCmpLevelZero(shadowCmpSampler, float3(shadowUV, layer), depth - bias);
-
     return lerp(0.3f, 1.0f, shadow); 
 }
 
@@ -120,7 +129,25 @@ float4 PSMain(PS_IN input) : SV_Target
         float3 Is = shineCoeff * ls.rgb.xyz * clamp(constData.material.speculiar.xyz  * ls.intensity * pow(dot(V, R),constData.material.exponent.x), 0.0f, 1.0f);
         float3 Id = shineCoeff * ls.rgb.xyz * constData.material.diffuse.xyz * ls.intensity * clamp(dot(L, N), 0.0f, 1.0f);
         float shadow = getShadowCoeff(i, globalVertPos, ls);
-        I = I + (Id + Is) * shadow;
+        int layer = getLayer(i, globalVertPos);
+        if (shadow < 0.9f)
+        {
+            if (layer == 0){
+                I = I + (Id + Is) * shadow * float3(2.0f, 0.0f, 0.0f);
+            }
+            else if (layer == 1){
+                I = I + (Id + Is) * shadow * float3(0.0f, 2.0f, 0.0f);
+            }
+            else if (layer == 2){
+                I = I + (Id + Is) * shadow * float3(0.0f, 0.0f, 2.0f);
+            }
+            else if (layer == 3){
+                I = I + (Id + Is) * shadow * float3(3.0f, 0.0f, 3.0f);
+            }
+        }
+        else   {
+            I = I + (Id + Is) * shadow;
+        }  
     }
     I = I + Ia;
 
