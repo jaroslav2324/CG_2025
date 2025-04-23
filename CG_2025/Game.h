@@ -37,6 +37,7 @@ public:
 	void destroyResources();
 	float getTotalTime();
 	ID3D11Device* getDevice();
+	ComPtr<ID3D11DepthStencilView> getDepthView();
 	ID3D11DeviceContext* getDeviceContext();
 	const ComPtr<ID3D11SamplerState> getSamplerState();
 private:
@@ -97,4 +98,6 @@ private:
 
 	ShadowPassLightAddData shp_lightAddData;
 	ComPtr<ID3D11Buffer> shp_lightAddDataBuffer = nullptr;
+
+	friend class RenderSubsystem;
 };

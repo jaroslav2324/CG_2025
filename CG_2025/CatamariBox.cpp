@@ -49,7 +49,7 @@ int CatamariBox::init(const std::wstring& vertShaderPath, const std::wstring& pi
 	MeshComponent::init(vertShaderPath, pixShaderPath);
 	initTexturedObject(modelPath.c_str());
 	auto bufferManager = GE::getBufferManager();
-	material = getPolishedSilverMaterial();
+	material = getBrassMaterial();
 	addData.material = material;
 
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
@@ -99,17 +99,18 @@ int CatamariBox::draw(float deltaTime)
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->PSSetShaderResources(0, 1, &texture);
+	//context->PSSetShaderResources(0, 1, &texture);
 	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->PSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
-	context->VSSetShader(vertexShader, nullptr, 0);
-	context->PSSetShader(pixelShader, nullptr, 0);
-	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
-	context->PSSetSamplers(0, 1, &rawSampler);
+	GE::getRenderSubsystem()->bindDefaultShaders();
+	//context->VSSetShader(vertexShader, nullptr, 0);
+	//context->PSSetShader(pixelShader, nullptr, 0);
+	//ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
+	//context->PSSetSamplers(0, 1, &rawSampler);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

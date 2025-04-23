@@ -2,6 +2,8 @@
 
 #include "GBuffer.h"
 
+class Game;
+
 enum class RenderType {
 	FORWARD = 0,
 	DEFERRED = 1
@@ -13,8 +15,11 @@ public:
 	const GBuffer& getGBuffer() const;
 	void render(float deltaTime);
 	void setRenderType(RenderType type);
+	void bindDefaultShaders();
 private:
 	void drawDeferred(float deltaTime);
+	void drawDeferredOpaque(float deltaTime);
+	void drawDeferredLighting(float deltaTime);
 
 	RenderType renderType = RenderType::FORWARD;
 	GBuffer gBuf;

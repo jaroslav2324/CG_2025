@@ -1,5 +1,6 @@
 #include "RenderSubsystem.h"
 #include "global.h"
+#include "Game.h"
 
 RenderSubsystem::RenderSubsystem()
 {
@@ -39,6 +40,7 @@ void RenderSubsystem::setRenderType(RenderType type)
     case RenderType::DEFERRED:
         if (!deferredOpaqueVertexShader || !deferredOpaquePixelShader) {
             std::shared_ptr<ShaderManager> shaderManager = GE::getShaderManager();
+      
             deferredOpaqueVertexShader = shaderManager->
                 compileCreateVertexShader(L"./shaders/deferredOpaqueVertex.hlsl", "VSMain", "vs_5_0", nullptr);
             deferredOpaquePixelShader = shaderManager->
@@ -50,9 +52,55 @@ void RenderSubsystem::setRenderType(RenderType type)
     }
 }
 
+void RenderSubsystem::bindDefaultShaders()
+{
+    auto deviceContext = GE::getGameSubsystem()->getDeviceContext();
+
+	switch (renderType)
+	{
+	case RenderType::FORWARD:
+		break;
+	case RenderType::DEFERRED:
+        if (deferredOpaqueVertexShader)
+		    deviceContext->VSSetShader(deferredOpaqueVertexShader.Get(), nullptr, 0);
+        if (deferredOpaquePixelShader)
+		    deviceContext->PSSetShader(deferredOpaquePixelShader.Get(), nullptr, 0);
+		break;
+	default:
+		break;
+	}
+}
+
 
 void RenderSubsystem::drawDeferred(float deltaTime)
 {
-    // Opaque pass
-    // light pass
+    drawDeferredOpaque(deltaTime);
+    drawDeferredLighting(deltaTime);
+}
+
+void RenderSubsystem::drawDeferredOpaque(float deltaTime)
+{
+    auto deviceContext = GE::getGameSubsystem()->getDeviceContext();
+	auto winHandler = GE::getWindowHandler();
+
+	D3D11_VIEWPORT viewport = {};
+	viewport.Width = static_cast<float>(winHandler->getWinWidth());
+	viewport.Height = static_cast<float>(winHandler->getWinHeight());
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1.0f;
+
+    deviceContext->RSSetViewports(1, &viewport);
+
+    gBuf.setGBufferRenderTargets();
+    gBuf.clearRenderTargets();
+
+	for (const auto gameComponent : GE::getGameSubsystem()->components) {
+		gameComponent->draw(deltaTime);
+	}
+}
+
+void RenderSubsystem::drawDeferredLighting(float deltaTime)
+{
 }

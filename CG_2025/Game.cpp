@@ -805,61 +805,66 @@ int Game::draw(float deltaTime)
 
 	context->ClearState();
 
-	shadowPass();
+	auto renderSubsystem = GE::getRenderSubsystem();
 
-	D3D11_VIEWPORT viewport = {};
-	viewport.Width = static_cast<float>(winHandler->getWinWidth());
-	viewport.Height = static_cast<float>(winHandler->getWinHeight());
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1.0f;
-
-	context->RSSetViewports(1, &viewport);
-	context->OMSetRenderTargets(1, &rtv, depthView.Get());
-	float color[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-	context->ClearRenderTargetView(rtv, color);
 	context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	renderSubsystem->render(deltaTime);
 
-	for (int i = 0; i < countLightSources; i++) {
-		lightSourcesMainPass[i] = lightSources[i].ls;
-		shadowMapsData[i] = lightSources[i].shMap.data;
-		shadowMapsData[i].viewMatrix = shadowMapsData[i].viewMatrix.Transpose();
-		for (int j = 0; j < cascadeCount; j++) {
-			shadowMapsData[i].projectionMatrices[j] = shadowMapsData[i].projectionMatrices[j].Transpose();
-		}
-	}
-	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-	ID3D11Buffer* rawLightSourcesBuffer = lightSourcesBuffer.Get();
-	context->Map(rawLightSourcesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	auto dataPtr = reinterpret_cast<float*>(mappedResource.pData);
-	memcpy(dataPtr, lightSourcesMainPass.data(), sizeof(LightSourceData) * lightSourcesMainPass.size());
-	context->Unmap(rawLightSourcesBuffer, 0);
+	//shadowPass();
 
-	mappedResource = {};
-	context->Map(shadowMapsDataBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	dataPtr = reinterpret_cast<float*>(mappedResource.pData);
-	memcpy(dataPtr, shadowMapsData.data(), sizeof(LightSourceShadowMapData) * shadowMapsData.size());
-	context->Unmap(shadowMapsDataBuffer.Get(), 0);
+	//D3D11_VIEWPORT viewport = {};
+	//viewport.Width = static_cast<float>(winHandler->getWinWidth());
+	//viewport.Height = static_cast<float>(winHandler->getWinHeight());
+	//viewport.TopLeftX = 0;
+	//viewport.TopLeftY = 0;
+	//viewport.MinDepth = 0;
+	//viewport.MaxDepth = 1.0f;
 
-	rawLightSourcesBuffer = lightSourcesBuffer.Get();
-	context->PSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
-	auto rawLightShadowMapDataBuffer = shadowMapsDataBuffer.Get();
-	context->PSSetConstantBuffers(2, 1, &rawLightShadowMapDataBuffer);
+	//context->RSSetViewports(1, &viewport);
+	//context->OMSetRenderTargets(1, &rtv, depthView.Get());
+	//float color[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+	//context->ClearRenderTargetView(rtv, color);
+	//context->ClearDepthStencilView(depthView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
-	context->PSSetSamplers(1, 1, &rawShadowSampler);
+	//for (int i = 0; i < countLightSources; i++) {
+	//	lightSourcesMainPass[i] = lightSources[i].ls;
+	//	shadowMapsData[i] = lightSources[i].shMap.data;
+	//	shadowMapsData[i].viewMatrix = shadowMapsData[i].viewMatrix.Transpose();
+	//	for (int j = 0; j < cascadeCount; j++) {
+	//		shadowMapsData[i].projectionMatrices[j] = shadowMapsData[i].projectionMatrices[j].Transpose();
+	//	}
+	//}
+	//D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+	//ID3D11Buffer* rawLightSourcesBuffer = lightSourcesBuffer.Get();
+	//context->Map(rawLightSourcesBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//auto dataPtr = reinterpret_cast<float*>(mappedResource.pData);
+	//memcpy(dataPtr, lightSourcesMainPass.data(), sizeof(LightSourceData) * lightSourcesMainPass.size());
+	//context->Unmap(rawLightSourcesBuffer, 0);
 
-	ID3D11ShaderResourceView* arrayCascadedShadowMaps[10] = {};
-	for (int i = 0; i < countLightSources; i++) {
-		arrayCascadedShadowMaps[i] = lightSources[i].shMap.shaderResView.Get();
-	}
-	// really bad
-	context->PSSetShaderResources(1, 1, &arrayCascadedShadowMaps[1]);
+	//mappedResource = {};
+	//context->Map(shadowMapsDataBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//dataPtr = reinterpret_cast<float*>(mappedResource.pData);
+	//memcpy(dataPtr, shadowMapsData.data(), sizeof(LightSourceShadowMapData) * shadowMapsData.size());
+	//context->Unmap(shadowMapsDataBuffer.Get(), 0);
 
-	for (const auto gameComponent : components) {
-		gameComponent->draw(deltaTime);
-	}
+	//rawLightSourcesBuffer = lightSourcesBuffer.Get();
+	//context->PSSetConstantBuffers(1, 1, &rawLightSourcesBuffer);
+	//auto rawLightShadowMapDataBuffer = shadowMapsDataBuffer.Get();
+	//context->PSSetConstantBuffers(2, 1, &rawLightShadowMapDataBuffer);
+
+	//ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
+	//context->PSSetSamplers(1, 1, &rawShadowSampler);
+
+	//ID3D11ShaderResourceView* arrayCascadedShadowMaps[10] = {};
+	//for (int i = 0; i < countLightSources; i++) {
+	//	arrayCascadedShadowMaps[i] = lightSources[i].shMap.shaderResView.Get();
+	//}
+	//// really bad
+	//context->PSSetShaderResources(1, 1, &arrayCascadedShadowMaps[1]);
+
+	//for (const auto gameComponent : components) {
+	//	gameComponent->draw(deltaTime);
+	//}
 
 	context->OMSetRenderTargets(0, nullptr, nullptr);
 	swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
@@ -980,6 +985,11 @@ float Game::getTotalTime()
 ID3D11Device* Game::getDevice()
 {
 	return device;
+}
+
+ComPtr<ID3D11DepthStencilView> Game::getDepthView()
+{
+	return depthView;
 }
 
 ID3D11DeviceContext* Game::getDeviceContext()

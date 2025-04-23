@@ -80,17 +80,13 @@ int CatamariBall::draw(float deltaTime)
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	context->PSSetShaderResources(0, 1, &texture);
 	context->IASetIndexBuffer(modelIndiciesBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = modelVerticesBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->PSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
-	context->VSSetShader(vertexShader, nullptr, 0);
-	context->PSSetShader(pixelShader, nullptr, 0);
-	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
-	context->PSSetSamplers(0, 1, &rawSampler);
+	GE::getRenderSubsystem()->bindDefaultShaders();
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;
@@ -112,6 +108,7 @@ int CatamariBall::drawShadow()
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
+	GE::getRenderSubsystem()->bindDefaultShaders();
 	context->VSSetShader(vertexShadowShader, nullptr, 0);
 	context->PSSetShader(pixelShadowShader, nullptr, 0);
 

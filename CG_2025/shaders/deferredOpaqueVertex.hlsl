@@ -8,7 +8,7 @@ struct VS_IN
 
 struct PS_IN
 {
-    float4 pos: POSITION0;
+    float4 pos: SV_POSITION;
     float4 tex : TEXCOORD0;
     float3 norm: NORMAL;
 };

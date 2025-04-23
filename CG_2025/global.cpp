@@ -138,6 +138,7 @@ void GE::initGraphicsEngine()
 	initInputDevice(winHandler);
 	initPhysicsSubsystem();
 	initRenderSubsystem();
+	GE::getRenderSubsystem()->setRenderType(RenderType::DEFERRED);
 	setPerspectiveMatrix();
 }
 

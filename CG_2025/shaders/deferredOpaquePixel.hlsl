@@ -1,7 +1,7 @@
 
 struct PS_IN
 {
-    float4 pos: POSITION0;
+    float4 pos: SV_POSITION;
     float4 tex : TEXCOORD0;
     float3 norm: NORMAL;
 };
@@ -33,9 +33,9 @@ cbuffer ConstBuf : register(b0)
 }
 
 struct GBuffer{
-    float depth: SV_Target0;
-    float3 normal: SV_Target1;
-    float3 diffuse: SV_Target2;
+    float4 depth: SV_Target0;
+    float4 normal: SV_Target1;
+    float4 diffuse: SV_Target2;
     float4 specExp: SV_Target3;
 };
 
@@ -52,9 +52,9 @@ float convertZToDepth(float distance)
 GBuffer PSMain(PS_IN input)
 {
     GBuffer buf = (GBuffer)0;
-    buf.depth = convertZToDepth(input.pos.z);
-    buf.normal = input.norm;
-    buf.diffuse = constData.material.diffuse.rgb;
+    buf.depth.x = convertZToDepth(input.pos.z);
+    buf.normal.xyz = input.norm;
+    buf.diffuse.rgb = constData.material.diffuse.rgb;
     buf.specExp.rgb = constData.material.speculiar.rgb;
     buf.specExp.w = constData.material.exponent.r;
     return buf;

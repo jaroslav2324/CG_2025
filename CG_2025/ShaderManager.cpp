@@ -48,12 +48,12 @@ ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(const std::wst
 
 	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
 
-	ComPtr<ID3D11PixelShader> pixelShader = nullptr;
-	ID3D11PixelShader* rawPixelShader = pixelShader.Get();
+	ID3D11PixelShader* rawPixelShader ;
 	device->CreatePixelShader(
 		pixelByteCode->GetBufferPointer(),
 		pixelByteCode->GetBufferSize(),
 		nullptr, &rawPixelShader);
+	ComPtr<ID3D11PixelShader> pixelShader = rawPixelShader;
 	return pixelShader;
 }
 
@@ -67,12 +67,12 @@ ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(const std::w
 
 	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
 
-	ComPtr<ID3D11VertexShader> vertexShader = nullptr;
-	ID3D11VertexShader* rawPixelShader = vertexShader.Get();
+	ID3D11VertexShader* rawPixelShader;
 	device->CreateVertexShader(
 		vertexByteCode->GetBufferPointer(),
 		vertexByteCode->GetBufferSize(),
 		nullptr, &rawPixelShader);
+	ComPtr<ID3D11VertexShader> vertexShader = rawPixelShader;
 	return vertexShader;
 }
 

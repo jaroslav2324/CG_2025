@@ -1,3 +1,5 @@
+#include <comdef.h>
+
 #include "global.h"
 #include "GBuffer.h"
 
@@ -10,7 +12,7 @@ void GBuffer::init()
 	depthTexDesc.Height = 800;
 	depthTexDesc.MipLevels = 1;
 	depthTexDesc.ArraySize = 1;
-	depthTexDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	depthTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	depthTexDesc.CPUAccessFlags = 0;
@@ -18,18 +20,30 @@ void GBuffer::init()
 	depthTexDesc.SampleDesc = { 1, 0 };
 
 	auto res = device->CreateTexture2D(&depthTexDesc, nullptr, &depth);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC depthSrvDesc = {};
-	depthSrvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	depthSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	depthSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	depthSrvDesc.Texture2D.MipLevels = 1;
 	depthSrvDesc.Texture2D.MostDetailedMip = 0;
 	D3D11_RENDER_TARGET_VIEW_DESC depthRtvDesc = {};
-	depthRtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	depthRtvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	depthRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	depthRtvDesc.Texture2D.MipSlice = 0;
 	res = device->CreateShaderResourceView(depth.Get(), &depthSrvDesc, &depthSRV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 	res = device->CreateRenderTargetView(depth.Get(), &depthRtvDesc, &depthRTV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_TEXTURE2D_DESC normalTexDesc = {};
 	normalTexDesc.Width = 800;
@@ -44,6 +58,10 @@ void GBuffer::init()
 	normalTexDesc.SampleDesc = { 1, 0 };
 
 	res = device->CreateTexture2D(&normalTexDesc, nullptr, &normal);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC normalSrvDesc = {};
 	normalSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -55,7 +73,15 @@ void GBuffer::init()
 	normalRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	normalRtvDesc.Texture2D.MipSlice = 0;
 	res = device->CreateShaderResourceView(normal.Get(), &normalSrvDesc, &normalSRV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 	res = device->CreateRenderTargetView(normal.Get(), &normalRtvDesc, &normalRTV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_TEXTURE2D_DESC diffuseTexDesc = {};
 	diffuseTexDesc.Width = 800;
@@ -70,6 +96,10 @@ void GBuffer::init()
 	diffuseTexDesc.SampleDesc = { 1, 0 };
 
 	res = device->CreateTexture2D(&diffuseTexDesc, nullptr, &diffuse);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC diffuseSrvDesc = {};
 	diffuseSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -81,7 +111,15 @@ void GBuffer::init()
 	diffuseRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	diffuseRtvDesc.Texture2D.MipSlice = 0;
 	res = device->CreateShaderResourceView(diffuse.Get(), &diffuseSrvDesc, &diffuseSRV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 	res = device->CreateRenderTargetView(diffuse.Get(), &diffuseRtvDesc, &diffuseRTV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_TEXTURE2D_DESC specExpTexDesc = {};
 	specExpTexDesc.Width = 800;
@@ -96,6 +134,10 @@ void GBuffer::init()
 	specExpTexDesc.SampleDesc = { 1, 0 };
 
 	res = device->CreateTexture2D(&specExpTexDesc, nullptr, &specExp);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC specExpSrvDesc = {};
 	specExpSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -107,18 +149,35 @@ void GBuffer::init()
 	specExpRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	specExpRtvDesc.Texture2D.MipSlice = 0;
 	res = device->CreateShaderResourceView(specExp.Get(), &specExpSrvDesc, &specExpSRV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 	res = device->CreateRenderTargetView(specExp.Get(), &specExpRtvDesc, &specExpRTV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 }
 
 void GBuffer::setGBufferRenderTargets() const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
-	ID3D11RenderTargetView* rawDepthRTV = depthRTV.Get();
-	context->OMSetRenderTargets(0, &rawDepthRTV, nullptr);
-	ID3D11RenderTargetView* rawNormalRTV = normalRTV.Get();
-	context->OMSetRenderTargets(1, &rawNormalRTV, nullptr);
-	ID3D11RenderTargetView* rawDiffuseRTV = diffuseRTV.Get();
-	context->OMSetRenderTargets(2, &rawDiffuseRTV, nullptr);
-	ID3D11RenderTargetView* rawSpecExpRTV = specExpRTV.Get();
-	context->OMSetRenderTargets(3, &rawSpecExpRTV, nullptr);
+	ID3D11RenderTargetView* rtvs[] = {
+		depthRTV.Get(),
+		normalRTV.Get(),
+		diffuseRTV.Get(),
+		specExpRTV.Get()
+	};
+	context->OMSetRenderTargets(4, rtvs, GE::getGameSubsystem()->getDepthView().Get());
+}
+
+void GBuffer::clearRenderTargets() const
+{
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	context->ClearRenderTargetView(depthRTV.Get(), clearColor);
+	context->ClearRenderTargetView(normalRTV.Get(), clearColor);
+	context->ClearRenderTargetView(diffuseRTV.Get(), clearColor);
+	context->ClearRenderTargetView(specExpRTV.Get(), clearColor);
 }
