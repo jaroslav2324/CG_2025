@@ -14,7 +14,7 @@ struct AdditionalData {
 	DirectX::SimpleMath::Matrix viewMatrix;
 	DirectX::SimpleMath::Matrix projectionMatrix;
 	DirectX::SimpleMath::Vector2 screenCoords;
-	DirectX::SimpleMath::Vector2 unused;
+	DirectX::SimpleMath::Vector2 nearFar;
 	Material material;
 	DirectX::SimpleMath::Vector4 camPos;
 };

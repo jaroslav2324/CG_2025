@@ -175,9 +175,10 @@ void GBuffer::setGBufferRenderTargets() const
 void GBuffer::clearRenderTargets() const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
-	const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	context->ClearRenderTargetView(depthRTV.Get(), clearColor);
-	context->ClearRenderTargetView(normalRTV.Get(), clearColor);
-	context->ClearRenderTargetView(diffuseRTV.Get(), clearColor);
-	context->ClearRenderTargetView(specExpRTV.Get(), clearColor);
+	const float clearColorWhite[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	const float clearColorBlack[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	context->ClearRenderTargetView(depthRTV.Get(), clearColorWhite);
+	context->ClearRenderTargetView(normalRTV.Get(), clearColorBlack);
+	context->ClearRenderTargetView(diffuseRTV.Get(), clearColorBlack);
+	context->ClearRenderTargetView(specExpRTV.Get(), clearColorBlack);
 }

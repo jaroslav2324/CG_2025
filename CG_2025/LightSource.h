@@ -5,13 +5,15 @@
 #include "directxtk/SimpleMath.h"
 
 #include "ShadowMap.h"
+#include "addData.h"
 
 class PlanetComponent;
 
 enum LightSourceType {
-	DIRECTIONAL_LIGHT = 0,
-	POINT_LIGHT = 1,
-	SPOT_LIGHT = 2
+	AMBIENT_LIGHT = 0,
+	DIRECTIONAL_LIGHT,
+	POINT_LIGHT,
+	SPOT_LIGHT
 };
 
 struct LightSourceData {
@@ -32,4 +34,21 @@ public:
 	LightSourceData ls;
 	ShadowMap shMap;
 	PlanetComponent* mesh = nullptr;
+	AdditionalData addData;
+
+	ComPtr <ID3D11Buffer> getVertexBuffer() const { return vertexBufferPointSpot; };
+	ComPtr <ID3D11Buffer> getIndexBuffer() const { return indexBufferPointSpot; };
+	const std::vector<UINT>& getStrides() const { return stridesPointSpot; };
+	const std::vector<UINT>& getOffsets() const { return offsetsPointSpot; };
+	ComPtr<ID3D11Buffer> getAdditionalBuffer() const { return additionalBuffer; };
+	void mapAdditionalBuffer();
+
+private:
+	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
+
+	ComPtr <ID3D11Buffer> vertexBufferPointSpot = nullptr;
+	ComPtr <ID3D11Buffer> indexBufferPointSpot = nullptr;
+
+	std::vector<UINT> stridesPointSpot = { 16 };
+	std::vector<UINT> offsetsPointSpot = {0};
 };

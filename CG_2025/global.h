@@ -21,6 +21,7 @@ class WindowHandler;
 
 namespace GE {
 	using Matrix = DirectX::SimpleMath::Matrix;
+	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
 
 	static std::shared_ptr<InputDevice> inputDevice; // defaults to nullptr
@@ -53,6 +54,7 @@ namespace GE {
 	Vector3 getCameraPosition();
 	Vector3 getCameraUpVector();
 	Vector3 getCameraForwardVector();
+	Vector2 getNearFarPlanes();
 	void setCameraPosition(Vector3 pos);
 	void setCameraForwardVector(Vector3 vec);
 	void setCameraUpVector(Vector3 vec);

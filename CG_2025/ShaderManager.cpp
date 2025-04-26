@@ -38,7 +38,9 @@ void ShaderManager::compileShader(const std::wstring& filePath, const std::strin
 	}
 }
 
-ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(const std::wstring& filePath, const std::string& entryPoint, const std::string& target, const D3D_SHADER_MACRO* macros)
+ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(
+	const std::wstring& filePath, const std::string& entryPoint,
+	const std::string& target, const D3D_SHADER_MACRO* macros, ComPtr< ID3DBlob> outByteCode /*= nullptr*/)
 {
 	ID3DBlob* pixelByteCode = getShader(filePath);
 	if (!pixelByteCode) {
@@ -54,10 +56,15 @@ ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(const std::wst
 		pixelByteCode->GetBufferSize(),
 		nullptr, &rawPixelShader);
 	ComPtr<ID3D11PixelShader> pixelShader = rawPixelShader;
+	if (outByteCode) {
+		outByteCode = pixelByteCode;
+	}
 	return pixelShader;
 }
 
-ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(const std::wstring& filePath, const std::string& entryPoint, const std::string& target, const D3D_SHADER_MACRO* macros)
+ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(
+	const std::wstring& filePath, const std::string& entryPoint,
+	const std::string& target, const D3D_SHADER_MACRO* macros, ComPtr< ID3DBlob> outByteCode /*= nullptr*/)
 {
 	ID3DBlob* vertexByteCode = getShader(filePath);
 	if (!vertexByteCode) {
@@ -73,6 +80,9 @@ ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(const std::w
 		vertexByteCode->GetBufferSize(),
 		nullptr, &rawPixelShader);
 	ComPtr<ID3D11VertexShader> vertexShader = rawPixelShader;
+	if (outByteCode) {
+		outByteCode = vertexByteCode;
+	}
 	return vertexShader;
 }
 

@@ -1,6 +1,31 @@
 #include "BufferManager.h"
 #include "global.h"
 
+ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4(ComPtr<ID3DBlob> shaderByteCode)
+{
+	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
+D3D11_INPUT_ELEMENT_DESC {
+	"POSITION",
+	0,
+	DXGI_FORMAT_R32G32B32A32_FLOAT,
+	0,
+	0,
+	D3D11_INPUT_PER_VERTEX_DATA,
+	0}
+	};
+
+	auto device = GE::getGameSubsystem()->getDevice();
+	ComPtr<ID3D11InputLayout> layout;
+	device->CreateInputLayout(
+		inputElements,
+		1,
+		shaderByteCode->GetBufferPointer(),
+		shaderByteCode->GetBufferSize(),
+		&layout);
+
+	return layout;
+}
+
 ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode)
 {
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {

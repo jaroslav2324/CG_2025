@@ -9,6 +9,7 @@ struct VS_IN
 struct PS_IN
 {
     float4 pos: SV_POSITION;
+    float4 viewPos: POSITION0;
     float4 tex : TEXCOORD0;
     float3 norm: NORMAL;
 };
@@ -42,9 +43,9 @@ cbuffer ConstBuf : register(b0)
 PS_IN VSMain(VS_IN input)
 {
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.scaleMatrix);
-    input.pos = mul(float4(input.pos.xyz, 1.0f), constData.rotationMatrix);
-    input.pos = mul(float4(input.pos.xyz, 1.0f), constData.translationMatrix);
-    float3 globalVertPos = input.pos.xyz;
+    input.pos = mul(input.pos, constData.rotationMatrix);
+    input.pos = mul(input.pos, constData.translationMatrix);
+    float4 globalVertPos = input.pos;
 
     input.norm = mul(float4(input.norm.xyz, 0.0f), constData.rotationMatrix);
     input.norm.w = 0.0f;
@@ -52,9 +53,11 @@ PS_IN VSMain(VS_IN input)
     PS_IN output = (PS_IN) 0;
 
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.viewMatrix);
+    output.viewPos = input.pos;
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.projectionMatrix);
 
     output.pos = input.pos;
+    
     output.norm = input.norm.xyz;
     output.tex.xy = input.tex.xy;    
 

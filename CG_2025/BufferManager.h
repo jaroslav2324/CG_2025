@@ -15,6 +15,7 @@ public:
 		int countElements,
 		ComPtr<ID3DBlob> shaderByteCode);
 
+	ComPtr <ID3D11InputLayout> createInputLayout_PosF4(ComPtr<ID3DBlob> shaderByteCode);
 	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_ClrF4(ComPtr<ID3DBlob> shaderByteCode);
 	ComPtr <ID3D11InputLayout> createInputLayout_PosF4_NormF4_TexF4_AddF4(ComPtr<ID3DBlob> shaderByteCode);
 
@@ -24,14 +25,20 @@ public:
 	ComPtr <ID3D11Buffer> createIndexBuffer(const std::vector<T>& data);
 	template<typename T>
 	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(const std::vector<T>& data);
+	template<typename T>
+	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(T& data);
 	ComPtr <ID3D11Buffer> createBuffer(const D3D11_BUFFER_DESC buffDesc,
 		const D3D11_SUBRESOURCE_DATA subresourceData);
 
 	template <typename T>
 	D3D11_SUBRESOURCE_DATA getDefaultSubresourceData(const std::vector<T>& data) const;
+	template <typename T>
+	D3D11_SUBRESOURCE_DATA getDefaultSubresourceData(T& data) const;
 
 	template <typename T>
 	D3D11_BUFFER_DESC getBasicBufferDescription(const std::vector<T>& data) const;
+	template <typename T>
+	D3D11_BUFFER_DESC getBasicBufferDescription(T& data) const;
 };
 
 template<typename T>
@@ -61,10 +68,33 @@ inline ComPtr<ID3D11Buffer> BufferManager::createConstDynamicBufferCPUWrite(cons
 }
 
 template<typename T>
+ComPtr <ID3D11Buffer>
+BufferManager::createConstDynamicBufferCPUWrite(T& data)
+{
+	auto subresData = getDefaultSubresourceData<T>(data);
+	auto buffDesc = getBasicBufferDescription<T>(data);
+	buffDesc.Usage = D3D11_USAGE_DYNAMIC;
+	buffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	return createBuffer(buffDesc, subresData);
+}
+
+template<typename T>
 inline D3D11_SUBRESOURCE_DATA BufferManager::getDefaultSubresourceData(const std::vector<T>& data) const
 {
 	D3D11_SUBRESOURCE_DATA subresourceData = {};
 	subresourceData.pSysMem = data.data();
+	subresourceData.SysMemPitch = 0;
+	subresourceData.SysMemSlicePitch = 0;
+	return subresourceData;
+}
+
+template<typename T>
+inline D3D11_SUBRESOURCE_DATA BufferManager::getDefaultSubresourceData(T& data) const
+{
+	D3D11_SUBRESOURCE_DATA subresourceData = {};
+	subresourceData.pSysMem = &data;
 	subresourceData.SysMemPitch = 0;
 	subresourceData.SysMemSlicePitch = 0;
 	return subresourceData;
@@ -80,5 +110,18 @@ inline D3D11_BUFFER_DESC BufferManager::getBasicBufferDescription(const std::vec
 	buffDesc.MiscFlags = 0;
 	buffDesc.StructureByteStride = 0;
 	buffDesc.ByteWidth = sizeof(T) * std::size(data);
+	return buffDesc;
+}
+
+template<typename T>
+inline D3D11_BUFFER_DESC BufferManager::getBasicBufferDescription(T& data) const
+{
+	D3D11_BUFFER_DESC buffDesc = {};
+	buffDesc.Usage = D3D11_USAGE_DEFAULT;
+	buffDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	buffDesc.CPUAccessFlags = 0;
+	buffDesc.MiscFlags = 0;
+	buffDesc.StructureByteStride = 0;
+	buffDesc.ByteWidth = sizeof(T);
 	return buffDesc;
 }

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AABB.cpp" />
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatamariBox.cpp" />
     <ClCompile Include="Delegates.cpp" />
@@ -43,6 +44,12 @@
     <ClCompile Include="WindowHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\deferredLightingPixel.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\deferredLightingVertex.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="shaders\deferredOpaquePixel.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -81,6 +88,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AABB.h" />
     <ClInclude Include="addData.h" />
     <ClInclude Include="appExceptions.h" />
     <ClInclude Include="BufferManager.h" />

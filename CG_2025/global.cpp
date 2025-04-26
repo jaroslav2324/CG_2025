@@ -122,11 +122,16 @@ void GE::rotateCameraAroundCenter(Vector3 camPos, Matrix rotationMatrix)
 	cameraPosition = tmpPos;
 }
 
+float nearPlane = 0.1f;
+float farPlane = 10.0f;
 void GE::setPerspectiveMatrix(float fov, float ratio)
 {
-	float nearPlane = 0.1f;
-	float farPlane = 10.0f;
 	projectionMatrix = Matrix::CreatePerspectiveFieldOfView(fov, ratio, nearPlane, farPlane);
+}
+
+Vector2 GE::getNearFarPlanes()
+{
+	return Vector2(nearPlane, farPlane);
 }
 
 void GE::initGraphicsEngine()

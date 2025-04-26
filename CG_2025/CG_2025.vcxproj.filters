@@ -81,6 +81,9 @@
     <ClCompile Include="RenderSubsystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AABB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\pixelShader.hlsl">
@@ -117,6 +120,12 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="shaders\deferredOpaqueVertex.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\deferredLightingPixel.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\deferredLightingVertex.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
@@ -200,6 +209,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderSubsystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AABB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

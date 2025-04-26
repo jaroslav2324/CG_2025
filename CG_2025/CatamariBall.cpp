@@ -67,7 +67,6 @@ int CatamariBall::draw(float deltaTime)
 	addData.viewMatrix = GE::getCameraViewMatrix().Transpose();
 	addData.projectionMatrix = GE::getProjectionMatrix().Transpose();
 
-	addData.unused.x = GE::getGameSubsystem()->getTotalTime();
 	Vector4 camPos4;
 	Vector3 camPos3 = GE::getCameraPosition();
 	camPos4.x = camPos3.x;
@@ -75,6 +74,7 @@ int CatamariBall::draw(float deltaTime)
 	camPos4.z = camPos3.z;
 	camPos4.w = 1.0f;
 	addData.camPos = camPos4;
+	addData.nearFar = GE::getNearFarPlanes();
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);

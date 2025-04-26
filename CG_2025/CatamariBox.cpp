@@ -94,6 +94,7 @@ int CatamariBox::draw(float deltaTime)
 	camPos4.z = camPos3.z;
 	camPos4.w = 1.0f;
 	addData.camPos = camPos4;
+	addData.nearFar = GE::getNearFarPlanes();
 
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	context->RSSetState(rastState);
