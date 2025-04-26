@@ -106,6 +106,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
+    <ClInclude Include="Plane.h" />
     <ClInclude Include="RectComponent.h" />
     <ClInclude Include="RectF.h" />
     <ClInclude Include="RenderSubsystem.h" />

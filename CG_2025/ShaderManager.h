@@ -21,9 +21,9 @@ public:
 	void compileShader(const std::wstring& filePath, const std::string& entryPoint,
 		const std::string& target, const D3D_SHADER_MACRO* macros);
 	ComPtr<ID3D11PixelShader> compileCreatePixelShader(const std::wstring& filePath, const std::string& entryPoint,
-		const std::string& target, const D3D_SHADER_MACRO* macros, ComPtr< ID3DBlob> outByteCode = nullptr);
+		const std::string& target, const D3D_SHADER_MACRO* macros, ID3DBlob** outByteCode = nullptr);
 	ComPtr<ID3D11VertexShader> compileCreateVertexShader(const std::wstring& filePath, const std::string& entryPoint,
-		const std::string& target, const D3D_SHADER_MACRO* macros, ComPtr< ID3DBlob> outByteCode = nullptr);
+		const std::string& target, const D3D_SHADER_MACRO* macros, ID3DBlob** outByteCode = nullptr);
 	ID3DBlob* getShader(const std::wstring& filePath);
 	std::vector<D3D_SHADER_MACRO> getShaderMacros(const std::wstring& filePath);
 	~ShaderManager();

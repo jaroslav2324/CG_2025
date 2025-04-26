@@ -6,6 +6,53 @@
 RenderSubsystem::RenderSubsystem()
 {
     gBuf.init();
+
+    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+    D3D11_RASTERIZER_DESC rastDesc;
+    
+    depthStencilDesc = {};
+	depthStencilDesc.DepthEnable = false;                           
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;       
+	depthStencilDesc.StencilEnable = false;                         
+
+    auto device = GE::getGameSubsystem()->device;
+	device->CreateDepthStencilState(&depthStencilDesc, &DSStateNoWriteNoCheck);
+
+    depthStencilDesc = {};
+    depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;  
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;       
+	depthStencilDesc.StencilEnable = false; 
+    device->CreateDepthStencilState(&depthStencilDesc, &DSStateNoWriteLess);
+
+    depthStencilDesc = {};
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_GREATER;
+	depthStencilDesc.StencilEnable = false;
+	device->CreateDepthStencilState(&depthStencilDesc, &DSStateNoWriteGreater);
+
+    rastDesc = {};
+    rastDesc.FillMode = D3D11_FILL_SOLID;
+    rastDesc.CullMode = D3D11_CULL_BACK;
+	device->CreateRasterizerState(&rastDesc, &rastStateCullBack);
+
+    rastDesc = {};
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.CullMode = D3D11_CULL_FRONT;
+	device->CreateRasterizerState(&rastDesc, &rastStateCullFront);
+
+	D3D11_BLEND_DESC blendDesc = {};
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;       
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;          
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;   
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blendDesc, &additiveBlendState);
 }
 
 const GBuffer& RenderSubsystem::getGBuffer() const
@@ -49,7 +96,7 @@ void RenderSubsystem::setRenderType(RenderType type)
 
         ComPtr<ID3DBlob> vertexByteCode;
         deferredLightingVertexShader = shaderManager->
-            compileCreateVertexShader(L"./shaders/deferredLightingVertex.hlsl", "VSMain", "vs_5_0", nullptr, vertexByteCode);
+            compileCreateVertexShader(L"./shaders/deferredLightingVertex.hlsl", "VSMain", "vs_5_0", nullptr, &vertexByteCode);
         deferredLightingPixelShader = shaderManager->
             compileCreatePixelShader(L"./shaders/deferredLightingPixel.hlsl", "PSMain", "ps_5_0", nullptr);
         layoutPointSpot = GE::getBufferManager()->createInputLayout_PosF4(vertexByteCode);
@@ -96,6 +143,7 @@ void RenderSubsystem::drawDeferredOpaque(float deltaTime)
 	viewport.MaxDepth = 1.0f;
 
     deviceContext->RSSetViewports(1, &viewport);
+    deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
     gBuf.setGBufferRenderTargets();
     gBuf.clearRenderTargets();
@@ -112,6 +160,7 @@ void RenderSubsystem::drawDeferredOpaque(float deltaTime)
 
 void RenderSubsystem::drawDeferredLighting(float deltaTime)
 {
+    auto device = GE::getGameSubsystem()->getDevice();
 	auto deviceContext = GE::getGameSubsystem()->getDeviceContext();
 	auto winHandler = GE::getWindowHandler();
 
@@ -123,34 +172,45 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1.0f;
 
+    deviceContext->OMSetRenderTargets(1, &GE::getGameSubsystem()->rtv, nullptr);
 	deviceContext->RSSetViewports(1, &viewport);
+    deviceContext->OMSetBlendState(additiveBlendState.Get(), nullptr, 0xFFFFFFFF);
 
 	if (deferredLightingVertexShader)
 		deviceContext->VSSetShader(deferredLightingVertexShader.Get(), nullptr, 0);
 	if (deferredLightingPixelShader)
 		deviceContext->PSSetShader(deferredLightingPixelShader.Get(), nullptr, 0);
-    for (LightSource& ls : GE::getGameSubsystem()->lightSources) {
-        switch (ls.ls.sourceType)
-        {
-        case AMBIENT_LIGHT:
-        case DIRECTIONAL_LIGHT:
-            drawScreenAlignedQuad();
-            break;
+    gBuf.bindPixelShaderResourceViews(2);
 
-        case POINT_LIGHT:
-        {
-            AABB aabb = getAABBForPointLight(ls.ls);
-            drawAABB(aabb, ls);
-            break;
+    std::vector<Plane> frustumPlanes = getFrustumPlanes(getFrustumCornersWorldSpace(GE::getCameraViewMatrix(), GE::getProjectionMatrix()));
+    AABB aabb;
+    for (LightSource& ls : GE::getGameSubsystem()->lightSources) {
+        ls.mapLightSourceDataConstBuffer();
+        deviceContext->PSSetConstantBuffers(1, 1, &ls.getLightSourceDataConstBuffer());
+        if (ls.ls.sourceType == AMBIENT_LIGHT || ls.ls.sourceType == DIRECTIONAL_LIGHT) {
+            drawScreenAlignedQuad();
         }
-        case SPOT_LIGHT:
+        else if (ls.ls.sourceType == POINT_LIGHT || ls.ls.sourceType == SPOT_LIGHT)
         {
-            AABB aabb = getAABBForSpotLight(ls.ls);
-            drawAABB(aabb, ls);
-            break;
-        }
-        default:
-            break;
+            if (ls.ls.sourceType == POINT_LIGHT) aabb = getAABBForPointLight(ls.ls);
+            if (ls.ls.sourceType == SPOT_LIGHT) aabb = getAABBForSpotLight(ls.ls);
+
+            FrustumIntersection intersecRes = TestAABBFrustum(aabb, frustumPlanes);
+            if (intersecRes == OUTSIDE_FRUSTUM) { 
+                deviceContext->OMSetDepthStencilState(DSStateNoWriteNoCheck.Get(), NULL);
+                deviceContext->RSSetState(rastStateCullBack.Get());
+                drawScreenAlignedQuad(); 
+            }
+            else if (intersecRes == INTERSECTS_FAR_PLANE){ 
+                deviceContext->OMSetDepthStencilState(DSStateNoWriteLess.Get(), NULL);
+                deviceContext->RSSetState(rastStateCullBack.Get());
+                drawAABB(aabb, ls);
+            }
+            else {
+				deviceContext->OMSetDepthStencilState(DSStateNoWriteGreater.Get(), NULL);
+				deviceContext->RSSetState(rastStateCullFront.Get());
+				drawAABB(aabb, ls);
+            }
         }
     }
 }
@@ -169,14 +229,14 @@ void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
 {
     lightSource.addData.viewMatrix = GE::getCameraViewMatrix().Transpose();
     lightSource.addData.projectionMatrix = GE::getProjectionMatrix().Transpose();
-    lightSource.mapAdditionalBuffer();
+    lightSource.mapAdditionalConstBuffer();
 
     auto context = GE::getGameSubsystem()->getDeviceContext();
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->IASetVertexBuffers(0, 1, &lightSource.getVertexBuffer(), lightSource.getStrides().data(), lightSource.getOffsets().data());
-    context->IASetIndexBuffer(lightSource.getIndexBuffer().Get(), DXGI_FORMAT_R32G32B32A32_UINT, sizeof(int));
-    context->VSSetConstantBuffers(0, 1, &lightSource.getAdditionalBuffer());
+    context->IASetIndexBuffer(lightSource.getIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, sizeof(int));
+    context->VSSetConstantBuffers(0, 1, &lightSource.getAdditionalConstBuffer());
 
 	context->DrawIndexed(36, 0, 0); 
 }

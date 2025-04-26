@@ -86,7 +86,10 @@ int CatamariBall::draw(float deltaTime)
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->PSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
-	GE::getRenderSubsystem()->bindDefaultShaders();
+
+	context->PSSetShaderResources(0, 1, &texture);
+	ID3D11SamplerState* rawSampler = GE::getGameSubsystem()->getSamplerState().Get();
+	context->PSSetSamplers(0, 1, &rawSampler);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

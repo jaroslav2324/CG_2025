@@ -7,35 +7,6 @@ using DirectX::SimpleMath::Matrix;
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector4;
 
-//std::vector<DirectX::SimpleMath::Vector4> getFrustumCornersWorldSpace(const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj);
-std::vector<DirectX::SimpleMath::Vector4> getFrustumCornersWorldSpace(const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj)
-{
-	const auto viewProj = view * proj;
-	const auto inv = viewProj.Invert();
-
-	std::vector<Vector4> frustumCorners;
-	frustumCorners.reserve(8);
-	for (int z = 0; z < 2; ++z)
-	{
-		for (int x = 0; x < 2; ++x)
-		{
-			for (int y = 0; y < 2; ++y)
-			{
-				const Vector4 pt = Vector4::Transform(Vector4(
-					2.0f * x - 1.0f,
-					2.0f * y - 1.0f,
-					z,
-					1.0f
-				), inv);
-				frustumCorners.push_back(pt / pt.w);
-			}
-		}
-	}
-
-	return frustumCorners;
-}
-
-
 void ShadowMap::init()
 {
 	//data.projectionMatrix = Matrix::CreateOrthographic(15, 15, 0.1f, 10.0f);

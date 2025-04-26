@@ -172,6 +172,18 @@ void GBuffer::setGBufferRenderTargets() const
 	context->OMSetRenderTargets(4, rtvs, GE::getGameSubsystem()->getDepthView().Get());
 }
 
+void GBuffer::bindPixelShaderResourceViews(int startSlot) const
+{
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	ID3D11ShaderResourceView* rsvs[] = {
+		depthSRV.Get(),
+		normalSRV.Get(),
+		diffuseSRV.Get(),
+		specExpSRV.Get()
+	};
+	context->PSSetShaderResources(startSlot, 4, rsvs);
+}
+
 void GBuffer::clearRenderTargets() const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();

@@ -33,4 +33,13 @@ private:
 	ComPtr<ID3D11PixelShader> deferredOpaquePixelShader = nullptr;
 	ComPtr<ID3D11VertexShader> deferredLightingVertexShader = nullptr;
 	ComPtr<ID3D11PixelShader> deferredLightingPixelShader = nullptr;
+
+	ComPtr<ID3D11DepthStencilState> DSStateNoWriteNoCheck = nullptr;
+	ComPtr<ID3D11DepthStencilState> DSStateNoWriteGreater = nullptr;
+	ComPtr<ID3D11DepthStencilState> DSStateNoWriteLess = nullptr;
+
+	ComPtr<ID3D11RasterizerState> rastStateCullFront = nullptr;
+	ComPtr<ID3D11RasterizerState> rastStateCullBack = nullptr;
+
+	ComPtr<ID3D11BlendState> additiveBlendState = nullptr;
 };

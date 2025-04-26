@@ -14,7 +14,6 @@ void coutVector(Vector3 v) {
 }
 
 bool CheckSphereAABBCollision(const Vector3& sphereCenter, float sphereRadius, const BoundingBox& aabb) {
-	// Находим ближайшую точку на AABB к центру сферы
 	Vector3 closestPoint;
 
 	Vector3 corners[8];
@@ -576,35 +575,34 @@ void Game::createKatamariScene()
 	}
 	
 	LightSourceData& ls = lightSources[0].ls;
-	ls.sourceType = LightSourceType::POINT_LIGHT;
-	ls.position = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	ls.rgb = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-	ls.shineDistance = 5.0f;
+	ls.sourceType = LightSourceType::AMBIENT_LIGHT;
 	lightSources[0].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 1.0f), 0.1f);
 
 	LightSourceData& ls2 = lightSources[1].ls;
 	ls2.sourceType = LightSourceType::DIRECTIONAL_LIGHT;
 	ls2.direction = Vector4( 0.3, -1, 0.3, 0.0f);
 	ls2.position = Vector4(-1.0f, 3.0f, -1.0f, 1.0f);
-	ls2.rgb = Vector4(0.9f, 0.9f, 0.0f, 1.0f);
-	ls2.shineDistance = 20.0f;
+	ls2.rgb = Vector4(0.75f, 0.75f, 0.75f, 1.0f);
 	ls2.intensity = 1.0f;
 	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 3.0f, -1.0f), 0.05f);
 
 	LightSourceData& ls3 = lightSources[2].ls;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
-	ls3.position = Vector4(-10.0f, -10.0f, 0.0f, 1.0f);
-	ls3.rgb = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	ls3.shineDistance = 20.0f;
+	ls3.position = Vector4(-5.0f, -5.0f, 0.0f, 1.0f);
+	ls3.rgb = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+	ls3.shineDistance = 5.0f;
 	ls3.intensity = 2.0f;
 	lightSources[2].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.0f), 1.0f);
 
 	LightSourceData& ls4 = lightSources[3].ls;
-	ls4.sourceType = LightSourceType::POINT_LIGHT;
-	ls4.position = Vector4(0.0f, -1.0f, 0.5f, 1.0f);
+	ls4.sourceType = LightSourceType::SPOT_LIGHT;
+	ls4.position = Vector4(0.0f, 3.0f, 0.5f, 1.0f);
+	Vector4 dir4 = Vector4(0.0f, -1.0f, -0.2f, 1.0f);
+	dir4.Normalize();
+	ls4.direction = dir4;
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-	ls4.shineDistance = 100.0f;
-	ls4.intensity = 3.0f;
+	ls4.shineDistance = 5.0f;
+	ls4.intensity = 2.0f;
 	lightSources[3].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.5f), 0.07f);
 
 	for (int i = 0; i < countLightSources; i++) {

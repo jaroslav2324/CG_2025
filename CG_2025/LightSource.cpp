@@ -25,16 +25,27 @@ void LightSource::init()
 		indexBufferPointSpot = bufferManager->createIndexBuffer(indicies);
 	}
 
-	additionalBuffer = bufferManager->createConstDynamicBufferCPUWrite(addData);
+	additionalConstBuffer = bufferManager->createConstDynamicBufferCPUWrite(addData);
 }
 
-void LightSource::mapAdditionalBuffer()
+void LightSource::mapAdditionalConstBuffer()
 {
 	D3D11_MAPPED_SUBRESOURCE res = {};
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
-	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
+	ID3D11Buffer* rawAdditionalBuffer = additionalConstBuffer.Get();
 	context->Map(rawAdditionalBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 	auto dataPtr = reinterpret_cast<float*>(res.pData);
-	memcpy(dataPtr, &addData, sizeof(AdditionalData));
+	memcpy(dataPtr, &addData, sizeof(addData));
 	context->Unmap(rawAdditionalBuffer, 0);
+}
+
+void LightSource::mapLightSourceDataConstBuffer()
+{
+	D3D11_MAPPED_SUBRESOURCE res = {};
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	ID3D11Buffer* rawLSDataBuffer = lightSourceDataConstBuffer.Get();
+	context->Map(rawLSDataBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	memcpy(dataPtr, &ls, sizeof(ls));
+	context->Unmap(rawLSDataBuffer, 0);
 }

@@ -40,11 +40,14 @@ public:
 	ComPtr <ID3D11Buffer> getIndexBuffer() const { return indexBufferPointSpot; };
 	const std::vector<UINT>& getStrides() const { return stridesPointSpot; };
 	const std::vector<UINT>& getOffsets() const { return offsetsPointSpot; };
-	ComPtr<ID3D11Buffer> getAdditionalBuffer() const { return additionalBuffer; };
-	void mapAdditionalBuffer();
+	ComPtr<ID3D11Buffer> getLightSourceDataConstBuffer() const { return lightSourceDataConstBuffer; };
+	ComPtr<ID3D11Buffer> getAdditionalConstBuffer() const { return additionalConstBuffer; };
+	void mapAdditionalConstBuffer();
+	void mapLightSourceDataConstBuffer();
 
 private:
-	ComPtr<ID3D11Buffer> additionalBuffer = nullptr;
+	ComPtr<ID3D11Buffer> lightSourceDataConstBuffer = nullptr;
+	ComPtr<ID3D11Buffer> additionalConstBuffer = nullptr;
 
 	ComPtr <ID3D11Buffer> vertexBufferPointSpot = nullptr;
 	ComPtr <ID3D11Buffer> indexBufferPointSpot = nullptr;

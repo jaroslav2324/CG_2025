@@ -7,9 +7,13 @@
 #include <d3d11.h>
 #include <directxtk/SimpleMath.h>
 
+#include "Plane.h"
+
 using DirectX::SimpleMath::Vector2;
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector4;
+
+struct AABB;
 
 template <typename DXResourcePtr>
 inline void releaseIfNotNullptr(DXResourcePtr* resourcePtr) {
@@ -31,3 +35,15 @@ DirectX::SimpleMath::Vector2 reflectRelativeToNormal(DirectX::SimpleMath::Vector
 
 float generateRandomFloat(float min, float max);
 int generateRandomInt(int min, int max);
+
+std::vector<DirectX::SimpleMath::Vector4> getFrustumCornersWorldSpace(const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj);
+std::vector<Plane> getFrustumPlanes(const std::vector<DirectX::SimpleMath::Vector4>& corners);
+
+enum FrustumIntersection
+{
+	INSIDE_FRUSTUM,
+	INTERSECTS_FAR_PLANE,
+	OUTSIDE_FRUSTUM
+};
+
+FrustumIntersection TestAABBFrustum(const AABB& aabb, const std::vector<Plane>& planes);

@@ -33,6 +33,9 @@ cbuffer ConstBuf : register(b0)
     ConstantData constData;
 }
 
+Texture2D myTexture : register(t0);
+SamplerState samplerState: register(s0);
+
 struct GBuffer{
     float4 depth: SV_Target0;
     float4 normal: SV_Target1;
@@ -48,7 +51,7 @@ GBuffer PSMain(PS_IN input)
     float depth = (-input.viewPos.z - nearPlane) / (farPlane - nearPlane);
     buf.depth.xyz = depth;
     buf.normal.xyz = input.norm;
-    buf.diffuse.rgb = constData.material.diffuse.rgb;
+    buf.diffuse.rgb = myTexture.Sample(samplerState, input.tex.xy).rgb * constData.material.diffuse.rgb;
     buf.specExp.rgb = constData.material.speculiar.rgb;
     buf.specExp.w = constData.material.exponent.r;
     return buf;

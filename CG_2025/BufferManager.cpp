@@ -5,7 +5,7 @@ ComPtr<ID3D11InputLayout> BufferManager::createInputLayout_PosF4(ComPtr<ID3DBlob
 {
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 D3D11_INPUT_ELEMENT_DESC {
-	"POSITION",
+	"SV_POSITION",
 	0,
 	DXGI_FORMAT_R32G32B32A32_FLOAT,
 	0,
