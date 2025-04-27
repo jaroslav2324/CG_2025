@@ -37,7 +37,7 @@ Texture2D myTexture : register(t0);
 SamplerState samplerState: register(s0);
 
 struct GBuffer{
-    float4 depth: SV_Target0;
+    float4 depthAmbient: SV_Target0;
     float4 normal: SV_Target1;
     float4 diffuse: SV_Target2;
     float4 specExp: SV_Target3;
@@ -49,9 +49,12 @@ GBuffer PSMain(PS_IN input)
     float nearPlane = constData.nearFar.x;
     float farPlane = constData.nearFar.y;
     float depth = (-input.viewPos.z - nearPlane) / (farPlane - nearPlane);
-    buf.depth.xyz = depth;
+    float3 textureColor = myTexture.Sample(samplerState, input.tex.xy).rgb;
+
+    buf.depthAmbient.x = depth;
+    buf.depthAmbient.yzw = textureColor * constData.material.ambient.xyz;
     buf.normal.xyz = input.norm;
-    buf.diffuse.rgb = myTexture.Sample(samplerState, input.tex.xy).rgb * constData.material.diffuse.rgb;
+    buf.diffuse.rgb = textureColor * constData.material.diffuse.rgb;
     buf.specExp.rgb = constData.material.speculiar.rgb;
     buf.specExp.w = constData.material.exponent.r;
     return buf;

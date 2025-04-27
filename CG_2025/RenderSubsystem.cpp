@@ -53,6 +53,12 @@ RenderSubsystem::RenderSubsystem()
 
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, &additiveBlendState);
+
+    auto bufferManager = GE::getBufferManager();
+    std::vector<Vector4> verts = { Vector4()};
+    mockVertexBuffer = bufferManager->createVertexBuffer(verts);
+    std::vector<int> idcs = { 0 };
+    mockIndexBuffer = bufferManager->createIndexBuffer(idcs);
 }
 
 const GBuffer& RenderSubsystem::getGBuffer() const
@@ -172,9 +178,13 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1.0f;
 
-    deviceContext->OMSetRenderTargets(1, &GE::getGameSubsystem()->rtv, nullptr);
+    ID3D11RenderTargetView* rtv = GE::getGameSubsystem()->rtv;
+    const float blackColor[4] = { 0.0, 0.0, 0.0, 0.0 };
+    deviceContext->ClearRenderTargetView(rtv, blackColor);
+    deviceContext->OMSetRenderTargets(1, &rtv, nullptr);
 	deviceContext->RSSetViewports(1, &viewport);
     deviceContext->OMSetBlendState(additiveBlendState.Get(), nullptr, 0xFFFFFFFF);
+    deviceContext->IASetInputLayout(layoutPointSpot.Get());
 
 	if (deferredLightingVertexShader)
 		deviceContext->VSSetShader(deferredLightingVertexShader.Get(), nullptr, 0);
@@ -218,8 +228,9 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 void RenderSubsystem::drawScreenAlignedQuad()
 {
     auto context = GE::getGameSubsystem()->getDeviceContext();
-	context->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
-	context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+	context->IASetVertexBuffers(0, 1, &mockVertexBuffer, mockStrides.data(), mockOffsets.data());
+	context->IASetIndexBuffer(mockIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	context->Draw(4, 0);
@@ -227,15 +238,18 @@ void RenderSubsystem::drawScreenAlignedQuad()
 
 void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
 {
-    lightSource.addData.viewMatrix = GE::getCameraViewMatrix().Transpose();
-    lightSource.addData.projectionMatrix = GE::getProjectionMatrix().Transpose();
+    lightSource.addDeferredData.viewMatrix = GE::getCameraViewMatrix().Transpose();
+    lightSource.addDeferredData.projectionMatrix = GE::getProjectionMatrix().Transpose();
+    lightSource.addDeferredData.inverseViewMatrix = GE::getCameraViewMatrix().Invert().Transpose();
+    lightSource.addDeferredData.inverseProjectionMatrix = GE::getProjectionMatrix().Invert().Transpose();
+    lightSource.addDeferredData.camPos = Vector4(GE::getCameraPosition());
     lightSource.mapAdditionalConstBuffer();
 
     auto context = GE::getGameSubsystem()->getDeviceContext();
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->IASetVertexBuffers(0, 1, &lightSource.getVertexBuffer(), lightSource.getStrides().data(), lightSource.getOffsets().data());
-    context->IASetIndexBuffer(lightSource.getIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, sizeof(int));
+    context->IASetIndexBuffer(lightSource.getIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
     context->VSSetConstantBuffers(0, 1, &lightSource.getAdditionalConstBuffer());
 
 	context->DrawIndexed(36, 0, 0); 

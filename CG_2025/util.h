@@ -17,7 +17,7 @@ struct AABB;
 
 template <typename DXResourcePtr>
 inline void releaseIfNotNullptr(DXResourcePtr* resourcePtr) {
-	if ((*resourcePtr) != nullptr) {
+	if (resourcePtr && (*resourcePtr)) {
 		(*resourcePtr)->Release();
 		(*resourcePtr) = nullptr;
 	}

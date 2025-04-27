@@ -25,7 +25,8 @@ void LightSource::init()
 		indexBufferPointSpot = bufferManager->createIndexBuffer(indicies);
 	}
 
-	additionalConstBuffer = bufferManager->createConstDynamicBufferCPUWrite(addData);
+	additionalConstBuffer = bufferManager->createConstDynamicBufferCPUWrite(addDeferredData);
+	lightSourceDataConstBuffer = bufferManager->createConstDynamicBufferCPUWrite(ls);
 }
 
 void LightSource::mapAdditionalConstBuffer()
@@ -35,7 +36,7 @@ void LightSource::mapAdditionalConstBuffer()
 	ID3D11Buffer* rawAdditionalBuffer = additionalConstBuffer.Get();
 	context->Map(rawAdditionalBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 	auto dataPtr = reinterpret_cast<float*>(res.pData);
-	memcpy(dataPtr, &addData, sizeof(addData));
+	memcpy(dataPtr, &addDeferredData, sizeof(addDeferredData));
 	context->Unmap(rawAdditionalBuffer, 0);
 }
 

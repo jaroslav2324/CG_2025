@@ -42,4 +42,9 @@ private:
 	ComPtr<ID3D11RasterizerState> rastStateCullBack = nullptr;
 
 	ComPtr<ID3D11BlendState> additiveBlendState = nullptr;
+
+	ComPtr<ID3D11Buffer> mockVertexBuffer = nullptr;
+	ComPtr<ID3D11Buffer> mockIndexBuffer = nullptr;
+	std::vector<UINT> mockStrides = { 16 };
+	std::vector<UINT> mockOffsets = { 0 };
 };

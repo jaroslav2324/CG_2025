@@ -34,7 +34,7 @@ public:
 	LightSourceData ls;
 	ShadowMap shMap;
 	PlanetComponent* mesh = nullptr;
-	AdditionalData addData;
+	LightSourceAddDataDeferred addDeferredData;
 
 	ComPtr <ID3D11Buffer> getVertexBuffer() const { return vertexBufferPointSpot; };
 	ComPtr <ID3D11Buffer> getIndexBuffer() const { return indexBufferPointSpot; };

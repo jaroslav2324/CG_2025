@@ -7,19 +7,19 @@ void GBuffer::init()
 {
 	auto device = GE::getGameSubsystem()->getDevice();
 
-	D3D11_TEXTURE2D_DESC depthTexDesc = {};
-	depthTexDesc.Width = 800;
-	depthTexDesc.Height = 800;
-	depthTexDesc.MipLevels = 1;
-	depthTexDesc.ArraySize = 1;
-	depthTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	depthTexDesc.CPUAccessFlags = 0;
-	depthTexDesc.MiscFlags = 0;
-	depthTexDesc.SampleDesc = { 1, 0 };
+	D3D11_TEXTURE2D_DESC depthAmbientTexDesc = {};
+	depthAmbientTexDesc.Width = 800;
+	depthAmbientTexDesc.Height = 800;
+	depthAmbientTexDesc.MipLevels = 1;
+	depthAmbientTexDesc.ArraySize = 1;
+	depthAmbientTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	depthAmbientTexDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthAmbientTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	depthAmbientTexDesc.CPUAccessFlags = 0;
+	depthAmbientTexDesc.MiscFlags = 0;
+	depthAmbientTexDesc.SampleDesc = { 1, 0 };
 
-	auto res = device->CreateTexture2D(&depthTexDesc, nullptr, &depth);
+	auto res = device->CreateTexture2D(&depthAmbientTexDesc, nullptr, &depthAmbient);
 	if (FAILED(res)) {
 		_com_error err(res);
 		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
@@ -34,12 +34,12 @@ void GBuffer::init()
 	depthRtvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	depthRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	depthRtvDesc.Texture2D.MipSlice = 0;
-	res = device->CreateShaderResourceView(depth.Get(), &depthSrvDesc, &depthSRV);
+	res = device->CreateShaderResourceView(depthAmbient.Get(), &depthSrvDesc, &depthAmbientSRV);
 	if (FAILED(res)) {
 		_com_error err(res);
 		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
 	}
-	res = device->CreateRenderTargetView(depth.Get(), &depthRtvDesc, &depthRTV);
+	res = device->CreateRenderTargetView(depthAmbient.Get(), &depthRtvDesc, &depthAmbientRTV);
 	if (FAILED(res)) {
 		_com_error err(res);
 		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
@@ -164,7 +164,7 @@ void GBuffer::setGBufferRenderTargets() const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	ID3D11RenderTargetView* rtvs[] = {
-		depthRTV.Get(),
+		depthAmbientRTV.Get(),
 		normalRTV.Get(),
 		diffuseRTV.Get(),
 		specExpRTV.Get()
@@ -176,7 +176,7 @@ void GBuffer::bindPixelShaderResourceViews(int startSlot) const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	ID3D11ShaderResourceView* rsvs[] = {
-		depthSRV.Get(),
+		depthAmbientSRV.Get(),
 		normalSRV.Get(),
 		diffuseSRV.Get(),
 		specExpSRV.Get()
@@ -189,7 +189,7 @@ void GBuffer::clearRenderTargets() const
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
 	const float clearColorWhite[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	const float clearColorBlack[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	context->ClearRenderTargetView(depthRTV.Get(), clearColorWhite);
+	context->ClearRenderTargetView(depthAmbientRTV.Get(), clearColorWhite);
 	context->ClearRenderTargetView(normalRTV.Get(), clearColorBlack);
 	context->ClearRenderTargetView(diffuseRTV.Get(), clearColorBlack);
 	context->ClearRenderTargetView(specExpRTV.Get(), clearColorBlack);

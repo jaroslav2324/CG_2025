@@ -19,6 +19,14 @@ struct AdditionalData {
 	DirectX::SimpleMath::Vector4 camPos;
 };
 
+struct LightSourceAddDataDeferred {
+	DirectX::SimpleMath::Matrix viewMatrix;
+	DirectX::SimpleMath::Matrix projectionMatrix;
+	DirectX::SimpleMath::Matrix inverseViewMatrix;
+	DirectX::SimpleMath::Matrix inverseProjectionMatrix;
+	DirectX::SimpleMath::Vector4 camPos;
+};
+
 struct ShadowPassLightAddData
 {
 	DirectX::SimpleMath::Matrix viewMatrix; 

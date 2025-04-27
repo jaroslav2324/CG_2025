@@ -576,7 +576,8 @@ void Game::createKatamariScene()
 	
 	LightSourceData& ls = lightSources[0].ls;
 	ls.sourceType = LightSourceType::AMBIENT_LIGHT;
-	lightSources[0].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 1.0f), 0.1f);
+	++countLightSources;
+	//lightSources[0].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 1.0f), 0.1f);
 
 	LightSourceData& ls2 = lightSources[1].ls;
 	ls2.sourceType = LightSourceType::DIRECTIONAL_LIGHT;
@@ -584,7 +585,8 @@ void Game::createKatamariScene()
 	ls2.position = Vector4(-1.0f, 3.0f, -1.0f, 1.0f);
 	ls2.rgb = Vector4(0.75f, 0.75f, 0.75f, 1.0f);
 	ls2.intensity = 1.0f;
-	lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 3.0f, -1.0f), 0.05f);
+	++countLightSources;
+	//lightSources[1].mesh = createLightSourceComponent(Vector3(-1.0f, 3.0f, -1.0f), 0.05f);
 
 	LightSourceData& ls3 = lightSources[2].ls;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
@@ -592,7 +594,8 @@ void Game::createKatamariScene()
 	ls3.rgb = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
 	ls3.shineDistance = 5.0f;
 	ls3.intensity = 2.0f;
-	lightSources[2].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.0f), 1.0f);
+	++countLightSources;
+	//lightSources[2].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.0f), 1.0f);
 
 	LightSourceData& ls4 = lightSources[3].ls;
 	ls4.sourceType = LightSourceType::SPOT_LIGHT;
@@ -603,7 +606,9 @@ void Game::createKatamariScene()
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
 	ls4.shineDistance = 5.0f;
 	ls4.intensity = 2.0f;
-	lightSources[3].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.5f), 0.07f);
+	ls4.angle = 15.0 / 360.0 * DirectX::XM_2PI;
+	++countLightSources;
+	//lightSources[3].mesh = createLightSourceComponent(Vector3(-100.0f, -101.0f, 0.5f), 0.07f);
 
 	for (int i = 0; i < countLightSources; i++) {
 		lightSources[i].init();
@@ -932,7 +937,7 @@ PlanetComponent* Game::createLightSourceComponent(DirectX::SimpleMath::Vector3 p
 	components[components.size() - 1]->init(
 		L"./shaders/lightSourceVertShader.hlsl",
 		L"./shaders/lightSourcePixShader.hlsl");
-	countLightSources++;
+	//countLightSources++;
 	return ls;
 }
 

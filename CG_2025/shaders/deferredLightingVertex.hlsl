@@ -16,25 +16,12 @@ struct LightSource {
     float intensity;
 };
 
-
-struct Material {
-	float4 ambient;
-	float4 diffuse;
-	float4 speculiar;
-	float4 exponent;
-};
-
 struct ConstantData
 {
-    float4x4 transformMatrix;
-	float4x4 scaleMatrix;
-	float4x4 rotationMatrix;
-	float4x4 translationMatrix;
 	float4x4 viewMatrix;
 	float4x4 projectionMatrix;
-    float2 screenCoords;
-    float2 useless;
-    Material material;
+    float4x4 inverseViewMatrix;
+	float4x4 inverseProjectionMatrix;
     float4 camPos;
 };
 
