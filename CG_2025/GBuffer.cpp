@@ -139,6 +139,24 @@ void GBuffer::init()
 		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
 	}
 
+	D3D11_TEXTURE2D_DESC globalCoordsTexDesc = {};
+	globalCoordsTexDesc.Width = 800;
+	globalCoordsTexDesc.Height = 800;
+	globalCoordsTexDesc.MipLevels = 1;
+	globalCoordsTexDesc.ArraySize = 1;
+	globalCoordsTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	globalCoordsTexDesc.Usage = D3D11_USAGE_DEFAULT;
+	globalCoordsTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	globalCoordsTexDesc.CPUAccessFlags = 0;
+	globalCoordsTexDesc.MiscFlags = 0;
+	globalCoordsTexDesc.SampleDesc = { 1, 0 };
+
+	res = device->CreateTexture2D(&globalCoordsTexDesc, nullptr, &globalCoords);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC specExpSrvDesc = {};
 	specExpSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	specExpSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -158,6 +176,26 @@ void GBuffer::init()
 		_com_error err(res);
 		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
 	}
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC globalCoorinatesSrvDesc = {};
+	globalCoorinatesSrvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	globalCoorinatesSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	globalCoorinatesSrvDesc.Texture2D.MipLevels = 1;
+	globalCoorinatesSrvDesc.Texture2D.MostDetailedMip = 0;
+	D3D11_RENDER_TARGET_VIEW_DESC globalCoordsRtvDesc = {};
+	globalCoordsRtvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	globalCoordsRtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	globalCoordsRtvDesc.Texture2D.MipSlice = 0;
+	res = device->CreateShaderResourceView(globalCoords.Get(), &globalCoorinatesSrvDesc, &globalCoordsSRV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
+	res = device->CreateRenderTargetView(globalCoords.Get(), &globalCoordsRtvDesc, &globalCoordsRTV);
+	if (FAILED(res)) {
+		_com_error err(res);
+		std::wcerr << L"Îøèáêà: " << err.ErrorMessage() << std::endl;
+	}
 }
 
 void GBuffer::setGBufferRenderTargets() const
@@ -167,9 +205,10 @@ void GBuffer::setGBufferRenderTargets() const
 		depthAmbientRTV.Get(),
 		normalRTV.Get(),
 		diffuseRTV.Get(),
-		specExpRTV.Get()
+		specExpRTV.Get(),
+		globalCoordsRTV.Get()
 	};
-	context->OMSetRenderTargets(4, rtvs, GE::getGameSubsystem()->getDepthView().Get());
+	context->OMSetRenderTargets(5, rtvs, GE::getGameSubsystem()->getDepthView().Get());
 }
 
 void GBuffer::bindPixelShaderResourceViews(int startSlot) const
@@ -179,9 +218,10 @@ void GBuffer::bindPixelShaderResourceViews(int startSlot) const
 		depthAmbientSRV.Get(),
 		normalSRV.Get(),
 		diffuseSRV.Get(),
-		specExpSRV.Get()
+		specExpSRV.Get(),
+		globalCoordsSRV.Get()
 	};
-	context->PSSetShaderResources(startSlot, 4, rsvs);
+	context->PSSetShaderResources(startSlot, 5, rsvs);
 }
 
 void GBuffer::clearRenderTargets() const
@@ -193,4 +233,5 @@ void GBuffer::clearRenderTargets() const
 	context->ClearRenderTargetView(normalRTV.Get(), clearColorBlack);
 	context->ClearRenderTargetView(diffuseRTV.Get(), clearColorBlack);
 	context->ClearRenderTargetView(specExpRTV.Get(), clearColorBlack);
+	context->ClearRenderTargetView(globalCoordsRTV.Get(), clearColorBlack);
 }

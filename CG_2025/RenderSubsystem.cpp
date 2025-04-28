@@ -195,10 +195,21 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
     std::vector<Plane> frustumPlanes = getFrustumPlanes(getFrustumCornersWorldSpace(GE::getCameraViewMatrix(), GE::getProjectionMatrix()));
     AABB aabb;
     for (LightSource& ls : GE::getGameSubsystem()->lightSources) {
+        if (ls.ls.sourceType != SPOT_LIGHT) continue;
+
         ls.mapLightSourceDataConstBuffer();
-        deviceContext->PSSetConstantBuffers(1, 1, &ls.getLightSourceDataConstBuffer());
+        ls.addDeferredData.viewMatrix = GE::getCameraViewMatrix().Transpose();
+        ls.addDeferredData.projectionMatrix = GE::getProjectionMatrix().Transpose();
+        ls.addDeferredData.inverseViewMatrix = GE::getCameraViewMatrix().Invert().Transpose();
+        ls.addDeferredData.inverseProjectionMatrix = GE::getProjectionMatrix().Invert().Transpose();
+        ls.addDeferredData.camPos = Vector4(GE::getCameraPosition());
+        ls.mapAdditionalConstBuffer();
+
+        ID3D11Buffer* rawLightDataBuf = ls.getLightSourceDataConstBuffer().Get();
+        deviceContext->VSSetConstantBuffers(1, 1, &rawLightDataBuf);
+        deviceContext->PSSetConstantBuffers(1, 1, &rawLightDataBuf);
         if (ls.ls.sourceType == AMBIENT_LIGHT || ls.ls.sourceType == DIRECTIONAL_LIGHT) {
-            drawScreenAlignedQuad();
+            drawScreenAlignedQuad(ls);
         }
         else if (ls.ls.sourceType == POINT_LIGHT || ls.ls.sourceType == SPOT_LIGHT)
         {
@@ -209,7 +220,7 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
             if (intersecRes == OUTSIDE_FRUSTUM) { 
                 deviceContext->OMSetDepthStencilState(DSStateNoWriteNoCheck.Get(), NULL);
                 deviceContext->RSSetState(rastStateCullBack.Get());
-                drawScreenAlignedQuad(); 
+                drawScreenAlignedQuad(ls);
             }
             else if (intersecRes == INTERSECTS_FAR_PLANE){ 
                 deviceContext->OMSetDepthStencilState(DSStateNoWriteLess.Get(), NULL);
@@ -225,32 +236,31 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
     }
 }
 
-void RenderSubsystem::drawScreenAlignedQuad()
+void RenderSubsystem::drawScreenAlignedQuad(LightSource& lightSource)
 {
     auto context = GE::getGameSubsystem()->getDeviceContext();
 
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	context->IASetVertexBuffers(0, 1, &mockVertexBuffer, mockStrides.data(), mockOffsets.data());
 	context->IASetIndexBuffer(mockIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+    ID3D11Buffer* rawConstBuf = lightSource.getAdditionalConstBuffer().Get();
+	context->VSSetConstantBuffers(0, 1, &rawConstBuf);
+	context->PSSetConstantBuffers(0, 1, &rawConstBuf);
 
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	context->Draw(4, 0);
 }
 
 void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
 {
-    lightSource.addDeferredData.viewMatrix = GE::getCameraViewMatrix().Transpose();
-    lightSource.addDeferredData.projectionMatrix = GE::getProjectionMatrix().Transpose();
-    lightSource.addDeferredData.inverseViewMatrix = GE::getCameraViewMatrix().Invert().Transpose();
-    lightSource.addDeferredData.inverseProjectionMatrix = GE::getProjectionMatrix().Invert().Transpose();
-    lightSource.addDeferredData.camPos = Vector4(GE::getCameraPosition());
-    lightSource.mapAdditionalConstBuffer();
-
     auto context = GE::getGameSubsystem()->getDeviceContext();
 
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetVertexBuffers(0, 1, &lightSource.getVertexBuffer(), lightSource.getStrides().data(), lightSource.getOffsets().data());
+    ID3D11Buffer* rawVertexBuffer = lightSource.getVertexBuffer().Get();
+    context->IASetVertexBuffers(0, 1, &rawVertexBuffer, lightSource.getStrides().data(), lightSource.getOffsets().data());
     context->IASetIndexBuffer(lightSource.getIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
-    context->VSSetConstantBuffers(0, 1, &lightSource.getAdditionalConstBuffer());
+    ID3D11Buffer* rawConstBuf = lightSource.getAdditionalConstBuffer().Get();
+    context->VSSetConstantBuffers(0, 1, &rawConstBuf);
+    context->PSSetConstantBuffers(0, 1, &rawConstBuf);
 
 	context->DrawIndexed(36, 0, 0); 
 }

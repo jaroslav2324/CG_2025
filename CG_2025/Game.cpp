@@ -581,7 +581,9 @@ void Game::createKatamariScene()
 
 	LightSourceData& ls2 = lightSources[1].ls;
 	ls2.sourceType = LightSourceType::DIRECTIONAL_LIGHT;
-	ls2.direction = Vector4( 0.3, -1, 0.3, 0.0f);
+	Vector3 dir2 = Vector3(0.3f, -1.0f, 0.3f);
+	dir2.Normalize();
+	ls2.direction = Vector4(dir2);
 	ls2.position = Vector4(-1.0f, 3.0f, -1.0f, 1.0f);
 	ls2.rgb = Vector4(0.75f, 0.75f, 0.75f, 1.0f);
 	ls2.intensity = 1.0f;
@@ -600,9 +602,9 @@ void Game::createKatamariScene()
 	LightSourceData& ls4 = lightSources[3].ls;
 	ls4.sourceType = LightSourceType::SPOT_LIGHT;
 	ls4.position = Vector4(0.0f, 3.0f, 0.5f, 1.0f);
-	Vector4 dir4 = Vector4(0.0f, -1.0f, -0.2f, 1.0f);
+	Vector3 dir4 = Vector3(0.0f, -1.0f, -0.2f);
 	dir4.Normalize();
-	ls4.direction = dir4;
+	ls4.direction = Vector4(dir4);
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
 	ls4.shineDistance = 5.0f;
 	ls4.intensity = 2.0f;

@@ -1,11 +1,4 @@
 
-
-const int AMBIENT_LIGHT = 0;
-const int DIRECTIONAL_LIGHT = 1;
-const int POINT_LIGHT = 2;
-const int SPOT_LIGHT = 3;
-
-
 struct LightSource {
     float4 position;
     float4 direction;
@@ -49,6 +42,11 @@ struct PS_IN
 
 PS_IN VSMain(VS_IN input, uint id: SV_VertexID)
 {
+    const int AMBIENT_LIGHT = 0;
+    const int DIRECTIONAL_LIGHT = 1;
+    const int POINT_LIGHT = 2;
+    const int SPOT_LIGHT = 3;
+
     PS_IN output = (PS_IN) 0;
  
     if (ls.sourceType == AMBIENT_LIGHT || ls.sourceType == DIRECTIONAL_LIGHT)
@@ -60,7 +58,7 @@ PS_IN VSMain(VS_IN input, uint id: SV_VertexID)
     {
         output.pos = mul(float4(input.pos.xyz, 1.0f), constData.viewMatrix);
         output.viewPos = output.pos;
-        output.pos = mul(float4(input.pos.xyz, 1.0f), constData.projectionMatrix);
+        output.pos = mul(output.pos, constData.projectionMatrix);
     }
 
     return output;

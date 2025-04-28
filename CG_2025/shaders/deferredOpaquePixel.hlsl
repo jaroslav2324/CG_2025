@@ -3,6 +3,7 @@ struct PS_IN
 {
     float4 pos: SV_POSITION;
     float4 viewPos: POSITION0;
+    float4 globalPos: POSITION1;
     float4 tex : TEXCOORD0;
     float3 norm: NORMAL;
 };
@@ -41,6 +42,7 @@ struct GBuffer{
     float4 normal: SV_Target1;
     float4 diffuse: SV_Target2;
     float4 specExp: SV_Target3;
+    float4 globalCoords: SV_Target4;
 };
 
 GBuffer PSMain(PS_IN input)
@@ -51,6 +53,7 @@ GBuffer PSMain(PS_IN input)
     float depth = (-input.viewPos.z - nearPlane) / (farPlane - nearPlane);
     float3 textureColor = myTexture.Sample(samplerState, input.tex.xy).rgb;
 
+    buf.globalCoords = input.globalPos;
     buf.depthAmbient.x = depth;
     buf.depthAmbient.yzw = textureColor * constData.material.ambient.xyz;
     buf.normal.xyz = input.norm;

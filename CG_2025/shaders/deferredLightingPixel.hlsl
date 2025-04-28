@@ -1,8 +1,5 @@
 
-const int AMBIENT_LIGHT = 0;
-const int DIRECTIONAL_LIGHT = 1;
-const int POINT_LIGHT = 2;
-const int SPOT_LIGHT = 3;
+
 
 struct LightSource {
     float4 position;
@@ -58,6 +55,7 @@ Texture2D<float4> depthAmbientTex: register(t2);
 Texture2D<float4> normalTex: register(t3);
 Texture2D<float4> diffuseTex: register(t4);
 Texture2D<float4> specExpTex: register(t5);
+Texture2D<float4> globalPosTex: register(t6);
 
 // int getLayer(int idx, float3 worldPos){
 //     float depthFromCamera = length(constData.camPos.xyz - worldPos);
@@ -102,24 +100,27 @@ Texture2D<float4> specExpTex: register(t5);
 
 float4 PSMain(PS_IN input) : SV_Target
 {
+    const int AMBIENT_LIGHT = 0;
+    const int DIRECTIONAL_LIGHT = 1;
+    const int POINT_LIGHT = 2;
+    const int SPOT_LIGHT = 3;
 
+    float4 depthAmbient = depthAmbientTex.Load(int3(input.pos.xy, 0));
     if (light.sourceType == AMBIENT_LIGHT)
     {
-        float3 Ia = depthAmbientTex.Load(int3(input.pos.xy, 0)).yzw;
-        return float4(Ia, 1.0);
+        // ambient
+        return float4(depthAmbient.yzw, 1.0);
     }
     else
     {
-        // TODO: read depth?
+        float depth = depthAmbient.x;
         float3 normal = normalTex.Load(int3(input.pos.xy, 0)).xyz;
         float3 diffuse = diffuseTex.Load(int3(input.pos.xy, 0)).xyz;
         float4 specExp = specExpTex.Load(int3(input.pos.xy, 0));
         float3 specular = specExp.xyz;
         float exponent = specExp.w;
+        float3 globalVertPos = globalPosTex.Load(int3(input.pos.xy, 0)).xyz;
 
-        float3 globalVertPos = mul(float4(input.pos.xyz, 1.0f), constData.inverseProjectionMatrix).xyz;
-        globalVertPos = mul(float4(globalVertPos.xyz, 1.0f), constData.inverseViewMatrix).xyz;
-        
         float shineCoeff = 1.0f;
         float3 L;
         if (light.sourceType == DIRECTIONAL_LIGHT)
@@ -141,8 +142,8 @@ float4 PSMain(PS_IN input) : SV_Target
         float3 V = normalize(constData.camPos.xyz-globalVertPos);
         float3 N = normalize(normal);
         float3 R = normalize(2 * dot(L, N) * N - L);
-        float3 Is = shineCoeff * light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent));
-        float3 Id = shineCoeff * light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N));
+        float3 Is = light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent)); // shineCoeff * 
+        float3 Id = light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N)); // shineCoeff * 
         //float shadow = getShadowCoeff(i, globalVertPos, light);
         return float4(Id + Is, 1.0f); //* shadow;
     }

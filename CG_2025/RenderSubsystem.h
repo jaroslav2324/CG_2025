@@ -22,7 +22,7 @@ private:
 	void drawDeferred(float deltaTime);
 	void drawDeferredOpaque(float deltaTime);
 	void drawDeferredLighting(float deltaTime);
-	void drawScreenAlignedQuad();
+	void drawScreenAlignedQuad(LightSource& lightSource);
 	void drawAABB(const AABB& box, LightSource& lightSource);
 
 	RenderType renderType = RenderType::FORWARD;

@@ -10,6 +10,7 @@ struct PS_IN
 {
     float4 pos: SV_POSITION;
     float4 viewPos: POSITION0;
+    float4 globalPos: POSITION1;
     float4 tex : TEXCOORD0;
     float3 norm: NORMAL;
 };
@@ -51,7 +52,7 @@ PS_IN VSMain(VS_IN input)
     input.norm.w = 0.0f;
 
     PS_IN output = (PS_IN) 0;
-
+    output.globalPos = globalVertPos;
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.viewMatrix);
     output.viewPos = input.pos;
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.projectionMatrix);
