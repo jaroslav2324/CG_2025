@@ -47,4 +47,6 @@ private:
 	ComPtr<ID3D11Buffer> mockIndexBuffer = nullptr;
 	std::vector<UINT> mockStrides = { 16 };
 	std::vector<UINT> mockOffsets = { 0 };
+
+	ComPtr<ID3D11SamplerState> shadowSampler;
 };

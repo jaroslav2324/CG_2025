@@ -11,34 +11,13 @@ int PlanetComponent::init(const std::wstring& vertShaderPath, const std::wstring
 	MeshComponent::init(vertShaderPath, pixShaderPath);
 	auto bufferManager = GE::getBufferManager();
 	layout = bufferManager->createInputLayout_PosF4_ClrF4(vertexByteCode);
-
-	D3D11_BUFFER_DESC vertexBufDesc = bufferManager->getBasicBufferDescription(points);
-	D3D11_SUBRESOURCE_DATA vertexData = bufferManager->getDefaultSubresourceData(points);
-	vertexBuffer = bufferManager->createBuffer(vertexBufDesc, vertexData);
-
-	D3D11_BUFFER_DESC indexBufDesc = bufferManager->getBasicBufferDescription(indices);
-	indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	D3D11_SUBRESOURCE_DATA indexData = bufferManager->getDefaultSubresourceData(indices);
-	indexBuffer = bufferManager->createBuffer(indexBufDesc, indexData);
-
-	D3D11_SUBRESOURCE_DATA subresourceData = {};
-	subresourceData.pSysMem = &addData;
-	subresourceData.SysMemPitch = 0;
-	subresourceData.SysMemSlicePitch = 0;
-
-	D3D11_BUFFER_DESC buffDesc = {};
-	buffDesc.Usage = D3D11_USAGE_DYNAMIC;
-	buffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	buffDesc.MiscFlags = 0;
-	buffDesc.StructureByteStride = 0;
-	buffDesc.ByteWidth = sizeof(addData);
-
-	additionalBuffer = bufferManager->createBuffer(buffDesc, subresourceData);
+	vertexBuffer = bufferManager->createVertexBuffer(points);
+	indexBuffer = bufferManager->createIndexBuffer(indices);
+	additionalBuffer = bufferManager->createConstDynamicBufferCPUWrite(addData);
 	return 0;
 }
 
-PlanetComponent::PlanetComponent(Vector3 position, float radius) : MeshComponent()
+PlanetComponent::PlanetComponent(Vector3 position, float radius, Vector3 color) : MeshComponent()
 {
 	planetAxis.Normalize();
 	translationMatrix = translationMatrix.CreateTranslation(position);
@@ -66,7 +45,7 @@ PlanetComponent::PlanetComponent(Vector3 position, float radius) : MeshComponent
 			//std::cout << x << " " << y << " " << z << " " << std::endl;
 
 			points.push_back({ x, y, z, 1.0f });
-			points.push_back({ 0.5f, 1.0f, 1.0f, 1.0f });
+			points.push_back({ color.x, color.y, color.z, 1.0f });
 		}
 	}
 
@@ -116,14 +95,20 @@ int PlanetComponent::draw(float deltaTime)
 	transformMatrix = transformMatrix * GE::getCameraViewMatrix() * GE::getProjectionMatrix();
 	addData.transformMatrix = transformMatrix.Transpose();
 
+	D3D11_MAPPED_SUBRESOURCE res = {};
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
+	context->Map(rawAdditionalBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	memcpy(dataPtr, &addData, sizeof(addData));
+	context->Unmap(rawAdditionalBuffer, 0);
+
 	context->RSSetState(rastState);
 	context->IASetInputLayout(layout.Get());
 	context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	ID3D11Buffer* rawVertBuffer = vertexBuffer.Get();
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
-	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
@@ -134,13 +119,6 @@ int PlanetComponent::draw(float deltaTime)
 
 int PlanetComponent::update(float deltaTime)
 {
-	D3D11_MAPPED_SUBRESOURCE res = {};
-	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
-	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
-	context->Map(rawAdditionalBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-	auto dataPtr = reinterpret_cast<float*>(res.pData);
-	memcpy(dataPtr, &addData, sizeof(AdditionalData));
-	context->Unmap(rawAdditionalBuffer, 0);
 	return 0;
 }
 

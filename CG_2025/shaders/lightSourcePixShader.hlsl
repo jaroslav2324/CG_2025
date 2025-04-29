@@ -9,6 +9,6 @@ struct PS_IN
 
 float4 PSMain(PS_IN input) : SV_Target
 {
-    return float4(1.0f, 1.0f, 0.0f, 1.0f);
+    return float4(input.col.xyz, 1.0f);
 
 }

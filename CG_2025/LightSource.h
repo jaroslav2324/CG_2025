@@ -42,16 +42,21 @@ public:
 	const std::vector<UINT>& getOffsets() const { return offsetsPointSpot; };
 	ComPtr<ID3D11Buffer> getLightSourceDataConstBuffer() const { return lightSourceDataConstBuffer; };
 	ComPtr<ID3D11Buffer> getAdditionalConstBuffer() const { return additionalConstBuffer; };
+	ComPtr<ID3D11Buffer> getShadowMapDataBuffer() const { return shadowMapDataBuffer; };
 	void mapAdditionalConstBuffer();
 	void mapLightSourceDataConstBuffer();
+	void mapShadowMap();
 
 private:
 	ComPtr<ID3D11Buffer> lightSourceDataConstBuffer = nullptr;
 	ComPtr<ID3D11Buffer> additionalConstBuffer = nullptr;
+	ComPtr<ID3D11Buffer> shadowMapDataBuffer = nullptr;
 
 	ComPtr <ID3D11Buffer> vertexBufferPointSpot = nullptr;
 	ComPtr <ID3D11Buffer> indexBufferPointSpot = nullptr;
 
 	std::vector<UINT> stridesPointSpot = { 16 };
 	std::vector<UINT> offsetsPointSpot = {0};
+
+	LightSourceShadowMapData bindedShadowMapData;
 };

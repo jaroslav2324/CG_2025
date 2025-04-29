@@ -16,7 +16,7 @@ class PlanetComponent : public MeshComponent {
 public:
 	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
-	PlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
+	PlanetComponent(DirectX::SimpleMath::Vector3 position, float radius, Vector3 color);
 	int init(const std::wstring& vertShaderPath,
 		const std::wstring& pixShaderPath) override;
 	int draw(float deltaTime) override;

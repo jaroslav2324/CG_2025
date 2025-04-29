@@ -27,6 +27,7 @@ PS_IN VSMain(VS_IN input)
     input.pos = mul(float4(input.pos.xyz, 1.0f), constData.transformMatrix);
     PS_IN output = (PS_IN) 0;
     output.pos = input.pos; 
+    output.col = input.col;
 
     return output;
 }

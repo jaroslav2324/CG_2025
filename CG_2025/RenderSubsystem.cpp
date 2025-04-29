@@ -59,6 +59,17 @@ RenderSubsystem::RenderSubsystem()
     mockVertexBuffer = bufferManager->createVertexBuffer(verts);
     std::vector<int> idcs = { 0 };
     mockIndexBuffer = bufferManager->createIndexBuffer(idcs);
+
+    D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&samplerDesc, &shadowSampler);
 }
 
 const GBuffer& RenderSubsystem::getGBuffer() const
@@ -192,10 +203,23 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 		deviceContext->PSSetShader(deferredLightingPixelShader.Get(), nullptr, 0);
     gBuf.bindPixelShaderResourceViews(2);
 
+	ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
+    deviceContext->PSSetSamplers(1, 1, &rawShadowSampler);
+
     std::vector<Plane> frustumPlanes = getFrustumPlanes(getFrustumCornersWorldSpace(GE::getCameraViewMatrix(), GE::getProjectionMatrix()));
     AABB aabb;
     for (LightSource& ls : GE::getGameSubsystem()->lightSources) {
-        if (ls.ls.sourceType != SPOT_LIGHT) continue;
+
+        if (ls.ls.sourceType == DIRECTIONAL_LIGHT) {
+            ls.mapShadowMap();
+			auto rawLightShadowMapDataBuffer = ls.getShadowMapDataBuffer().Get();
+            deviceContext->PSSetConstantBuffers(2, 1, &rawLightShadowMapDataBuffer);
+
+            ID3D11ShaderResourceView* shMapSrv[] = {
+                ls.shMap.shaderResView.Get()
+			};
+            deviceContext->PSSetShaderResources(1, 1, shMapSrv);
+        }
 
         ls.mapLightSourceDataConstBuffer();
         ls.addDeferredData.viewMatrix = GE::getCameraViewMatrix().Transpose();
@@ -203,12 +227,13 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
         ls.addDeferredData.inverseViewMatrix = GE::getCameraViewMatrix().Invert().Transpose();
         ls.addDeferredData.inverseProjectionMatrix = GE::getProjectionMatrix().Invert().Transpose();
         ls.addDeferredData.camPos = Vector4(GE::getCameraPosition());
-        ls.mapAdditionalConstBuffer();
+        ls.addDeferredData.flags = static_cast<int>(LightSourceAdditionalFlags::NONE);
 
         ID3D11Buffer* rawLightDataBuf = ls.getLightSourceDataConstBuffer().Get();
         deviceContext->VSSetConstantBuffers(1, 1, &rawLightDataBuf);
         deviceContext->PSSetConstantBuffers(1, 1, &rawLightDataBuf);
         if (ls.ls.sourceType == AMBIENT_LIGHT || ls.ls.sourceType == DIRECTIONAL_LIGHT) {
+            ls.mapAdditionalConstBuffer();
             drawScreenAlignedQuad(ls);
         }
         else if (ls.ls.sourceType == POINT_LIGHT || ls.ls.sourceType == SPOT_LIGHT)
@@ -218,16 +243,20 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 
             FrustumIntersection intersecRes = TestAABBFrustum(aabb, frustumPlanes);
             if (intersecRes == OUTSIDE_FRUSTUM) { 
+                ls.addDeferredData.flags = static_cast<int>(LightSourceAdditionalFlags::FORCE_DRAW_SCREEN_ALIGNED_SQUAD);
+                ls.mapAdditionalConstBuffer();
                 deviceContext->OMSetDepthStencilState(DSStateNoWriteNoCheck.Get(), NULL);
                 deviceContext->RSSetState(rastStateCullBack.Get());
                 drawScreenAlignedQuad(ls);
             }
             else if (intersecRes == INTERSECTS_FAR_PLANE){ 
+                ls.mapAdditionalConstBuffer();
                 deviceContext->OMSetDepthStencilState(DSStateNoWriteLess.Get(), NULL);
                 deviceContext->RSSetState(rastStateCullBack.Get());
                 drawAABB(aabb, ls);
             }
             else {
+                ls.mapAdditionalConstBuffer();
 				deviceContext->OMSetDepthStencilState(DSStateNoWriteGreater.Get(), NULL);
 				deviceContext->RSSetState(rastStateCullFront.Get());
 				drawAABB(aabb, ls);

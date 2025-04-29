@@ -62,7 +62,6 @@ private:
 	ComPtr<ID3D11Texture2D> depthBuffer;
 	ComPtr<ID3D11DepthStencilView> depthView;
 	ComPtr<ID3D11SamplerState> sampler;
-	ComPtr<ID3D11SamplerState> shadowSampler;
 
 	std::vector<GameComponent*> components;
 
@@ -74,7 +73,7 @@ private:
 	int createPlanetComponent(DirectX::SimpleMath::Vector3 position, float radius);
 	CatamariBall* createCatamariBallComponent(DirectX::SimpleMath::Vector3 position, float radius, int stacks = 16, int slices = 16);
 	CatamariBox* createCatamariBoxComponent(DirectX::SimpleMath::Vector3 position, DirectX::SimpleMath::Vector3 size);
-	PlanetComponent* createLightSourceComponent(DirectX::SimpleMath::Vector3 position, float radius);
+	PlanetComponent* createLightSourceComponent(DirectX::SimpleMath::Vector3 position, float radius, DirectX::SimpleMath::Vector3 color);
 
 	int leftPongScore = 0;
 	int rightPongScore = 0;
@@ -91,10 +90,6 @@ private:
 
 	int countLightSources = 0;
 	std::vector<LightSource> lightSources;
-	std::vector<LightSourceData> lightSourcesMainPass;
-	ComPtr<ID3D11Buffer> lightSourcesBuffer = nullptr;
-	std::vector<LightSourceShadowMapData> shadowMapsData;
-	ComPtr<ID3D11Buffer> shadowMapsDataBuffer = nullptr;
 
 	ShadowPassLightAddData shp_lightAddData;
 	ComPtr<ID3D11Buffer> shp_lightAddDataBuffer = nullptr;

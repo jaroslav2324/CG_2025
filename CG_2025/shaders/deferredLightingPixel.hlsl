@@ -41,6 +41,7 @@ struct ConstantData
     float4x4 inverseViewMatrix;
 	float4x4 inverseProjectionMatrix;
     float4 camPos;
+    int flags;
 };
 
 cbuffer ConstBuf : register(b0)
@@ -57,45 +58,34 @@ Texture2D<float4> diffuseTex: register(t4);
 Texture2D<float4> specExpTex: register(t5);
 Texture2D<float4> globalPosTex: register(t6);
 
-// int getLayer(int idx, float3 worldPos){
-//     float depthFromCamera = length(constData.camPos.xyz - worldPos);
-//     for (int i = 0; i < 4; i++){
-//         if (depthFromCamera < mapData[idx].distances[i]){
-//             return i;
-//         }
-//     }
-//     return 3;
-// }
+float getShadowCoeff(float depth, float3 worldPos)
+{
+    int layer = 3;
+    for (int i = 0; i < 4; i++){
+        if (depth < mapData.distances[i] / 9.9f){
+            layer = i;
+            break;
+        }
+    }
 
-// float getShadowCoeff(int idx, float3 worldPos, LightSource light)
-// {
-//     float depthFromCamera = length(constData.camPos.xyz - worldPos);
-//     int layer = 3;
-//     for (int i = 0; i < 4; i++){
-//         if (depthFromCamera < mapData[idx].distances[i]){
-//             layer = i;
-//             break;
-//         }
-//     }
-// 
-//     matrix lightView = mapData[idx].viewMatrix;
-//     matrix lightProj = mapData[idx].projectionMatrices[layer];
-// 
-//     float4 lightSpacePos = mul(float4(worldPos, 1.0f), lightView);
-//     lightSpacePos = mul(lightSpacePos, lightProj);
-// 
-//     lightSpacePos.xyz /= lightSpacePos.w;
-// 
-//     float2 shadowUV = float2(lightSpacePos.x, -lightSpacePos.y) * 0.5f + 0.5f;
-//     if (shadowUV.x < 0 || shadowUV.x > 1 || shadowUV.y < 0 || shadowUV.y > 1)
-//         return 1.0f;
-// 
-//     float depth = lightSpacePos.z;
-//     float bias = 0.0005f;
-// 
-//     float shadow = shadowMap.SampleCmpLevelZero(shadowCmpSampler, float3(shadowUV, layer), depth - bias);
-//     return lerp(0.3f, 1.0f, shadow); 
-// }
+    matrix lightView = mapData.viewMatrix;
+    matrix lightProj = mapData.projectionMatrices[layer];
+
+    float4 lightSpacePos = mul(float4(worldPos, 1.0f), lightView);
+    lightSpacePos = mul(lightSpacePos, lightProj);
+
+    lightSpacePos.xyz /= lightSpacePos.w;
+
+    float2 shadowUV = float2(lightSpacePos.x, -lightSpacePos.y) * 0.5f + 0.5f;
+    if (shadowUV.x < 0 || shadowUV.x > 1 || shadowUV.y < 0 || shadowUV.y > 1)
+        return 1.0f;
+
+    depth = lightSpacePos.z;
+    float bias = 0.0005f;
+
+    float shadow = shadowMap.SampleCmpLevelZero(shadowCmpSampler, float3(shadowUV, layer), depth - bias);
+    return lerp(0.3f, 1.0f, shadow); 
+}
 
 
 float4 PSMain(PS_IN input) : SV_Target
@@ -109,7 +99,7 @@ float4 PSMain(PS_IN input) : SV_Target
     if (light.sourceType == AMBIENT_LIGHT)
     {
         // ambient
-        return float4(depthAmbient.yzw, 1.0);
+        return light.intensity * float4(depthAmbient.yzw, 1.0);
     }
     else
     {
@@ -123,9 +113,11 @@ float4 PSMain(PS_IN input) : SV_Target
 
         float shineCoeff = 1.0f;
         float3 L;
+        float shadow = 1.0f;
         if (light.sourceType == DIRECTIONAL_LIGHT)
         {
             L = -normalize(light.direction);
+            shadow = getShadowCoeff(depth, globalVertPos);
         }
         else 
         {
@@ -142,9 +134,8 @@ float4 PSMain(PS_IN input) : SV_Target
         float3 V = normalize(constData.camPos.xyz-globalVertPos);
         float3 N = normalize(normal);
         float3 R = normalize(2 * dot(L, N) * N - L);
-        float3 Is = light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent)); // shineCoeff * 
-        float3 Id = light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N)); // shineCoeff * 
-        //float shadow = getShadowCoeff(i, globalVertPos, light);
-        return float4(Id + Is, 1.0f); //* shadow;
+        float3 Is = light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent)); 
+        float3 Id =  light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N));  
+        return float4(Id + Is, 1.0f) * shadow; 
     }
 }
