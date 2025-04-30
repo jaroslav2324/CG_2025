@@ -95,6 +95,11 @@ float4 PSMain(PS_IN input) : SV_Target
     const int POINT_LIGHT = 2;
     const int SPOT_LIGHT = 3;
 
+//     if (light.sourceType == POINT_LIGHT)
+//     {
+//         return float4(1.0f, 0.0, 0.0, 1.0);
+//     }
+
     float4 depthAmbient = depthAmbientTex.Load(int3(input.pos.xy, 0));
     if (light.sourceType == AMBIENT_LIGHT)
     {
@@ -134,8 +139,8 @@ float4 PSMain(PS_IN input) : SV_Target
         float3 V = normalize(constData.camPos.xyz-globalVertPos);
         float3 N = normalize(normal);
         float3 R = normalize(2 * dot(L, N) * N - L);
-        float3 Is = light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent)); 
-        float3 Id =  light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N));  
+        float3 Is = shineCoeff * light.rgb.xyz * saturate(specular  * light.intensity * pow(dot(V, R), exponent)); 
+        float3 Id = shineCoeff * light.rgb.xyz * diffuse * light.intensity * saturate(dot(L, N));  
         return float4(Id + Is, 1.0f) * shadow; 
     }
 }

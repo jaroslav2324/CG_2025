@@ -577,25 +577,25 @@ void Game::createKatamariScene()
 
 	LightSourceData& ls3 = lightSources[2].ls;
 	ls3.sourceType = LightSourceType::POINT_LIGHT;
-	ls3.position = Vector4(-5.0f, -5.0f, 0.0f, 1.0f);
+	ls3.position = Vector4(-3.0f, 2.0f, 2.0f, 1.0f);
 	ls3.rgb = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
 	ls3.shineDistance = 5.0f;
-	ls3.intensity = 2.0f;
+	ls3.intensity = 5.0f;
 	++countLightSources;
-	lightSources[2].mesh = createLightSourceComponent(Vector3(-5.0f, -5.0f, 0.0f), 0.07f, Vector3(ls3.rgb));
+	lightSources[2].mesh = createLightSourceComponent(Vector3(ls3.position), 0.07f, Vector3(ls3.rgb));
 
 	LightSourceData& ls4 = lightSources[3].ls;
 	ls4.sourceType = LightSourceType::SPOT_LIGHT;
-	ls4.position = Vector4(0.0f, 3.0f, 0.5f, 1.0f);
+	ls4.position = Vector4(0.0f, 2.0f, 0.5f, 1.0f);
 	Vector3 dir4 = Vector3(0.0f, -1.0f, -0.2f);
 	dir4.Normalize();
 	ls4.direction = Vector4(dir4);
 	ls4.rgb = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-	ls4.shineDistance = 5.0f;
-	ls4.intensity = 2.0f;
+	ls4.shineDistance = 6.0f;
+	ls4.intensity = 5.0f;
 	ls4.angle = 15.0 / 360.0 * DirectX::XM_2PI;
 	++countLightSources;
-	lightSources[3].mesh = createLightSourceComponent(Vector3(0.0f, 3.0f, 0.5f), 0.07f, Vector3(ls4.rgb));
+	lightSources[3].mesh = createLightSourceComponent(Vector3(ls4.position), 0.07f, Vector3(ls4.rgb));
 
 	for (int i = 0; i < countLightSources; i++) {
 		lightSources[i].init();

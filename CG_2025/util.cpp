@@ -62,8 +62,8 @@ int generateRandomInt(int min, int max) {
 
 std::vector<DirectX::SimpleMath::Vector4> getFrustumCornersWorldSpace(const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj)
 {
-	const auto viewProj = view * proj;
-	const auto inv = viewProj.Invert();
+	Matrix viewProj = view * proj;
+	Matrix inv = viewProj.Invert();
 
 	std::vector<Vector4> frustumCorners;
 	frustumCorners.reserve(8);
