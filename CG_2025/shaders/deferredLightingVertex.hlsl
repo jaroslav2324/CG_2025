@@ -16,6 +16,7 @@ struct ConstantData
     float4x4 inverseViewMatrix;
 	float4x4 inverseProjectionMatrix;
     float4 camPos;
+    float4 camDir;
     int flags;
 };
 

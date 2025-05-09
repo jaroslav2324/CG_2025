@@ -201,7 +201,7 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
 		deviceContext->VSSetShader(deferredLightingVertexShader.Get(), nullptr, 0);
 	if (deferredLightingPixelShader)
 		deviceContext->PSSetShader(deferredLightingPixelShader.Get(), nullptr, 0);
-    gBuf.bindPixelShaderResourceViews(2);
+    gBuf.bindPixelShaderResourceViews(1);
 
 	ID3D11SamplerState* rawShadowSampler = shadowSampler.Get();
     deviceContext->PSSetSamplers(1, 1, &rawShadowSampler);
@@ -218,7 +218,7 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
             ID3D11ShaderResourceView* shMapSrv[] = {
                 ls.shMap.shaderResView.Get()
 			};
-            deviceContext->PSSetShaderResources(1, 1, shMapSrv);
+            deviceContext->PSSetShaderResources(0, 1, shMapSrv);
         }
 
         ls.mapLightSourceDataConstBuffer();
@@ -227,6 +227,7 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
         ls.addDeferredData.inverseViewMatrix = GE::getCameraViewMatrix().Invert().Transpose();
         ls.addDeferredData.inverseProjectionMatrix = GE::getProjectionMatrix().Invert().Transpose();
         ls.addDeferredData.camPos = Vector4(GE::getCameraPosition());
+        ls.addDeferredData.camDir = Vector4(GE::getCameraForwardVector());
         ls.addDeferredData.flags = static_cast<int>(LightSourceAdditionalFlags::NONE);
 
         ID3D11Buffer* rawLightDataBuf = ls.getLightSourceDataConstBuffer().Get();

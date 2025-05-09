@@ -40,6 +40,7 @@ public:
 	ComPtr<ID3D11DepthStencilView> getDepthView();
 	ID3D11DeviceContext* getDeviceContext();
 	const ComPtr<ID3D11SamplerState> getSamplerState();
+	ComPtr<ID3D11ShaderResourceView> getDepthSrv() const { return depthSRV; };
 private:
 	void update(float deltaTime);
 	void shadowPass();
@@ -60,6 +61,7 @@ private:
 	ID3D11Texture2D* backTex = nullptr;
 	ID3D11RenderTargetView* rtv = nullptr;
 	ComPtr<ID3D11Texture2D> depthBuffer;
+	ComPtr<ID3D11ShaderResourceView> depthSRV;
 	ComPtr<ID3D11DepthStencilView> depthView;
 	ComPtr<ID3D11SamplerState> sampler;
 

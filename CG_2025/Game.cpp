@@ -108,20 +108,29 @@ Game::Game()
 	depthTexDesc.Height = GE::getWindowHandler()->getWinHeight();
 	depthTexDesc.MipLevels = 1;
 	depthTexDesc.ArraySize = 1;
-	depthTexDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthTexDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	depthTexDesc.SampleDesc.Count = 1;
 	depthTexDesc.SampleDesc.Quality = 0;
 	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	depthTexDesc.CPUAccessFlags = 0;
 	depthTexDesc.MiscFlags = 0;
 	depthTexDesc.SampleDesc = { 1, 0 };
 
-	// Создание буфера глубины
 	res = device->CreateTexture2D(&depthTexDesc, nullptr, depthBuffer.GetAddressOf());
 
-	res = device->CreateTexture2D(&depthTexDesc, nullptr, &depthBuffer);
-	res = device->CreateDepthStencilView(depthBuffer.Get(), nullptr, &depthView);
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+	res = device->CreateDepthStencilView(depthBuffer.Get(), &dsvDesc, &depthView);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT; 
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(depthBuffer.Get(), &srvDesc, &depthSRV);
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;

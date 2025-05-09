@@ -105,6 +105,8 @@
     <ClInclude Include="LightSource.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="ModelImporter.h" />
+    <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="RectComponent.h" />

@@ -39,11 +39,29 @@ SamplerState samplerState: register(s0);
 
 struct GBuffer{
     float4 depthAmbient: SV_Target0;
-    float4 normal: SV_Target1;
-    float4 diffuse: SV_Target2;
-    float4 specExp: SV_Target3;
-    float4 globalCoords: SV_Target4;
+    float4 diffuseNormal: SV_Target1;
+    float4 specExp: SV_Target2;
 };
+
+float2 normalToLatitudeLongitude(float3 normal)
+{
+    float PI = 3.14159265f;
+    float theta = acos(normal.z);     
+    float phi = atan2(normal.y, normal.x);  
+
+    float latitude = theta / PI;
+    float longitude = (phi + PI) / (2.0 * PI);
+
+    return float2(latitude, longitude);
+}
+
+float packAsTwoUint16InFloat32(float2 valuesToPack)
+{
+    uint val1 = valuesToPack.x * 65535.0;
+    uint val2 = valuesToPack.y * 65535.0;
+    uint packed = ((val1 & 0xFFFF) << 16) | (val2 & 0xFFFF);
+    return asfloat(packed);
+}
 
 GBuffer PSMain(PS_IN input)
 {
@@ -53,11 +71,10 @@ GBuffer PSMain(PS_IN input)
     float depth = (-input.viewPos.z - nearPlane) / (farPlane - nearPlane);
     float3 textureColor = myTexture.Sample(samplerState, input.tex.xy).rgb;
 
-    buf.globalCoords = input.globalPos;
     buf.depthAmbient.x = depth;
     buf.depthAmbient.yzw = textureColor * constData.material.ambient.xyz;
-    buf.normal.xyz = input.norm;
-    buf.diffuse.rgb = textureColor * constData.material.diffuse.rgb;
+    buf.diffuseNormal.xyz = textureColor * constData.material.diffuse.rgb;
+    buf.diffuseNormal.w = packAsTwoUint16InFloat32(normalToLatitudeLongitude(input.norm));
     buf.specExp.rgb = constData.material.speculiar.rgb;
     buf.specExp.w = constData.material.exponent.r;
     return buf;

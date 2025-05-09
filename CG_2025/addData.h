@@ -30,6 +30,7 @@ struct LightSourceAddDataDeferred {
 	DirectX::SimpleMath::Matrix inverseViewMatrix;
 	DirectX::SimpleMath::Matrix inverseProjectionMatrix;
 	DirectX::SimpleMath::Vector4 camPos;
+	DirectX::SimpleMath::Vector4 camDir;
 	int flags;
 	int padding[3];
 };

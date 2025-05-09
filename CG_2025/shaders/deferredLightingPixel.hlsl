@@ -41,6 +41,7 @@ struct ConstantData
     float4x4 inverseViewMatrix;
 	float4x4 inverseProjectionMatrix;
     float4 camPos;
+    float4 camDir;
     int flags;
 };
 
@@ -49,14 +50,32 @@ cbuffer ConstBuf : register(b0)
     ConstantData constData;
 }
 
-Texture2DArray shadowMap : register(t1);
+Texture2DArray shadowMap : register(t0);
 SamplerComparisonState shadowCmpSampler : register(s1);
 
-Texture2D<float4> depthAmbientTex: register(t2);
-Texture2D<float4> normalTex: register(t3);
-Texture2D<float4> diffuseTex: register(t4);
-Texture2D<float4> specExpTex: register(t5);
-Texture2D<float4> globalPosTex: register(t6);
+Texture2D<float4> depthAmbientTex: register(t1);
+Texture2D<float4> diffuseNormalTex: register(t2);
+Texture2D<float4> specExpTex: register(t3);
+Texture2D<float> nonlinearDepthTex: register(t4);
+
+float3 unpackNormals(float packedLatitudeLongitude)
+{
+    uint packed = asint(packedLatitudeLongitude);
+    uint val1 = (packed >> 16) & 0xFFFF;
+    uint val2 = packed & 0xFFFF;
+    float latitude = val1 / 65535.0;
+    float longitude = val2 / 65535.0;
+
+    float PI = 3.14159265f;
+    // to radians
+    latitude = latitude * PI;
+    longitude = (longitude * 2.0f - 1.0) * PI;
+
+    float x = sin(latitude) * cos(longitude);
+    float y = sin(latitude) * sin(longitude);
+    float z = cos(latitude);
+    return normalize(float3(x, y, z));
+}
 
 float getShadowCoeff(float depth, float3 worldPos)
 {
@@ -81,7 +100,7 @@ float getShadowCoeff(float depth, float3 worldPos)
         return 1.0f;
 
     depth = lightSpacePos.z;
-    float bias = 0.0005f;
+    float bias = 0.0015f;
 
     float shadow = shadowMap.SampleCmpLevelZero(shadowCmpSampler, float3(shadowUV, layer), depth - bias);
     return lerp(0.3f, 1.0f, shadow); 
@@ -95,12 +114,9 @@ float4 PSMain(PS_IN input) : SV_Target
     const int POINT_LIGHT = 2;
     const int SPOT_LIGHT = 3;
 
-//     if (light.sourceType == POINT_LIGHT)
-//     {
-//         return float4(1.0f, 0.0, 0.0, 1.0);
-//     }
-
     float4 depthAmbient = depthAmbientTex.Load(int3(input.pos.xy, 0));
+
+    [branch]
     if (light.sourceType == AMBIENT_LIGHT)
     {
         // ambient
@@ -109,16 +125,27 @@ float4 PSMain(PS_IN input) : SV_Target
     else
     {
         float depth = depthAmbient.x;
-        float3 normal = normalTex.Load(int3(input.pos.xy, 0)).xyz;
-        float3 diffuse = diffuseTex.Load(int3(input.pos.xy, 0)).xyz;
+        float nonlinearDepth = nonlinearDepthTex.Load(int3(input.pos.xy, 0));
+        float4 diffuseNormal = diffuseNormalTex.Load(int3(input.pos.xy, 0));
+        float3 diffuse = diffuseNormal.xyz;
+        float3 normal =unpackNormals(diffuseNormal.w) ;
         float4 specExp = specExpTex.Load(int3(input.pos.xy, 0));
         float3 specular = specExp.xyz;
         float exponent = specExp.w;
-        float3 globalVertPos = globalPosTex.Load(int3(input.pos.xy, 0)).xyz;
+
+        float ndcX = input.pos.x / 800.0f * 2.0f - 1.0f;
+        float ndcY = -(input.pos.y / 800.0f * 2.0f - 1.0f);
+        float4 viewSpaceVertPos = mul(float4(ndcX, ndcY, nonlinearDepth, 1.0f), constData.inverseProjectionMatrix);
+        viewSpaceVertPos /= viewSpaceVertPos.w;
+        float4 globalSpaceVertPos = mul(viewSpaceVertPos, constData.inverseViewMatrix);
+        globalSpaceVertPos /= globalSpaceVertPos.w;
+        float3 globalVertPos = globalSpaceVertPos.xyz;
 
         float shineCoeff = 1.0f;
         float3 L;
         float shadow = 1.0f;
+
+        [branch]
         if (light.sourceType == DIRECTIONAL_LIGHT)
         {
             L = -normalize(light.direction);
