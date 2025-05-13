@@ -2,10 +2,13 @@
 #include "global.h"
 #include "Game.h"
 #include "AABB.h"
+#include "FireParticleSystem.h"
 
 RenderSubsystem::RenderSubsystem()
 {
     gBuf.init();
+    fireParticleSystem = std::make_shared<FireParticleSystem>(1e6, Vector3());
+    fireParticleSystem->init();
 
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
     D3D11_RASTERIZER_DESC rastDesc;

@@ -10,14 +10,14 @@ private:
 public:
 	Vector4 initialColor;
 	Vector4 endColor;
-	Vector3 position;
-	Vector3 prevPosition;
-	Vector3 velocity;
-	Vector3 acceleration;
+	Vector3 position;		float _1;
+	Vector3 prevPosition;	float _2;
+	Vector3 velocity;		float _3;
+	Vector3 acceleration;	float _4;
 	float maxLifetime;
 	float lifetime;
-	float initialSize;
-	float endSize;
-	float initialWeight;
-	float endWeight;
+	float initialSize= 1.0f;
+	float endSize = 1.0f;
+	float initialWeight = 1.0f;
+	float endWeight = 1.0f;
 };

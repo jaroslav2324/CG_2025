@@ -1,10 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include "GBuffer.h"
 
 class Game;
 struct AABB;
 class LightSource;
+class FireParticleSystem;
 
 enum class RenderType {
 	FORWARD = 0,
@@ -49,4 +52,6 @@ private:
 	std::vector<UINT> mockOffsets = { 0 };
 
 	ComPtr<ID3D11SamplerState> shadowSampler;
+
+	std::shared_ptr<FireParticleSystem> fireParticleSystem;
 };

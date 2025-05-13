@@ -23,6 +23,7 @@
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatamariBox.cpp" />
     <ClCompile Include="Delegates.cpp" />
+    <ClCompile Include="FireParticleSystem.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GBuffer.cpp" />
     <ClCompile Include="global.cpp" />
@@ -54,6 +55,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="shaders\deferredOpaqueVertex.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\fireEmitComputeShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders\fireSimulateComputeShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="shaders\lightSourcePixShader.hlsl">
@@ -94,6 +101,7 @@
     <ClInclude Include="BufferManager.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="Face.h" />
+    <ClInclude Include="FireParticleSystem.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />
     <ClInclude Include="GBuffer.h" />
@@ -106,6 +114,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleData.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PhysicsSubsystem.h" />
     <ClInclude Include="Plane.h" />
