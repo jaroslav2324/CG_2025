@@ -8,6 +8,26 @@
 
 using Microsoft::WRL::ComPtr;
 
+template <typename T>
+inline void mapConstantBuffer(ComPtr<ID3D11Buffer> buf, const T& data, ID3D11DeviceContext* context) {
+	D3D11_MAPPED_SUBRESOURCE res = {};
+	ID3D11Buffer* rawDataBuffer = buf.Get();
+	context->Map(rawDataBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	memcpy(dataPtr, &data, sizeof(data));
+	context->Unmap(rawDataBuffer, 0);
+}
+
+template <typename T>
+inline void mapConstantBuffer(ComPtr<ID3D11Buffer> buf, const std::vector<T>& data, ID3D11DeviceContext* context) {
+	D3D11_MAPPED_SUBRESOURCE res = {};
+	ID3D11Buffer* rawDataBuffer = buf.Get();
+	context->Map(rawDataBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+	auto dataPtr = reinterpret_cast<float*>(res.pData);
+	memcpy(dataPtr, data.data(), sizeof(T) * data.size());
+	context->Unmap(rawDataBuffer, 0);
+}
+
 class BufferManager {
 public:
 	ComPtr <ID3D11InputLayout> createInputLayout(

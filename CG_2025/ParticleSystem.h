@@ -20,6 +20,7 @@ protected:
 public:
 	ParticleSystem(unsigned int maxParticles, Vector3 origin): maxParticles(maxParticles), origin(origin) {};
 	virtual void update(float deltaTime) = 0;
+	virtual void simulate(float deltaTime) = 0;
 	virtual void render() = 0;
 	virtual void emit(int countToInit) = 0;
 	virtual void init() = 0;
@@ -35,8 +36,10 @@ protected:
 	ComPtr<ID3D11UnorderedAccessView> sortListBufferUAV;
 	ComPtr<ID3D11ShaderResourceView> sortListBufferSRV;
 	ComPtr<ID3D11Buffer> deadListBuffer = nullptr;
-	ComPtr<ID3D11UnorderedAccessView> deadListBufferUAV;
+	ComPtr<ID3D11UnorderedAccessView> deadListBufferAppendUAV;
+	ComPtr<ID3D11UnorderedAccessView> deadListBufferConsumeUAV;
 	ComPtr<ID3D11ShaderResourceView> deadListBufferSRV;
+	ComPtr<ID3D11Buffer> indirectArgsBuffer;
 	unsigned int maxParticles;
 	unsigned int numParticles;
 	Vector3 origin;

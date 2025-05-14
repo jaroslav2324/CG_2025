@@ -42,72 +42,24 @@ ComPtr<ID3D11PixelShader> ShaderManager::compileCreatePixelShader(
 	const std::wstring& filePath, const std::string& entryPoint,
 	const std::string& target, const D3D_SHADER_MACRO* macros, ID3DBlob** outByteCode /*= nullptr*/)
 {
-	ID3DBlob* pixelByteCode = getShader(filePath);
-	if (!pixelByteCode) {
-		compileShader(filePath, entryPoint, target, macros);
-		pixelByteCode = getShader(filePath);
-	}
-
 	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
-
-	ID3D11PixelShader* rawPixelShader ;
-	device->CreatePixelShader(
-		pixelByteCode->GetBufferPointer(),
-		pixelByteCode->GetBufferSize(),
-		nullptr, &rawPixelShader);
-	ComPtr<ID3D11PixelShader> pixelShader = rawPixelShader;
-	if (outByteCode) {
-		*outByteCode = pixelByteCode;
-	}
-	return pixelShader;
+	return compileCreateShader<ID3D11PixelShader>(device, filePath, entryPoint, target, macros, outByteCode);
 }
 
 ComPtr<ID3D11VertexShader> ShaderManager::compileCreateVertexShader(
 	const std::wstring& filePath, const std::string& entryPoint,
 	const std::string& target, const D3D_SHADER_MACRO* macros, ID3DBlob** outByteCode /*= nullptr*/)
 {
-	ID3DBlob* vertexByteCode = getShader(filePath);
-	if (!vertexByteCode) {
-		compileShader(filePath, entryPoint, target, macros);
-		vertexByteCode = getShader(filePath);
-	}
-
 	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
-
-	ID3D11VertexShader* rawPixelShader;
-	device->CreateVertexShader(
-		vertexByteCode->GetBufferPointer(),
-		vertexByteCode->GetBufferSize(),
-		nullptr, &rawPixelShader);
-	ComPtr<ID3D11VertexShader> vertexShader = rawPixelShader;
-	if (outByteCode) {
-		*outByteCode = vertexByteCode;
-	}
-	return vertexShader;
+	return compileCreateShader<ID3D11VertexShader>(device, filePath, entryPoint, target, macros, outByteCode);
 }
 
 ComPtr<ID3D11ComputeShader> ShaderManager::compileCreateComputeShader(
 	const std::wstring& filePath, const std::string& entryPoint,
 	const std::string& target, const D3D_SHADER_MACRO* macros, ID3DBlob** outByteCode)
 {
-	ID3DBlob* computeByteCode = getShader(filePath);
-	if (!computeByteCode) {
-		compileShader(filePath, entryPoint, target, macros);
-		computeByteCode = getShader(filePath);
-	}
-
 	ID3D11Device* device = GE::getGameSubsystem()->getDevice();
-
-	ID3D11ComputeShader* rawComputeShader;
-	device->CreateComputeShader(
-		computeByteCode->GetBufferPointer(),
-		computeByteCode->GetBufferSize(),
-		nullptr, &rawComputeShader);
-	ComPtr<ID3D11ComputeShader> computeShader = rawComputeShader;
-	if (outByteCode) {
-		*outByteCode = computeByteCode;
-	}
-	return computeShader;
+	return compileCreateShader<ID3D11ComputeShader>(device, filePath, entryPoint, target, macros, outByteCode);
 }
 
 ID3DBlob* ShaderManager::getShader(const std::wstring& filePath)

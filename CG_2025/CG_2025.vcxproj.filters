@@ -25,6 +25,12 @@
     <Filter Include="Header Files\Components">
       <UniqueIdentifier>{5878b72b-2f2f-42b9-8a70-e40fbaae365a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Particles">
+      <UniqueIdentifier>{be04f6b6-65b8-4681-bbcb-f48a53dff8e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Deferred">
+      <UniqueIdentifier>{dd27b854-8235-4464-92db-e29420af64b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -131,23 +137,32 @@
     <FxCompile Include="shaders\pixelShadowShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\deferredOpaquePixel.hlsl">
-      <Filter>Resource Files</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\deferredOpaqueVertex.hlsl">
-      <Filter>Resource Files</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\deferredLightingPixel.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="shaders\deferredLightingVertex.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\fireSimulateComputeShader.hlsl">
-      <Filter>Resource Files</Filter>
+    <FxCompile Include="shaders\deferredOpaquePixel.hlsl">
+      <Filter>Resource Files\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\deferredOpaqueVertex.hlsl">
+      <Filter>Resource Files\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="shaders\fireEmitComputeShader.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\fireSimulateComputeShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\fireGeometryShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\firePixelShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\fireVertexShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
