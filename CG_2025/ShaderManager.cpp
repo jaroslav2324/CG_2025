@@ -83,6 +83,6 @@ std::vector<D3D_SHADER_MACRO> ShaderManager::getShaderMacros(const std::wstring&
 ShaderManager::~ShaderManager()
 {
 	for (auto it = shadersMap.begin(); it != shadersMap.end(); it++) {
-		releaseIfNotNullptr(&it->second);
+		it->second->Release();
 	}
 }

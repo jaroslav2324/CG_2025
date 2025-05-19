@@ -132,7 +132,6 @@ int CatamariBox::drawShadow()
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShadowShader, nullptr, 0);
-	context->PSSetShader(pixelShadowShader, nullptr, 0);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;

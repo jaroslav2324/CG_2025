@@ -8,11 +8,7 @@ using DirectX::SimpleMath::Vector2;
 
 void FireParticleSystem::update(float deltaTime)
 {
-	for (auto& p : particleList) {
-		p.velocity += p.acceleration * deltaTime;
-		p.position += p.velocity * deltaTime;
-		p.lifetime += deltaTime;
-	}
+
 }
 
 void FireParticleSystem::simulate(float deltaTime)
@@ -24,12 +20,11 @@ void FireParticleSystem::simulate(float deltaTime)
 	mapConstantBuffer(particleDataBuffer, particleData, context);
 
 	ID3D11UnorderedAccessView* views[] = { particleBufferUAV.Get(), sortListBufferUAV.Get(), deadListBufferAppendUAV.Get() };
-	context->CSSetUnorderedAccessViews(0, 1, views, nullptr);
+	context->CSSetUnorderedAccessViews(0, 3, views, nullptr);
 	ID3D11Buffer* rawParticleDataBuffer = particleDataBuffer.Get();
 	context->CSSetConstantBuffers(0, 1, &rawParticleDataBuffer);
 	context->CSSetShader(computeSimulateShader.Get(), nullptr, 0);
 	context->Dispatch(32, 24, 1);
-	context->CSSetUnorderedAccessViews(0, 1, nullptr, nullptr);
 }
 
 void FireParticleSystem::render()

@@ -147,6 +147,7 @@ void RenderSubsystem::drawDeferred(float deltaTime)
 {
     drawDeferredOpaque(deltaTime);
     drawDeferredLighting(deltaTime);
+    drawParticles(deltaTime);
 }
 
 void RenderSubsystem::drawDeferredOpaque(float deltaTime)
@@ -213,7 +214,7 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
     AABB aabb;
     for (LightSource& ls : GE::getGameSubsystem()->lightSources) {
 
-        if (ls.ls.sourceType == DIRECTIONAL_LIGHT) {
+        if (ls.ls.sourceType == DIRECTIONAL_LIGHT || ls.ls.sourceType == AMBIENT_LIGHT) {
             ls.mapShadowMap();
 			auto rawLightShadowMapDataBuffer = ls.getShadowMapDataBuffer().Get();
             deviceContext->PSSetConstantBuffers(2, 1, &rawLightShadowMapDataBuffer);
@@ -296,4 +297,9 @@ void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
     context->PSSetConstantBuffers(0, 1, &rawConstBuf);
 
 	context->DrawIndexed(36, 0, 0); 
+}
+
+void RenderSubsystem::drawParticles(float deltaTime)
+{
+    // fireParticleSystem->simulate(deltaTime);
 }

@@ -27,6 +27,7 @@ private:
 	void drawDeferredLighting(float deltaTime);
 	void drawScreenAlignedQuad(LightSource& lightSource);
 	void drawAABB(const AABB& box, LightSource& lightSource);
+	void drawParticles(float deltaTime);
 
 	RenderType renderType = RenderType::FORWARD;
 	GBuffer gBuf;

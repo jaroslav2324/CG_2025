@@ -111,9 +111,7 @@ int CatamariBall::drawShadow()
 	context->IASetVertexBuffers(0, 1, &rawVertBuffer, strides.data(), offsets.data());
 	ID3D11Buffer* rawAdditionalBuffer = additionalBuffer.Get();
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
-	GE::getRenderSubsystem()->bindDefaultShaders();
 	context->VSSetShader(vertexShadowShader, nullptr, 0);
-	context->PSSetShader(pixelShadowShader, nullptr, 0);
 
 	context->DrawIndexed(indexBufferData.size(), 0, 0);
 	return 0;
