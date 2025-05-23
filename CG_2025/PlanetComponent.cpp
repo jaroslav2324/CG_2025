@@ -112,6 +112,7 @@ int PlanetComponent::draw(float deltaTime)
 	context->VSSetConstantBuffers(0, 1, &rawAdditionalBuffer);
 	context->VSSetShader(vertexShader, nullptr, 0);
 	context->PSSetShader(pixelShader, nullptr, 0);
+	context->GSSetShader(nullptr, nullptr, 0);
 
 	context->DrawIndexed(indices.size(), 0, 0);
 	return 0;

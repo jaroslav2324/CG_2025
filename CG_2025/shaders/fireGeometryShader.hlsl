@@ -34,7 +34,7 @@ struct GSOutput
     float4 color : COLOR0;
 };
 
-StructuredBuffer<Particle> particlePool : register(t1);
+StructuredBuffer<Particle> particlePool : register(t0);
 
 [maxvertexcount(4)]
 void GSMain(point VSOutput input[1], inout TriangleStream<GSOutput> triStream)

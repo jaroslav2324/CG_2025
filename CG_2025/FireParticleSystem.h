@@ -21,4 +21,5 @@ protected:
 	ComPtr<ID3D11PixelShader> pixelShader;
 	ParticleData particleData;
 	ComPtr<ID3D11Buffer> particleDataBuffer;
+	//ComPtr<ID3D11Buffer> aliveCountBuffer;
 };

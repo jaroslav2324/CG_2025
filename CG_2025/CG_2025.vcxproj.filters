@@ -265,6 +265,9 @@
     <ClInclude Include="RectComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="SortListStruct.h">
+      <Filter>Header Files\Particles</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\vcpkg.json" />

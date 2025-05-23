@@ -8,9 +8,9 @@ private:
 	using Vector3 = DirectX::SimpleMath::Vector3;
 public:
 	float deltaTime;
-	unsigned int numParticles;
+	unsigned int maxNumParticles;
 	unsigned int numEmitInThisFrame;
-	int _1;
+	unsigned int numDeadParticles;
 	Vector3 emitPosition;
 	int _2;
 };

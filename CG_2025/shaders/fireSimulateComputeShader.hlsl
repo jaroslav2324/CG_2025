@@ -26,9 +26,9 @@ AppendStructuredBuffer<uint> deadListBuffer: register(u2);
 cbuffer ParticleParams : register(b0)
 {
     float deltaTime;
-    uint numParticles;
-    uint numEmitInTHisFrame;
-    int _1;
+    uint maxNumParticles;
+    uint numEmitInThisFrame;
+    int numDeadParticles;
     float3 emitPosition;
     int _2;
 };
@@ -46,30 +46,35 @@ float distanceSquared(float3 a, float3 b)
 [numthreads(32, 24, 1)]
 void CSMain(uint3 DTid : SV_DispatchThreadID)
 {
-    uint index = DTid.y * 32 + DTid.x;
+    uint sortStructIndex = DTid.y * 32 + DTid.x;
 
-    if (index >= numParticles)
+    uint numAliveParticles = maxNumParticles - numDeadParticles;
+    if (sortStructIndex >= numAliveParticles)
         return;
 
-    Particle p = particlePool[index];
+    // simulate
+    SortListStruct sls = sortListBuffer[sortStructIndex];
+    uint particleIndex = sls.index;
+    Particle p = particlePool[particleIndex];
 
+    p.lifetime += deltaTime;
+    p.prevPosition = p.position;
+    p.position += p.velocity * deltaTime;
+    p.velocity += p.acceleration * deltaTime;
+
+    [branch]
     if (p.lifetime >= p.maxLifetime)
     {
-        deadListBuffer.Append(index);
+        deadListBuffer.Append(particleIndex);
+        sls.distanceSq = 100000.0f;
+        p.initialColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        sortListBuffer.DecrementCounter();
     }
     else
     {
-        p.lifetime += deltaTime;
-        p.prevPosition = p.position;
-        p.position += p.velocity * deltaTime;
-        p.velocity += p.acceleration * deltaTime;
-
         float distSq = distanceSquared(p.position, cameraPosition);
-        SortListStruct entry;
-        entry.index = index;
-        entry.distanceSq = distSq;
-        uint sortListIndex = sortListBuffer.IncrementCounter();
-        sortListBuffer[sortListIndex] = entry;
-        particlePool[index] = p;
+        sls.distanceSq = distSq;
     }
+    particlePool[particleIndex] = p;
+    sortListBuffer[sortStructIndex] = sls;
 }

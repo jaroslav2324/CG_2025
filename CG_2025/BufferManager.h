@@ -44,7 +44,7 @@ public:
 	template <typename T>
 	ComPtr <ID3D11Buffer> createIndexBuffer(const std::vector<T>& data);
 	template <typename T>
-	ComPtr<ID3D11Buffer> createRWStructuredBuffer(ID3D11Device* device, int numParticles);
+	ComPtr<ID3D11Buffer> createRWStructuredBuffer(ID3D11Device* device, int numParticles, T* initData = nullptr);
 	template<typename T>
 	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(const std::vector<T>& data);
 	template<typename T>
@@ -77,19 +77,28 @@ inline ComPtr<ID3D11Buffer> BufferManager::createIndexBuffer(const std::vector<T
 	return createBuffer(indexBufDesc, getDefaultSubresourceData(data));
 }
 
-template<typename ParticleType>
-inline ComPtr<ID3D11Buffer> BufferManager::createRWStructuredBuffer(ID3D11Device* device, int numParticles)
+template<typename T>
+inline ComPtr<ID3D11Buffer> BufferManager::createRWStructuredBuffer(ID3D11Device* device, int numElements, T* initData /*= nullptr*/)
 {
 	D3D11_BUFFER_DESC desc = {};
 	desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-	desc.ByteWidth = sizeof(ParticleType) * numParticles;
+	desc.ByteWidth = sizeof(T) * numElements;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	desc.StructureByteStride = sizeof(ParticleType);
+	desc.StructureByteStride = sizeof(T);
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.CPUAccessFlags = 0;
 
 	ID3D11Buffer* rawBufferPtr = nullptr;
-	device->CreateBuffer(&desc, nullptr, &rawBufferPtr);
+	if (initData) {
+		D3D11_SUBRESOURCE_DATA subresourceData = {};
+		subresourceData.pSysMem = initData;
+		subresourceData.SysMemPitch = 0;
+		subresourceData.SysMemSlicePitch = 0;
+		device->CreateBuffer(&desc, &subresourceData, &rawBufferPtr);
+	}
+	else {
+		device->CreateBuffer(&desc, nullptr, &rawBufferPtr);
+	}
 	return ComPtr<ID3D11Buffer>(rawBufferPtr);
 }
 

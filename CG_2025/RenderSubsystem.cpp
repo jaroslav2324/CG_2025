@@ -7,7 +7,7 @@
 RenderSubsystem::RenderSubsystem()
 {
     gBuf.init();
-    fireParticleSystem = std::make_shared<FireParticleSystem>(1e6, Vector3());
+    fireParticleSystem = std::make_shared<FireParticleSystem>(100, Vector3(0.0f, 5.0f, 0.0f));
     fireParticleSystem->init();
 
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -301,5 +301,7 @@ void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
 
 void RenderSubsystem::drawParticles(float deltaTime)
 {
-    // fireParticleSystem->simulate(deltaTime);
+    fireParticleSystem->simulate(deltaTime);
+    fireParticleSystem->emit(10);
+	//fireParticleSystem->render();
 }

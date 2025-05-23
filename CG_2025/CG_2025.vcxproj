@@ -134,6 +134,7 @@
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="PlanetComponent.h" />
     <ClInclude Include="ShadowMap.h" />
+    <ClInclude Include="SortListStruct.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="WindowHandler.h" />
