@@ -10,7 +10,9 @@ public:
 	float deltaTime;
 	unsigned int maxNumParticles;
 	unsigned int numEmitInThisFrame;
-	unsigned int numDeadParticles;
+	unsigned int numAliveParticles;
 	Vector3 emitPosition;
+	int _1;
+	Vector3 cameraPosition;
 	int _2;
 };

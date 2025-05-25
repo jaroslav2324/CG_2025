@@ -28,28 +28,29 @@ cbuffer ParticleParams : register(b0)
     float deltaTime;
     uint maxNumParticles;
     uint numEmitInThisFrame;
-    int numDeadParticles;
+    int numAliveParticles;
     float3 emitPosition;
+    int _1;
+    float3 cameraPosition;
     int _2;
 };
 
-// TODO move in constant buffer
-float3 cameraPosition = float3(0, 0, 0); 
-
-// TODO valid?
 float distanceSquared(float3 a, float3 b)
 {
     float3 d = a - b;
     return dot(d, d);
 }
 
-[numthreads(32, 24, 1)]
-void CSMain(uint3 DTid : SV_DispatchThreadID)
-{
-    uint sortStructIndex = DTid.y * 32 + DTid.x;
+#define NUM_THREADS_IN_GROUP 1024
 
-    uint numAliveParticles = maxNumParticles - numDeadParticles;
-    if (sortStructIndex >= numAliveParticles)
+[numthreads(32, 32, 1)]
+void CSMain(uint3 DTid : SV_GroupThreadID,
+ uint3 Gid : SV_GroupID)
+{
+    uint threadGroupOffset = NUM_THREADS_IN_GROUP * (Gid.x + Gid.y * 32);
+    uint sortStructIndex = threadGroupOffset + DTid.y * 32 + DTid.x;
+
+    if (sortStructIndex >= numAliveParticles || sortStructIndex >= maxNumParticles)
         return;
 
     // simulate
@@ -67,7 +68,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     {
         deadListBuffer.Append(particleIndex);
         sls.distanceSq = 100000.0f;
-        p.initialColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        p.initialColor = float4(0.0f, 0.0f, 1.0f, 1.0f);
+        p.endColor = float4(0.0f, 0.0f, 1.0f, 1.0f);
         sortListBuffer.DecrementCounter();
     }
     else

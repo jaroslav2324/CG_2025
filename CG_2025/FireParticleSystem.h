@@ -21,5 +21,17 @@ protected:
 	ComPtr<ID3D11PixelShader> pixelShader;
 	ParticleData particleData;
 	ComPtr<ID3D11Buffer> particleDataBuffer;
-	//ComPtr<ID3D11Buffer> aliveCountBuffer;
+
+	struct CameraData
+	{
+		Matrix view;
+		Matrix proj;
+		Vector3 forward;
+		float _1;
+		Vector3 up;
+		float _2;
+	};
+
+	CameraData camData;
+	ComPtr<ID3D11Buffer> camDataBuffer;
 };

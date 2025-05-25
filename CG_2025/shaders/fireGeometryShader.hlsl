@@ -18,8 +18,10 @@ cbuffer CameraData : register(b0)
 {
     float4x4 view;
     float4x4 proj;
-    float3 camRight;
+    float3 camForward;
+    float _1;
     float3 camUp;
+    float _2;
 };
 
 struct VSOutput
@@ -45,34 +47,37 @@ void GSMain(point VSOutput input[1], inout TriangleStream<GSOutput> triStream)
     float size = lerp(p.initialSize, p.endSize, p.lifetime / p.maxLifetime);
     float4 color = lerp(p.initialColor, p.endColor, p.lifetime / p.maxLifetime);
 
-    float4 viewSpacePos = mul(float4(center, 1.0), view);
-    center = viewSpacePos.xyz;
+    float3 camRight = cross(camForward, camUp); 
 
-    float3 right = float3(1.0f, 0.0f, 0.0f) * size * 0.5f;
-    float3 up    = float3(0.0f, 1.0f, 0.0f) * size * 0.5f;
+    float3 right = camRight * (size * 0.5f);
+    float3 up    = camUp    * (size * 0.5f);
 
     float3 positions[4] = {
-        center - right + up, 
-        center + right + up, 
-        center + right - up,
-        center - right - up
+        center - right + up,   // top-left     (0)
+        center + right + up,   // top-right    (1)
+        center - right - up,   // bottom-left  (2)
+        center + right - up    // bottom-right (3)
     };
 
-    // TODO: need texture or not?
     float2 uvs[4] = {
         float2(0, 0),
         float2(1, 0),
-        float2(1, 1),
-        float2(0, 1)
+        float2(0, 1),
+        float2(1, 1)
     };
 
-    [unroll]
-    for (int i = 0; i < 4; ++i)
-    {
-        GSOutput o;
-        o.pos = mul(float4(positions[i], 1.0), proj);
+    GSOutput o;
+
+    // Order: 0-1-2-3
+    for (int i = 0; i < 4; i++){
+        o.pos = mul(float4(positions[i], 1.0f), view); 
+        o.pos /= o.pos.w;
+        o.pos = mul(o.pos, proj);
+        //o.pos /= o.pos.w;
         o.uv = uvs[i];
         o.color = color;
         triStream.Append(o);
     }
+ 
+    triStream.RestartStrip();
 }

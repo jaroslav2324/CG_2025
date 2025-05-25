@@ -105,6 +105,9 @@
     <ClCompile Include="FireParticleSystem.cpp">
       <Filter>Source Files\Particles</Filter>
     </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source Files\Particles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\pixelShader.hlsl">
@@ -162,6 +165,12 @@
       <Filter>Resource Files\Particles</Filter>
     </FxCompile>
     <FxCompile Include="shaders\fireVertexShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\sortBitonicShader.hlsl">
+      <Filter>Resource Files\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\sortTransposeShader.hlsl">
       <Filter>Resource Files\Particles</Filter>
     </FxCompile>
   </ItemGroup>
