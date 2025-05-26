@@ -1,9 +1,12 @@
 #include "FireParticleSystem.h"
 
+#include "DirectXTex.h"
+
 #include <array>
 
 #include "global.h"
 #include "SortListStruct.h"
+#include "util.h"
 
 void FireParticleSystem::update(float deltaTime)
 {
@@ -64,6 +67,8 @@ void FireParticleSystem::render()
 	context->GSSetConstantBuffers(0, 1, camDataBuffer.GetAddressOf());
 	context->GSSetShader(geometryShader.Get(), nullptr, 0);
 	
+	context->PSSetShaderResources(0, 1, &particleTexture);
+	context->PSSetSamplers(0, 1, sampler.GetAddressOf());
 	context->PSSetShader(pixelShader.Get(), nullptr, 0);
 
 	context->IASetInputLayout(nullptr);
@@ -75,6 +80,13 @@ static bool firstEmit = true;
 void FireParticleSystem::emit(int countToInit)
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+
+	initParticles(countToInit);
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	context->Map(injectionBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	memcpy(mapped.pData, injectionParticleData, sizeof(Particle) * injectionBufferSize);
+	context->Unmap(injectionBuffer.Get(), 0);
+
 	particleData.numEmitInThisFrame = countToInit;
 	particleData.emitPosition = origin;
 	particleData.maxNumParticles = maxParticles;
@@ -104,6 +116,7 @@ void FireParticleSystem::emit(int countToInit)
 	
 	ID3D11Buffer* rawParticleDataBuffer = particleDataBuffer.Get();
 	context->CSSetConstantBuffers(0, 1, &rawParticleDataBuffer);
+	context->CSSetShaderResources(0, 1, injectionSRV.GetAddressOf());
 	context->Dispatch(1, 1, 1);
 	ID3D11UnorderedAccessView* np = nullptr;
 	context->CSSetUnorderedAccessViews(0, 1, &np, nullptr);
@@ -135,6 +148,8 @@ void FireParticleSystem::init()
 	deadListBuffer = bufferManager->createRWStructuredBuffer<unsigned int>(device, maxParticles, deadIndices.data());
 	particleData.numAliveParticles = 0;
 	particleDataBuffer = bufferManager->createConstDynamicBufferCPUWrite(particleData);
+
+	injectionBuffer = bufferManager->createRWStructuredBufferCPUWrite<Particle>(device, injectionBufferSize);
 
 	// particle buffer
 	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -176,6 +191,12 @@ void FireParticleSystem::init()
 	srvDesc.Buffer.NumElements = maxParticles;
 	device->CreateShaderResourceView(deadListBuffer.Get(), &srvDesc, deadListBufferSRV.GetAddressOf());
 
+	srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.ElementWidth = injectionBufferSize;
+	device->CreateShaderResourceView(injectionBuffer.Get(), &srvDesc, &injectionSRV);
+
 	// indirect args buffer
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = 16;
@@ -194,6 +215,22 @@ void FireParticleSystem::init()
 	srd.pSysMem = &args;
 	device->CreateBuffer(&desc, &srd, indirectArgsBuffer.GetAddressOf());
 
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 1.0f;
+	samplerDesc.BorderColor[1] = 0.0f;
+	samplerDesc.BorderColor[2] = 0.0f;
+	samplerDesc.BorderColor[3] = 1.0f;
+	samplerDesc.MipLODBias = 0;
+	samplerDesc.MaxAnisotropy = 0;
+	samplerDesc.MaxLOD = INT_MAX;
+
+	device->CreateSamplerState(&samplerDesc, &sampler);
+
 	camDataBuffer = bufferManager->createConstDynamicBufferCPUWrite(camData);
 
 	computeSimulateShader = shaderManager->compileCreateComputeShader(L"./shaders/fireSimulateComputeShader.hlsl", "CSMain", "cs_5_0", nullptr);
@@ -201,9 +238,39 @@ void FireParticleSystem::init()
 	vertexShader = shaderManager->compileCreateShader<ID3D11VertexShader>(device, L"./shaders/fireVertexShader.hlsl", "VSMain", "vs_5_0", nullptr);
 	geometryShader = shaderManager->compileCreateShader<ID3D11GeometryShader>(device, L"./shaders/fireGeometryShader.hlsl", "GSMain", "gs_5_0", nullptr);
 	pixelShader = shaderManager->compileCreateShader<ID3D11PixelShader>(device, L"./shaders/firePixelShader.hlsl", "PSMain", "ps_5_0", nullptr);
+
+	DirectX::ScratchImage si;
+	DirectX::LoadFromDDSFile(L"./models/agakakskagesh.dds", DirectX::DDS_FLAGS_NONE, nullptr, si);
+	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &particleTexture);
+}
+
+void FireParticleSystem::initParticles(int count) {
+	for (int i = 0; i < count; i++) {
+		initParticle(i);
+	}
 }
 
 void FireParticleSystem::initParticle(int index)
 {
+	if (index < 0 || index >= injectionBufferSize) {
+		return;
+	}
 
+	Particle p;
+	p.acceleration = Vector3(0.0f, 4.0f * -0.981f, 0.0f);
+	p.initialColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	p.endColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	p.initialSize = 0.02f;
+	p.endSize = 0.03f;
+	p.initialWeight = 1.0f;
+	p.endWeight = 1.0f;
+	p.lifetime = 0.0f;
+	p.maxLifetime = 3.0f;
+	p.position = origin;
+	p.prevPosition = origin;
+
+	float rf = generateRandomFloat(0.0f, 1.0f * DirectX::XM_2PI);
+	p.velocity = generateRandomFloat(0.3f, 2.0f) * Vector3(std::sin(rf), 0.0f, std::cos(rf));
+
+	injectionParticleData[index] = p;
 }

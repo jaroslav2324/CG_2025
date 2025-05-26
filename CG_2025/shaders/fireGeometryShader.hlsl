@@ -47,16 +47,17 @@ void GSMain(point VSOutput input[1], inout TriangleStream<GSOutput> triStream)
     float size = lerp(p.initialSize, p.endSize, p.lifetime / p.maxLifetime);
     float4 color = lerp(p.initialColor, p.endColor, p.lifetime / p.maxLifetime);
 
-    float3 camRight = cross(camForward, camUp); 
+    float3 camRight = normalize(cross(camForward, camUp)); 
 
-    float3 right = camRight * (size * 0.5f);
-    float3 up    = camUp    * (size * 0.5f);
+    // float3 forward = -normalize(view._13_23_33); 
+    float3 up = normalize(view._12_22_32) * 0.5f * size;       
+    float3 right = normalize(view._11_21_31) * 0.5f * size;    
 
     float3 positions[4] = {
-        center - right + up,   // top-left     (0)
-        center + right + up,   // top-right    (1)
-        center - right - up,   // bottom-left  (2)
-        center + right - up    // bottom-right (3)
+        center - right + up,   
+        center + right + up,   
+        center - right - up,   
+        center + right - up    
     };
 
     float2 uvs[4] = {

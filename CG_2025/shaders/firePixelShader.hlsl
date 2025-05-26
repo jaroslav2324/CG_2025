@@ -1,5 +1,5 @@
-// Texture2D tex : register(t0);
-// SamplerState samp : register(s0);
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
 
 struct PSInput
 {
@@ -10,7 +10,6 @@ struct PSInput
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-    return input.color;
-//     float4 texColor = tex.Sample(samp, input.uv);
-//     return texColor * input.color;
+    return input.color * tex.Sample(samp, input.uv);
+    //return tex.Sample(samp, input.uv);
 }

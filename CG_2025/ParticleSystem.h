@@ -10,6 +10,8 @@
 
 using Microsoft::WRL::ComPtr;
 
+constexpr int injectionBufferSize = 1024;
+
 class ParticleSystem
 {
 protected:
@@ -48,9 +50,7 @@ protected:
 	ComPtr<ID3D11ComputeShader> bitonicTransposeShader;
 
 	unsigned int maxParticles;
-	//unsigned int numParticles;
 	Vector3 origin;
-	//Vector3 force;
 
 	struct CBSort
 	{
@@ -61,4 +61,9 @@ protected:
 	};
 
 	CBSort cbSortData;
+
+	const int maxNumInjectionParticles = injectionBufferSize;
+	Particle injectionParticleData[injectionBufferSize];
+	ComPtr<ID3D11Buffer> injectionBuffer;
+	ComPtr<ID3D11ShaderResourceView> injectionSRV;
 };

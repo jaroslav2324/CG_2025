@@ -145,6 +145,15 @@ void GBuffer::bindPixelShaderResourceViews(int startSlot) const
 	context->PSSetShaderResources(startSlot, 4, rsvs);
 }
 
+void GBuffer::unbindPixelShaderResourceViews(int startSlot) const
+{
+	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();
+	ID3D11ShaderResourceView* rsvs[] = {nullptr};
+	for (int i = startSlot; i < startSlot + 4; i++) {
+		context->PSSetShaderResources(i, 1, rsvs);
+	}
+}
+
 void GBuffer::clearRenderTargets() const
 {
 	ID3D11DeviceContext* context = GE::getGameSubsystem()->getDeviceContext();

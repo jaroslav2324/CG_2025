@@ -45,10 +45,13 @@ public:
 	ComPtr <ID3D11Buffer> createIndexBuffer(const std::vector<T>& data);
 	template <typename T>
 	ComPtr<ID3D11Buffer> createRWStructuredBuffer(ID3D11Device* device, int numParticles, T* initData = nullptr);
+	template <typename T>
+	ComPtr<ID3D11Buffer> createRWStructuredBufferCPUWrite(ID3D11Device* device, int numParticles);
 	template<typename T>
 	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(const std::vector<T>& data);
 	template<typename T>
 	ComPtr <ID3D11Buffer> createConstDynamicBufferCPUWrite(T& data);
+
 	ComPtr <ID3D11Buffer> createBuffer(const D3D11_BUFFER_DESC buffDesc,
 		const D3D11_SUBRESOURCE_DATA subresourceData);
 
@@ -99,6 +102,23 @@ inline ComPtr<ID3D11Buffer> BufferManager::createRWStructuredBuffer(ID3D11Device
 	else {
 		device->CreateBuffer(&desc, nullptr, &rawBufferPtr);
 	}
+	return ComPtr<ID3D11Buffer>(rawBufferPtr);
+}
+
+template<typename T>
+inline ComPtr<ID3D11Buffer> BufferManager::createRWStructuredBufferCPUWrite(ID3D11Device* device, int numElements)
+{
+	D3D11_BUFFER_DESC desc = {};
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.ByteWidth = sizeof(T) * numElements;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	desc.StructureByteStride = sizeof(T);
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	ID3D11Buffer* rawBufferPtr = nullptr;
+	device->CreateBuffer(&desc, nullptr, &rawBufferPtr);
+	
 	return ComPtr<ID3D11Buffer>(rawBufferPtr);
 }
 

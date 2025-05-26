@@ -29,6 +29,8 @@ RWStructuredBuffer<Particle> particlePool : register(u0);
 RWStructuredBuffer<SortListStruct> sortListBuffer: register(u1);
 ConsumeStructuredBuffer<uint> deadListIn : register(u2);
 
+StructuredBuffer<Particle> injectionBuffer : register(t0);
+
 cbuffer ParticleParams : register(b0)
 {
     float deltaTime;
@@ -52,24 +54,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
 
     uint particleIndex = deadListIn.Consume();
 
-    Particle p;
-    p.position = emitPosition;
-    p.prevPosition = emitPosition;
-    p.velocity = float3(0.0f, 4.0f, 0.0f) * 0.5f;
-    p.acceleration = float3(0, 4 * -0.981f, 0); 
-    p.maxLifetime = 4.0f;
-    p.lifetime = 0.0f;
-
-    p.initialColor = float4(0.5, 0.3, 0.0, 1);  
-    p.endColor = float4(0.01, 0.01, 0.01, 0);  
-
-    p.initialSize = 1.1;
-    p.endSize = 1.3;
-
-    p.initialWeight = 1.0;
-    p.endWeight = 1.0;
-
-    p._1 = 0; p._2 = 0; p._3 = 0; p._4 = 0; // padding
+    Particle p = injectionBuffer[index];
 
     particlePool[particleIndex] = p;
     SortListStruct sls;

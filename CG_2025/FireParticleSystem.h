@@ -13,6 +13,7 @@ public:
 	void init() override;
 
 protected:
+	void initParticles(int count);
 	void initParticle(int index) override;
 	ComPtr<ID3D11ComputeShader> computeSimulateShader;
 	ComPtr<ID3D11ComputeShader> computeEmitShader;
@@ -21,6 +22,9 @@ protected:
 	ComPtr<ID3D11PixelShader> pixelShader;
 	ParticleData particleData;
 	ComPtr<ID3D11Buffer> particleDataBuffer;
+
+	ComPtr<ID3D11SamplerState> sampler;
+	ID3D11ShaderResourceView* particleTexture = nullptr;
 
 	struct CameraData
 	{

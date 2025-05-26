@@ -55,7 +55,7 @@ void ParticleSystem::sort()
 	// Transpose. Sort the Columns. Transpose. Sort the Rows.
 	for (UINT level = (BITONIC_BLOCK_SIZE * 2); level <= maxParticles; level = level * 2)
 	{
-		setConstants((level / BITONIC_BLOCK_SIZE), (level & ~maxParticles) / BITONIC_BLOCK_SIZE, MATRIX_WIDTH, MATRIX_HEIGHT);
+		setConstants(level / BITONIC_BLOCK_SIZE, level, MATRIX_WIDTH, MATRIX_HEIGHT);
 
 		// Transpose the data from buffer 1 into buffer 2
 		context->CSSetUnorderedAccessViews(0, 1, sortListBufferUAV.GetAddressOf(), nullptr);

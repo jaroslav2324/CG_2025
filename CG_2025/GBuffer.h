@@ -12,6 +12,7 @@ public:
 	void init();
 	void setGBufferRenderTargets() const;
 	void bindPixelShaderResourceViews(int startSlot) const;
+	void unbindPixelShaderResourceViews(int startSlot) const;
 	void clearRenderTargets() const;
 private:
 	ComPtr<ID3D11Texture2D> depthAmbient = nullptr;

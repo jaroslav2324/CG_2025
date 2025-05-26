@@ -41,7 +41,9 @@ private:
 	ComPtr<ID3D11DepthStencilState> DSStateNoWriteNoCheck = nullptr;
 	ComPtr<ID3D11DepthStencilState> DSStateNoWriteGreater = nullptr;
 	ComPtr<ID3D11DepthStencilState> DSStateNoWriteLess = nullptr;
+	ComPtr<ID3D11DepthStencilState> DSStateBasic = nullptr;
 
+	ComPtr<ID3D11RasterizerState> rastStateNoCull = nullptr;
 	ComPtr<ID3D11RasterizerState> rastStateCullFront = nullptr;
 	ComPtr<ID3D11RasterizerState> rastStateCullBack = nullptr;
 

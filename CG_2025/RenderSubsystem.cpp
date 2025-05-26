@@ -7,7 +7,7 @@
 RenderSubsystem::RenderSubsystem()
 {
     gBuf.init();
-    fireParticleSystem = std::make_shared<FireParticleSystem>(512, Vector3(0.0f, 5.0f, 0.0f));
+    fireParticleSystem = std::make_shared<FireParticleSystem>(4096, Vector3(0.0f, 5.0f, 0.0f));
     fireParticleSystem->init();
 
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -33,6 +33,18 @@ RenderSubsystem::RenderSubsystem()
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_GREATER;
 	depthStencilDesc.StencilEnable = false;
 	device->CreateDepthStencilState(&depthStencilDesc, &DSStateNoWriteGreater);
+
+	depthStencilDesc = {};
+    depthStencilDesc.DepthEnable = TRUE;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDesc.StencilEnable = false;
+	device->CreateDepthStencilState(&depthStencilDesc, &DSStateBasic);
+
+	rastDesc = {};
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&rastDesc, &rastStateNoCull);
 
     rastDesc = {};
     rastDesc.FillMode = D3D11_FILL_SOLID;
@@ -268,6 +280,8 @@ void RenderSubsystem::drawDeferredLighting(float deltaTime)
             }
         }
     }
+
+    gBuf.unbindPixelShaderResourceViews(1);
 }
 
 void RenderSubsystem::drawScreenAlignedQuad(LightSource& lightSource)
@@ -301,6 +315,11 @@ void RenderSubsystem::drawAABB(const AABB& box, LightSource& lightSource)
 
 void RenderSubsystem::drawParticles(float deltaTime)
 {
+    auto context = GE::getGameSubsystem()->getDeviceContext();
     fireParticleSystem->update(deltaTime);
+    context->RSSetState(rastStateNoCull.Get());
+    ID3D11RenderTargetView* rtv = GE::getGameSubsystem()->rtv;
+    context->OMSetRenderTargets(1, &rtv, GE::getGameSubsystem()->getDepthView().Get());
+    context->OMSetDepthStencilState(DSStateNoWriteLess.Get(), NULL);
 	fireParticleSystem->render();
 }
