@@ -10,7 +10,8 @@
 
 void FireParticleSystem::update(float deltaTime)
 {
-	emit(10);
+	emit(std::round(128000 * deltaTime));
+	//emit(std::round(1000 * deltaTime));
 	simulate(deltaTime);
 	sort();
 	
@@ -140,6 +141,7 @@ void FireParticleSystem::init()
 		sl.push_back({ i, 100000.0f });
 	}
 	sortListBuffer = bufferManager->createRWStructuredBuffer<SortListStruct>(device, maxParticles, sl.data());
+	sortListBuffer2 = bufferManager->createRWStructuredBuffer<SortListStruct>(device, maxParticles, sl.data());
 	std::vector<uint32_t> deadIndices(maxParticles);
 	deadIndices.reserve(maxParticles);
 	for (uint32_t i = 0; i < maxParticles; ++i) {
@@ -170,11 +172,13 @@ void FireParticleSystem::init()
 	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
 	uavDesc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
 	device->CreateUnorderedAccessView(sortListBuffer.Get(), &uavDesc, sortListBufferUAV.GetAddressOf());
+	device->CreateUnorderedAccessView(sortListBuffer2.Get(), &uavDesc, sortListBufferUAV2.GetAddressOf());
 	srvDesc = {};
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	srvDesc.Buffer.NumElements = maxParticles;
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	device->CreateShaderResourceView(sortListBuffer.Get(), &srvDesc, sortListBufferSRV.GetAddressOf());
+	device->CreateShaderResourceView(sortListBuffer2.Get(), &srvDesc, sortListBufferSRV2.GetAddressOf());
 
 	// dead list
 	uavDesc = {};
@@ -244,6 +248,15 @@ void FireParticleSystem::init()
 	DirectX::CreateShaderResourceView(GE::getGameSubsystem()->getDevice(), si.GetImages(), si.GetImageCount(), si.GetMetadata(), &particleTexture);
 }
 
+Vector4 FireParticleSystem::randClr()
+{
+	int ri = generateRandomInt(0, 2);
+	if (ri == 0) return Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+	if (ri == 1) return Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+	if (ri == 2) return Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+	return Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
 void FireParticleSystem::initParticles(int count) {
 	for (int i = 0; i < count; i++) {
 		initParticle(i);
@@ -259,7 +272,7 @@ void FireParticleSystem::initParticle(int index)
 	Particle p;
 	p.acceleration = Vector3(0.0f, 4.0f * -0.981f, 0.0f);
 	p.initialColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	p.endColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	p.endColor = randClr();//Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	p.initialSize = 0.02f;
 	p.endSize = 0.03f;
 	p.initialWeight = 1.0f;
@@ -271,6 +284,7 @@ void FireParticleSystem::initParticle(int index)
 
 	float rf = generateRandomFloat(0.0f, 1.0f * DirectX::XM_2PI);
 	p.velocity = generateRandomFloat(0.3f, 2.0f) * Vector3(std::sin(rf), 0.0f, std::cos(rf));
+	p.velocity.y = generateRandomFloat(0.0f, 1.0f);
 
 	injectionParticleData[index] = p;
 }

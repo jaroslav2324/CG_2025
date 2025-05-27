@@ -27,6 +27,7 @@ public:
 	virtual void render() = 0;
 	virtual void emit(int countToInit) = 0;
 	virtual void init();
+	void swapSortListBuffers();
 	void sort();
 
 protected:
@@ -40,6 +41,9 @@ protected:
 	ComPtr<ID3D11Buffer> sortListBuffer = nullptr;
 	ComPtr<ID3D11UnorderedAccessView> sortListBufferUAV;
 	ComPtr<ID3D11ShaderResourceView> sortListBufferSRV;
+	ComPtr<ID3D11Buffer> sortListBuffer2 = nullptr;
+	ComPtr<ID3D11UnorderedAccessView> sortListBufferUAV2;
+	ComPtr<ID3D11ShaderResourceView> sortListBufferSRV2;
 	ComPtr<ID3D11Buffer> deadListBuffer = nullptr;
 	ComPtr<ID3D11UnorderedAccessView> deadListBufferUAV;
 	ComPtr<ID3D11ShaderResourceView> deadListBufferSRV;

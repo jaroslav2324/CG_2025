@@ -1,4 +1,3 @@
-#pragma pack_matrix(row_major)
 
 #define BITONIC_BLOCK_SIZE 512
 
@@ -26,35 +25,7 @@ struct ParticleDepth
 };
 
 RWStructuredBuffer<ParticleDepth> Data : register(u0);
-
-//--------------------------------------------------------------------------------------
-// Bitonic Sort Compute Shader
-//--------------------------------------------------------------------------------------
-groupshared ParticleDepth shared_data[BITONIC_BLOCK_SIZE];
-
-[numthreads(BITONIC_BLOCK_SIZE, 1, 1)]
-void BitonicSort(uint3 Gid : SV_GroupID,
-    uint3 DTid : SV_DispatchThreadID,
-    uint3 GTid : SV_GroupThreadID,
-    uint GI : SV_GroupIndex)
-{
-    // Load shared data
-    shared_data[GI] = Data[DTid.x];
-    GroupMemoryBarrierWithGroupSync();
-
-    // Sort the shared data
-    for (unsigned int j = g_iLevel >> 1; j > 0; j >>= 1)
-    {
-        bool result = ((shared_data[GI & ~j].Depth <= shared_data[GI | j].Depth) == (bool)(g_iLevelMask & DTid.x));
-        ParticleDepth tmp = shared_data[GI ^ j];
-        GroupMemoryBarrierWithGroupSync();
-        if (result) shared_data[GI] = tmp;
-        GroupMemoryBarrierWithGroupSync();
-    }
-
-    // Store shared data
-    Data[DTid.x] = shared_data[GI];
-}
+RWStructuredBuffer<ParticleDepth> Data2 : register(u1);
 
 //--------------------------------------------------------------------------------------
 // Matrix Transpose Compute Shader
@@ -70,5 +41,5 @@ void MatrixTranspose(uint3 Gid : SV_GroupID,
     transpose_shared_data[GI] = Data[DTid.y * g_iWidth + DTid.x];
     GroupMemoryBarrierWithGroupSync();
     uint2 XY = DTid.yx - GTid.yx + GTid.xy;
-    Data[XY.y * g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
+    Data2[XY.y * g_iHeight + XY.x] = transpose_shared_data[GTid.x * TRANSPOSE_BLOCK_SIZE + GTid.y];
 }

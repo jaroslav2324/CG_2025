@@ -13,6 +13,7 @@ public:
 	void init() override;
 
 protected:
+	DirectX::SimpleMath::Vector4 randClr();
 	void initParticles(int count);
 	void initParticle(int index) override;
 	ComPtr<ID3D11ComputeShader> computeSimulateShader;
