@@ -7,7 +7,7 @@
 RenderSubsystem::RenderSubsystem()
 {
     gBuf.init();
-    fireParticleSystem = std::make_shared<FireParticleSystem>(8 * 8192, Vector3(0.0f, 5.0f, 0.0f));
+    fireParticleSystem = std::make_shared<FireParticleSystem>(1 * 8192, Vector3(0.0f, 5.0f, 0.0f));
     fireParticleSystem->init();
 
     D3D11_DEPTH_STENCIL_DESC depthStencilDesc;

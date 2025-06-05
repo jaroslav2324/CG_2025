@@ -10,7 +10,7 @@
 
 void FireParticleSystem::update(float deltaTime)
 {
-	emit(std::round(128000 * deltaTime));
+	emit(std::round(20));
 	//emit(std::round(1000 * deltaTime));
 	simulate(deltaTime);
 	sort();
@@ -25,6 +25,8 @@ void FireParticleSystem::simulate(float deltaTime)
 	particleData.deltaTime = deltaTime;
 	particleData.maxNumParticles = maxParticles;
 	particleData.cameraPosition = GE::getCameraPosition();
+	particleData.view = GE::getCameraViewMatrix().Transpose();
+	particleData.proj = GE::getProjectionMatrix().Transpose();
 	mapConstantBuffer(particleDataBuffer, particleData, context);
 	context->CopyStructureCount(particleDataBuffer.Get(), 12, sortListBufferUAV.Get());
 	
@@ -37,8 +39,10 @@ void FireParticleSystem::simulate(float deltaTime)
 	context->CSSetUnorderedAccessViews(2, 1, deadListBufferUAV.GetAddressOf(), &minOne);
 	ID3D11Buffer* rawParticleDataBuffer = particleDataBuffer.Get();
 	context->CSSetConstantBuffers(0, 1, &rawParticleDataBuffer);
+
+	context->CSSetShaderResources(0, 1, GE::getRenderSubsystem()->getGBuffer().getDepthAmbientSRV().GetAddressOf());
+	context->CSSetShaderResources(1, 1, GE::getRenderSubsystem()->getGBuffer().getDiffuseNornalSRV().GetAddressOf());
 	context->CSSetShader(computeSimulateShader.Get(), nullptr, 0);
-	// TODO: calculate from max particles
 	context->Dispatch(32, 32, 1);
 	ID3D11UnorderedAccessView* np = nullptr;
 	context->CSSetUnorderedAccessViews(0, 1, &np, nullptr);
@@ -270,7 +274,7 @@ void FireParticleSystem::initParticle(int index)
 	}
 
 	Particle p;
-	p.acceleration = Vector3(0.0f, 4.0f * -0.981f, 0.0f);
+	p.acceleration = Vector3(0.0f, 1.0f * -0.981f, 0.0f);
 	p.initialColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	p.endColor = randClr();//Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	p.initialSize = 0.02f;
@@ -278,13 +282,15 @@ void FireParticleSystem::initParticle(int index)
 	p.initialWeight = 1.0f;
 	p.endWeight = 1.0f;
 	p.lifetime = 0.0f;
-	p.maxLifetime = 3.0f;
+	p.maxLifetime = 10.0f;
 	p.position = origin;
 	p.prevPosition = origin;
+	p._1 = 0.0f;
 
 	float rf = generateRandomFloat(0.0f, 1.0f * DirectX::XM_2PI);
-	p.velocity = generateRandomFloat(0.3f, 2.0f) * Vector3(std::sin(rf), 0.0f, std::cos(rf));
-	p.velocity.y = generateRandomFloat(0.0f, 1.0f);
+// 	p.velocity = generateRandomFloat(0.3f, 2.0f) * Vector3(std::sin(rf), 0.0f, std::cos(rf));
+// 	p.velocity.y = generateRandomFloat(0.0f, 1.0f);
+	p.velocity = generateRandomFloat(0.01f, 0.05f) * Vector3(std::sin(rf), 0.0f, std::cos(rf));
 
 	injectionParticleData[index] = p;
 }

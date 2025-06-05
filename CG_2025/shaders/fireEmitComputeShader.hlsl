@@ -41,6 +41,8 @@ cbuffer ParticleParams : register(b0)
     int _1;
     float3 cameraPosition;
     int _2;
+    float4x4 view;
+    float4x4 proj;
 };
 
 [numthreads(32, 32, 1)]

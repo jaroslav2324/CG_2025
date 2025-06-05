@@ -6,6 +6,7 @@ struct ParticleData
 {
 private:
 	using Vector3 = DirectX::SimpleMath::Vector3;
+	using Matrix = DirectX::SimpleMath::Matrix;
 public:
 	float deltaTime;
 	unsigned int maxNumParticles;
@@ -15,4 +16,6 @@ public:
 	int _1;
 	Vector3 cameraPosition;
 	int _2;
+	Matrix view;
+	Matrix proj;
 };

@@ -14,6 +14,8 @@ public:
 	void bindPixelShaderResourceViews(int startSlot) const;
 	void unbindPixelShaderResourceViews(int startSlot) const;
 	void clearRenderTargets() const;
+	ComPtr<ID3D11ShaderResourceView> getDepthAmbientSRV() const { return depthAmbientSRV; };
+	ComPtr<ID3D11ShaderResourceView> getDiffuseNornalSRV() const { return diffuseNormalSRV; };
 private:
 	ComPtr<ID3D11Texture2D> depthAmbient = nullptr;
 	ComPtr<ID3D11Texture2D> diffuseNormal = nullptr;
